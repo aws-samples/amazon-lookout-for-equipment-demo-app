@@ -1,0 +1,14 @@
+{
+  "resourceName": "L4eDemoAppStorage",
+  "policyUUID": "6722ee8d",
+  "bucketName": "l4e-demo-app-storage",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

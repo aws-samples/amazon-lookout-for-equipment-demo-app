@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom'
 
 // App components:
 import NavigationBar from './NavigationBar'
-import DatasetOverview from './dashboard/DatasetOverview'
 import DatasetSummary from './dashboard/DatasetSummary'
 
 // Contexts:

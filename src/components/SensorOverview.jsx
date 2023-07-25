@@ -12,12 +12,12 @@ import { TimeSeriesProvider  } from './contexts/TimeSeriesContext'
 import { SensorOverviewProvider } from './contexts/SensorOverviewContext'
 
 // CloudScape Components:
-import AppLayout from "@cloudscape-design/components/app-layout"
-import Alert from "@cloudscape-design/components/alert"
+import AppLayout     from "@cloudscape-design/components/app-layout"
+import Alert         from "@cloudscape-design/components/alert"
 import ContentLayout from "@cloudscape-design/components/content-layout"
-import Header from "@cloudscape-design/components/header"
-import SpaceBetween from "@cloudscape-design/components/space-between"
-import SplitPanel from "@cloudscape-design/components/split-panel"
+import Header        from "@cloudscape-design/components/header"
+import SpaceBetween  from "@cloudscape-design/components/space-between"
+import SplitPanel    from "@cloudscape-design/components/split-panel"
 
 // Utils:
 import useSplitPanel from '../utils/splitPanel'

@@ -88,6 +88,8 @@ function ConditionOverview({ range, modelName, projectName, size, hideTitles }) 
         .then((x) => setAnomalies(x) )
     }, [gateway, range, modelName, projectName])
 
+    console.log('anomalies:', anomalies)
+
     // Renders the component:
     if (anomalies) {
         const totalTime = anomalies['totalTime']

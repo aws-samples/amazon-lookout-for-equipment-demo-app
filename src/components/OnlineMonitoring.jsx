@@ -47,9 +47,9 @@ function OnlineMonitoring() {
                         </Container>
 
                         <Grid gridDefinition={[
-                            { colspan: {l: 4, m: 6, default: 12} },
-                            { colspan: {l: 4, m: 6, default: 12} },
-                            { colspan: {l: 4, m: 12, default: 12} }
+                            { colspan: {default: 6} },
+                            { colspan: {default: 6} },
+                            { colspan: {default: 12} }
                         ]}>
                             <Container header={<Header 
                                 variant="h1" 

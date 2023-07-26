@@ -45,8 +45,8 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     const onConfirm = props.onConfirm
 
     const bucket = awsmobile['aws_user_files_s3_bucket']
-    const inputLocation = `s3://${bucket}/inference-data/${projectName}/input/`
-    const outputLocation = `s3://${bucket}/inference-data/${projectName}/output/`
+    const inputLocation = `s3://${bucket}/inference-data/${modelName}/input/`
+    const outputLocation = `s3://${bucket}/inference-data/${modelName}/output/`
 
     // -------------------------------------
     // Expose the visibility toggle of this 

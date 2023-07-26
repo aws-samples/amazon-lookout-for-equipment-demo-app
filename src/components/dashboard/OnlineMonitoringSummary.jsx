@@ -64,6 +64,7 @@ function OnlineMonitoringSummary({ projectName }) {
             })
         })
 
+        // Render the component:
         return (
             <>
                 <SpaceBetween size="xl">

@@ -1,6 +1,64 @@
 import Box from "@cloudscape-design/components/box"
-import Header from "@cloudscape-design/components/header"
 import Table from "@cloudscape-design/components/table"
+
+// -------------------------------------------
+// Builds the columns definition for the table
+// -------------------------------------------
+function buildColumnsDefinition(tagsList) {
+    let columns = [
+        {id: 'timestamp', header: 'timestamp', cell: e => e.timestamp},
+    ]
+
+    tagsList.forEach((item) => {
+        columns.push({
+            id: item,
+            cell: e => (<Box float="right">{e[item] !== '...' ? parseFloat(e[item]).toFixed(2) : '...'}</Box>),
+            header: item
+        })
+    })
+
+    return columns
+}
+
+// ------------------------
+// Builds the table content
+// ------------------------
+function buildTableItems(modelDetails) {
+    let tableItems = []
+
+    // Reformat the actual content for the table starting with the header:
+    modelDetails.contentHead.Items.forEach((item) => {
+        let current_item = {}
+
+        current_item['timestamp'] = <b>{item['timestamp'].S}</b>
+        modelDetails.attributeList.forEach((column) => {
+            current_item[column] = item[column]['S']
+        })
+
+        tableItems.push(current_item)
+    })
+
+    // Adding an ellipsis between header and tail:
+    let current_item = {}
+    modelDetails.attributeList.forEach((column) => {
+        current_item[column] = '...'
+    })
+    tableItems.push(current_item)
+
+    // Adding the dataset tail:
+    modelDetails.contentTail.Items.forEach((item) => {
+        let current_item = {}
+
+        current_item['timestamp'] = <b>{item['timestamp'].S}</b>
+        modelDetails.attributeList.forEach((column) => {
+            current_item[column] = item[column]['S']
+        })
+
+        tableItems.push(current_item)
+    })
+
+    return tableItems
+}
 
 // -------------------------------------------
 // Component to build the table with the data 
@@ -16,49 +74,9 @@ function DatasetOverview({ modelDetails }) {
             const removed = tagsList.splice(index, 1)
         })
         
-        // Get the columns list:
-        let columns = [
-            {id: 'timestamp', header: 'timestamp', cell: e => e.timestamp},
-        ]
-        tagsList.forEach((item) => {
-            columns.push({
-                id: item,
-                cell: e => (<Box float="right">{e[item] !== '...' ? parseFloat(e[item]).toFixed(2) : '...'}</Box>),
-                header: item
-            })
-        })
-
-        // Reformat the actual content for the table starting with the header:
-        let tableItems = []
-        modelDetails.contentHead.Items.forEach((item) => {
-            let current_item = {}
-
-            current_item['timestamp'] = <b>{item['timestamp'].S}</b>
-            modelDetails.attributeList.forEach((column) => {
-                current_item[column] = item[column].S
-            })
-
-            tableItems.push(current_item)
-        })
-
-        // Adding an ellipsis between header and tail:
-        let current_item = {}
-        modelDetails.attributeList.forEach((column) => {
-            current_item[column] = '...'
-        })
-        tableItems.push(current_item)
-
-        // Adding the dataset tail:
-        modelDetails.contentTail.Items.forEach((item) => {
-            let current_item = {}
-
-            current_item['timestamp'] = <b>{item['timestamp'].S}</b>
-            modelDetails.attributeList.forEach((column) => {
-                current_item[column] = item[column].S
-            })
-
-            tableItems.push(current_item)
-        })
+        // Build the table components (header and body):
+        const columns = buildColumnsDefinition(tagsList)
+        const tableItems = buildTableItems(modelDetails)
 
         // Render the component:
         return (
@@ -78,24 +96,19 @@ function DatasetOverview({ modelDetails }) {
         // Render an empty table:
         return (
             <Table
-                columnDefinitions={[        
-                    {
-                        id: "timestamp",
-                        header: "timestamp",
-                        cell: e => e.timestamp
-                    }
-                ]}
+                columnDefinitions={[{ id: "timestamp", header: "timestamp", cell: e => e.timestamp }]}
                 items={[]}
                 loadingText="Loading resources"
                 empty={
                     <Box textAlign="center" color="inherit">
                         <b>No sensor data</b>
+
                         <Box padding={{ bottom: "s" }} variant="p" color="inherit">
                             No sensor data to display.
                         </Box>
                     </Box>
                 }
-                contentDensity='compact'
+                contentDensity="compact"
                 variant="embedded"
             />
         )

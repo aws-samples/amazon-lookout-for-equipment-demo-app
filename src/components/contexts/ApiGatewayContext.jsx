@@ -1,3 +1,4 @@
+// Imports:
 import { createContext } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import request from "../../utils/request";
@@ -125,9 +126,7 @@ export const ApiGatewayProvider = ({children}) => {
     }
 
     return (
-        <ApiGatewayContext.Provider value={{
-            gateway
-        }}>
+        <ApiGatewayContext.Provider value={{ gateway }}>
             {children}
         </ApiGatewayContext.Provider>
     )

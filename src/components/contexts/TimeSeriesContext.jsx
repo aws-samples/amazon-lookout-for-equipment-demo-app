@@ -3,7 +3,6 @@ import { createContext, useContext } from 'react'
 import { useQuery } from 'react-query'
 import { getAllTimeseries } from '../../utils/dataExtraction.js'
 import ApiGatewayContext from './ApiGatewayContext'
-import Alert from "@cloudscape-design/components/alert"
 import Spinner from "@cloudscape-design/components/spinner"
 const TimeSeriesContext = createContext()
 

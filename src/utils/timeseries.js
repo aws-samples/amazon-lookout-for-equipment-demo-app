@@ -1,15 +1,15 @@
-export function buildTimeseries(items, field) {
+export function buildTimeseries(items, field, fieldType) {
     let x = []
     let y = []
     let sum = 0
+    if (!fieldType) { fieldType = 'S' }
 
     items.forEach((item) => {
         let currentDate = new Date(parseInt(item['timestamp']['N'])*1000)
         currentDate = new Date(currentDate).toISOString().substring(0, 19).replace('T', '\n');
         x.push(currentDate)
-        y.push(parseFloat(item[field]['S']))
-
-        sum += parseFloat(item[field]['S'])
+        y.push(parseFloat(item[field][fieldType]))
+        sum += parseFloat(item[field][fieldType])
     })
 
     return {x, y, sum}

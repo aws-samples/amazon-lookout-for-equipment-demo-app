@@ -44,10 +44,13 @@ function Home({ user, signOut }) {
                         element={<ExplorationModeling />} 
                     />
                     <Route 
-                        path="/offline-results/modelName/:modelName/projectName/:projectName" 
+                        path="/offline-results/modelName/:modelName/projectName/:projectName"
                         element={<OfflineResults />} 
                     />
-                    <Route path="/online-monitoring" element={<OnlineMonitoring />} />
+                    <Route 
+                        path="/online-monitoring/modelName/:modelName/projectName/:projectName"
+                        element={<OnlineMonitoring />} 
+                    />
                     <Route 
                         path="/model-deployment/projectName/:projectName" 
                         element={<ModelDeployment />} 

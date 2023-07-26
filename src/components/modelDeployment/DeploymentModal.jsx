@@ -22,12 +22,8 @@ import StatusIndicator  from "@cloudscape-design/components/status-indicator"
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
 import ModelDeploymentContext from "../contexts/ModelDeploymentContext"
 
-// Utils:
-// import { generateReplayData } from '../onlineResults/schedulerUtils'
-
 // App components:
 import StartDateSelection from './StartDateSelection'
-
 
 // ---------------------
 // Component entry point

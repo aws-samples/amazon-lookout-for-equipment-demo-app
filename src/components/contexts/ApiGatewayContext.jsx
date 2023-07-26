@@ -53,6 +53,20 @@ export const ApiGatewayProvider = ({children}) => {
             deleteInferenceScheduler(schedulerName) {
                 return request("LookoutEquipment", "DeleteInferenceScheduler", {InferenceSchedulerName: schedulerName})
             },
+            listInferenceExecutions(schedulerName, sinceTimestamp, nextToken) {
+                let payload = { InferenceSchedulerName: schedulerName }
+                if (sinceTimestamp) { 
+                    payload['DataStartTimeAfter'] = sinceTimestamp 
+                    payload['DataEndTimeBefore'] = parseInt(Date.now() / 1000)
+                }
+                if (nextToken) {
+                    payload['NextToken'] = nextToken
+                }
+
+                console.log(payload)
+
+                return request("LookoutEquipment", "ListInferenceExecutions", payload)
+            },
 
             // --------------------------------
             // Label and label group management

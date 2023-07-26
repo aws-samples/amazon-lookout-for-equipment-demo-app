@@ -18,8 +18,8 @@ import SpaceBetween     from "@cloudscape-design/components/space-between"
 import Tiles            from "@cloudscape-design/components/tiles"
 
 function OnlineMonitoring() {
-    const { modelName, projectName } = useParams()
-    const [ range, setRange] = useState("7")
+    const { modelName, projectName, initialRange } = useParams()
+    const [ range, setRange] = useState(initialRange ? initialRange : "7")
 
     return (
         <AppLayout
@@ -59,7 +59,7 @@ function OnlineMonitoring() {
                             >
                                 Condition overview
                             </Header>}>
-                                <ConditionOverview range={range} modelName={modelName} projectName={projectName} />
+                                <ConditionOverview range={range} modelName={modelName} projectName={projectName} size="large" />
                             </Container>
 
                             <Container header={<Header 

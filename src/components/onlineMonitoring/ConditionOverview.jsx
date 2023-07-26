@@ -75,7 +75,7 @@ async function getAnomalies(gateway, asset, startTime, endTime) {
 // --------------------------
 // Component main entry point
 // --------------------------
-function ConditionOverview({ range, modelName, projectName }) {
+function ConditionOverview({ range, modelName, projectName, size, hideTitles }) {
     const asset = `${projectName}|${modelName}`
     const { gateway } = useContext(ApiGatewayContext)
     const endTime = Date.now()
@@ -97,7 +97,9 @@ function ConditionOverview({ range, modelName, projectName }) {
         return (
             <PieChart 
                 hideFilter={true}
-                size="large"
+                hideLegend={true}
+                hideTitles={hideTitles ? hideTitles : false}
+                size={size ? size : 'large'}
                 innerMetricDescription="health"
                 innerMetricValue={percentageFormatter(normalTime / totalTime)}
                 variant="donut"
@@ -116,13 +118,13 @@ function ConditionOverview({ range, modelName, projectName }) {
         return (
             <PieChart 
                 hideFilter={true}
-                size="small"
+                size={size ? size : 'small'}
                 data={[]}
                 empty={
                     <Box textAlign="center" color="inherit">
                         <b>No data available</b>
                         <Box variant="p" color="inherit">
-                            There is no data available
+                            There is no data available yet for this asset
                         </Box>
                     </Box>
                 }

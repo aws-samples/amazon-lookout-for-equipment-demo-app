@@ -52,6 +52,10 @@ function Home({ user, signOut }) {
                         element={<OnlineMonitoring />} 
                     />
                     <Route 
+                        path="/online-monitoring/modelName/:modelName/projectName/:projectName/initialRange/:initialRange"
+                        element={<OnlineMonitoring />}
+                    />
+                    <Route 
                         path="/model-deployment/projectName/:projectName" 
                         element={<ModelDeployment />} 
                     />

@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom'
 // App components:
 import NavigationBar from './NavigationBar'
 import DatasetSummary from './dashboard/DatasetSummary'
+import OnlineMonitoringSummary from './dashboard/OnlineMonitoringSummary'
 
 // Contexts:
 import ApiGatewayContext from './contexts/ApiGatewayContext'
@@ -41,7 +42,10 @@ function ProjectDashboard() {
     // When data loads successfully, we render the full component:
     let children = ""
     if (!isLoading && modelDetails) {
-        children = <DatasetSummary modelDetails={modelDetails} />
+        children = <>
+            <DatasetSummary modelDetails={modelDetails} />
+            <OnlineMonitoringSummary projectName={projectName} />
+        </>
     }
     else {
         // If loading is done and data is not available, this means

@@ -1,28 +1,21 @@
 // Imports:
 import { useRef } from 'react'
 
-// App component:
-import DeploymentModal from '../modelDeployment/DeploymentModal'
-
 // CloudScape components:
 import Alert        from "@cloudscape-design/components/alert"
 import Badge        from "@cloudscape-design/components/badge"
 import Box          from "@cloudscape-design/components/box"
-import Button       from "@cloudscape-design/components/button"
 import ColumnLayout from "@cloudscape-design/components/column-layout"
 import Container    from "@cloudscape-design/components/container"
 import Header       from "@cloudscape-design/components/header"
 import SpaceBetween from "@cloudscape-design/components/space-between"
 import Spinner      from '@cloudscape-design/components/spinner'
 import Table        from '@cloudscape-design/components/table'
-import TextContent  from "@cloudscape-design/components/text-content"
 
 // --------------------------
 // Component main entry point
 // --------------------------
 function ModelOverview({ modelDetails, modelName }) {
-    const modelDeploymentRef = useRef(null)
-
     // Define the badge color for the training status:
     let color = 'gray'
     if (modelDetails && modelDetails['status'] == 'SUCCESS') {
@@ -34,15 +27,12 @@ function ModelOverview({ modelDetails, modelName }) {
 
     // Renders the component:
     if (modelDetails) {
-        let offCondition = ''
+        let offCondition = 'No off condition specified'
         if (modelDetails['offCondition']) {
             offCondition = modelDetails['offCondition']['component'] + '\\' +
                            modelDetails['offCondition']['signal'] + ' ' +
                            modelDetails['offCondition']['criteria'] + ' ' +
                            modelDetails['offCondition']['conditionValue']
-        }
-        else {
-            offCondition = 'No off condition specified'
         }
 
         let items = undefined
@@ -113,6 +103,7 @@ function ModelOverview({ modelDetails, modelName }) {
                         </SpaceBetween>
                     </ColumnLayout>
 
+                    {/* Only shows this section if some labels were defined for this model  */}
                     {!modelDetails['labels'] ? '' : <SpaceBetween size="xxs">
                         <Box variant="awsui-key-label">Labels</Box>
                         <Alert>

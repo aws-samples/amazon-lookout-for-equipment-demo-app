@@ -115,3 +115,41 @@ export function getSchedulerStatus(scheduler, modelStatus, modelName, showModelD
     
     return schedulerActions
 }
+
+// ---------------------------
+// Get scheduler launch status
+// ---------------------------
+export async function getSchedulerData(gateway, projectName, stateMachinesList) {
+    const modelSummary = await getModelsSummary(gateway, projectName)
+    const sfnStatus = await getStateMachineStatus(gateway, stateMachinesList)
+
+    return {
+        modelSummary: modelSummary,
+        sfnStatus: sfnStatus
+    }
+}
+
+// -------------------------------------
+// Get the current state machines status
+// -------------------------------------
+async function getStateMachineStatus(gateway, arnList) {
+    let schedulerLaunched = {}
+    const modelList = Object.keys(arnList)
+
+    if (modelList.length > 0) {
+        for (const model of modelList) {
+            schedulerLaunched[model] = false
+            const arn = arnList[model]
+            const response = await gateway.stepFunctions.getExecutionHistory(arn)
+                .catch((error) => { console.log(error.response) })
+
+            response['events'].forEach((activity) => {
+                if (activity['type'] == 'TaskStateExited') {
+                    schedulerLaunched[model] = true
+                }
+            })
+        }
+    }
+
+    return schedulerLaunched
+}

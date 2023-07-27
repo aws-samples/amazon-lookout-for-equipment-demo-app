@@ -106,7 +106,6 @@ export const ApiGatewayProvider = ({children}) => {
                 })
             },
             getExecutionHistory(arn) {
-                console.log('Execution Arn:', arn)
                 return request("StepFunctions", "GetExecutionHistory", {executionArn: arn})
             }
         },

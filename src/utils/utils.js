@@ -182,3 +182,22 @@ export async function getAllSchedulers(gateway, models) {
 
     return schedulersList
 }
+
+// ---------------------------------------------------------------
+// This functions takes a given date (value) and an array. It then 
+// searches this array for the first item that is greater than the 
+// passed date argument. It then returns the index of this item.
+// ---------------------------------------------------------------
+export function getIndex(x, value) {
+    let foundIndex = undefined
+
+    for (const [index, item] of x.entries()) {
+        const currentDate = new Date(item.replace('\n', 'T') + 'Z')
+        if (currentDate >= value) {
+            foundIndex = index
+            break
+        }
+    }
+
+    return foundIndex
+}

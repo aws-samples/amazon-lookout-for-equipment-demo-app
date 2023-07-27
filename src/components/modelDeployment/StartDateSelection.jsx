@@ -11,21 +11,11 @@ import Spinner from "@cloudscape-design/components/spinner"
 // Utils:
 import { getModelDetails } from '../../utils/dataExtraction'
 import { buildTimeseries } from '../../utils/timeseries.js'
+import { getIndex } from '../../utils/utils'
 
-function getIndex(x, value) {
-    let foundIndex = undefined
-
-    for (const [index, item] of x.entries()) {
-        const currentDate = new Date(item.replace('\n', 'T') + 'Z')
-        if (currentDate >= value) {
-            foundIndex = index
-            break
-        }
-    }
-
-    return foundIndex
-}
-
+// ------------------------------------------------------
+// Replay data start date selection component entry point
+// ------------------------------------------------------
 function StartDateSelection({ projectName, modelName, gateway, replayDuration, disabled, setParentReplayStartDate }) {
     const [ replayStartDate, setReplayStartDate ] = useState(undefined)
     const [ modelDetails, setModelDetails ] = useState(undefined)
@@ -39,6 +29,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
         })
     }, [gateway, modelName, projectName])
 
+    // As soon as we get the model details we show the component:
     if (modelDetails) {
         const anomalies = modelDetails['anomalies']
         const results = buildTimeseries(anomalies.Items, 'anomaly')
@@ -47,8 +38,12 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
         const evaluationStartTimestamp = new Date(modelDetails['evaluationStart'])
         const evaluationStartIndex= getIndex(results['x'], evaluationStartTimestamp)
 
+        // Send the replay start date back to the parent component (the 
+        // modal window where the model deploymend is configured):
         setParentReplayStartDate(replayStartDate)
 
+        // Computes the replay end index based on the
+        // start date and the desired replay length:
         let replayEndTimestamp = undefined
         switch (replayDuration) {
             case '1day':
@@ -63,6 +58,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
         }
         const replayEndIndex = getIndex(results['x'], replayEndTimestamp)
 
+        // The options for the eChart component:
         options = {
             grid: [{ left: 30, right: 30, top: 20, height: 30 }],
             xAxis: [{ type: 'category', data: results['x'], show: true, min: evaluationStartIndex }],
@@ -78,23 +74,13 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
                     shadowBlur: 5,
                     width: 0.5
                 },
-                areaStyle: {
-                    color: '#d87a80',
-                    opacity: 0.1
-                },
+                areaStyle: { color: '#d87a80', opacity: 0.1 },
                 markArea: {
                     itemStyle: { color: 'rgb(151, 181, 82, 0.3)' },
-                    data: [
-                        [
-                            {
-                                name: 'Replay range',
-                                xAxis: replayStartIndex
-                            },
-                            {
-                                xAxis: replayEndIndex
-                            }
-                        ],
-                    ]
+                    data: [[
+                        { name: 'Replay range', xAxis: replayStartIndex },
+                        { xAxis: replayEndIndex }
+                    ]]
                 }
             }],
             animation: false,
@@ -107,6 +93,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
         }
     }
 
+    // Renders the component:
     return (
         <FormField label="Replay start date" description="When do you want the replay data to start?">
             { modelDetails && <>

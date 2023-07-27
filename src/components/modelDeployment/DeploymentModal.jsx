@@ -1,7 +1,6 @@
 // Imports:
-import { forwardRef, useContext, useEffect, useImperativeHandle, useState } from 'react'
+import { forwardRef, useContext, useImperativeHandle, useState } from 'react'
 import { useParams } from 'react-router-dom'
-// import { Storage } from 'aws-amplify'
 import awsmobile from '../../aws-exports'
 
 // Cloudscape components:

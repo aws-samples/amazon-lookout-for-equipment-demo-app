@@ -1,7 +1,6 @@
 // Imports:
 import { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { cleanList } from '../../utils/utils'
 
 // CloudScape Components:
 import Box       from "@cloudscape-design/components/box"
@@ -10,76 +9,8 @@ import AreaChart from "@cloudscape-design/components/area-chart"
 // Contexts:
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
-// ---------------------------------------
-// Build a data structure that can be 
-// directly fed to the LineChart component
-// ---------------------------------------
-function buildSensorContributionSeries(items) {
-    const tagsList = cleanList(['model', 'timestamp'], Object.keys(items[0]))
-    let data = {}
-
-    items.forEach((item) => {
-        tagsList.forEach((tag) => {
-            if (!data[tag]) { data[tag] = [] }
-            data[tag].push({
-                x: new Date(parseInt(item['timestamp']['N'])*1000),
-                y: parseFloat(item[tag]['N'])
-            })
-        })
-    })
-
-    return data
-}
-
-// ---------------------------------------------------
-// This function gets the raw anomaly scores generated
-// by a given model between a range of time
-// ---------------------------------------------------
-async function getSensorContribution(gateway, asset, table, startTime, endTime) {
-    const anomalyScoreQuery = { 
-        TableName: table,
-        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
-        ExpressionAttributeNames: {
-            "#model": "model",
-            "#timestamp": "timestamp"
-        },
-        ExpressionAttributeValues: {
-             ":model": {"S": asset},
-             ":startTime": {"N": startTime.toString() },
-             ":endTime": {"N": endTime.toString() }
-        }
-    }
-
-    let sensorContribution = await gateway
-        .dynamoDbQuery(anomalyScoreQuery)
-        .catch((error) => console.log(error.response))
-
-    // If the payload is too large (> 1 MB), the API will paginate
-    // the output. Let's collect all the data we need to cover the 
-    // range requested by the user:
-    if (sensorContribution.Items.length > 0) {
-        let currentSensorContribution = undefined
-        if (sensorContribution.LastEvaluatedKey) {
-            let lastEvaluatedKey = sensorContribution.LastEvaluatedKey
-
-            do {
-                currentSensorContribution = await gateway
-                    .dynamoDbQuery({...anomalyScoreQuery, ExclusiveStartKey: lastEvaluatedKey})
-                    .catch((error) => console.log(error.response))
-
-                if (currentSensorContribution.LastEvaluatedKey) {
-                    lastEvaluatedKey = currentSensorContribution.LastEvaluatedKey
-                }
-                sensorContribution.Items = [...sensorContribution.Items, ...currentSensorContribution.Items]
-
-            } while (currentSensorContribution.LastEvaluatedKey)
-        }
-
-        return buildSensorContributionSeries(sensorContribution.Items)
-    }
-    
-    return undefined
-}
+// Utils
+import { getSensorContribution } from './schedulerUtils'
 
 function SensorContribution({ range }) {
     const { modelName, projectName } = useParams()

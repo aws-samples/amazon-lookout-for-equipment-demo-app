@@ -10,72 +10,8 @@ import { colorChartsStatusHigh } from '@cloudscape-design/design-tokens'
 // Contexts:
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
-// ---------------------------------------
-// Build a data structure that can be 
-// directly fed to the LineChart component
-// ---------------------------------------
-export function buildAnomalyScoreSeries(items) {
-    let data = []
-
-    items.forEach((item) => {
-        data.push({
-            x: new Date(parseInt(item['timestamp']['N'])*1000),
-            y: parseFloat(item['anomaly_score']['N'])
-        })
-    })
-
-    return data
-}
-
-// ---------------------------------------------------
-// This function gets the raw anomaly scores generated
-// by a given model between a range of time
-// ---------------------------------------------------
-async function getAnomalyScores(gateway, asset, startTime, endTime) {
-    const anomalyScoreQuery = { 
-        TableName: 'l4edemoapp-raw-anomalies',
-        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
-        ExpressionAttributeNames: {
-            "#model": "model",
-            "#timestamp": "timestamp"
-        },
-        ExpressionAttributeValues: {
-             ":model": {"S": asset},
-             ":startTime": {"N": startTime.toString() },
-             ":endTime": {"N": endTime.toString() }
-        }
-    }
-
-    let anomalyScores = await gateway
-        .dynamoDbQuery(anomalyScoreQuery)
-        .catch((error) => console.log(error.response))
-
-    // If the payload is too large (> 1 MB), the API will paginate
-    // the output. Let's collect all the data we need to cover the 
-    // range requested by the user:
-    if (anomalyScores.Items.length > 0) {
-        let currentAnomalyScores = undefined
-        if (anomalyScores.LastEvaluatedKey) {
-            let lastEvaluatedKey = anomalyScores.LastEvaluatedKey
-
-            do {
-                currentAnomalyScores = await gateway
-                    .dynamoDbQuery({...anomalyScoreQuery, ExclusiveStartKey: lastEvaluatedKey})
-                    .catch((error) => console.log(error.response))
-
-                if (currentAnomalyScores.LastEvaluatedKey) {
-                    lastEvaluatedKey = currentAnomalyScores.LastEvaluatedKey
-                }
-                anomalyScores.Items = [...anomalyScores.Items, ...currentAnomalyScores.Items]
-
-            } while (currentAnomalyScores.LastEvaluatedKey)
-        }
-
-        return buildAnomalyScoreSeries(anomalyScores.Items)
-    }
-    
-    return undefined
-}
+// Utils
+import { getAnomalyScores } from './schedulerUtils'
 
 // --------------------------
 // Component main entry point
@@ -86,7 +22,6 @@ function AnomalyScore({ range }) {
     const { gateway } = useContext(ApiGatewayContext)
     const endTime = Date.now() / 1000
     const startTime = parseInt(endTime - range * 86400)
-
     const [ anomalyScores, setAnomalyScores ] = useState([])
 
     useEffect(() => { 

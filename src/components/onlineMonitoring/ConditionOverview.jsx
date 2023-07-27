@@ -9,68 +9,10 @@ import { colorChartsStatusPositive, colorChartsStatusHigh } from '@cloudscape-de
 // Contexts:
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
+// Utils
+import { getAnomalies } from './schedulerUtils'
+
 const percentageFormatter = (value) => `${(value * 100).toFixed(0)}%`
-
-// ------------------------------------------------
-// This function gets the anomalous events detected
-// by a given model between a range of time
-// ------------------------------------------------
-async function getAnomalies(gateway, asset, startTime, endTime) {
-    const anomaliesQuery = { 
-        TableName: 'l4edemoapp-anomalies',
-        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
-        ExpressionAttributeNames: {
-            "#model": "model",
-            "#timestamp": "timestamp"
-        },
-        ExpressionAttributeValues: {
-             ":model": {"S": asset},
-             ":startTime": {"N": startTime.toString() },
-             ":endTime": {"N": endTime.toString() }
-        }
-    }
-
-    let anomalies = await gateway
-        .dynamoDbQuery(anomaliesQuery)
-        .catch((error) => console.log(error.response))
-
-    if (anomalies.Items.length > 0) {
-        let currentAnomalies = undefined
-        if (anomalies.LastEvaluatedKey) {
-            let lastEvaluatedKey = anomalies.LastEvaluatedKey
-
-            do {
-                currentAnomalies = await gateway
-                    .dynamoDbQuery({...anomaliesQuery, ExclusiveStartKey: lastEvaluatedKey})
-                    .catch((error) => console.log(error.response))
-
-                if (currentAnomalies.LastEvaluatedKey) {
-                    lastEvaluatedKey = currentAnomalies.LastEvaluatedKey
-                }
-                anomalies.Items = [...anomalies.Items, ...currentAnomalies.Items]
-
-            } while (currentAnomalies.LastEvaluatedKey)
-        }
-
-        let condition = { '0': 0.0, '1': 0.0 }
-        let totalTime = 0.0
-        anomalies.Items.forEach((item, index) => {
-            if (index > 0) {
-                const previousTimestamp = parseFloat(anomalies.Items[index - 1]['timestamp']['N'])
-                const currentTimestamp = parseFloat(item['timestamp']['N'])
-                const duration = currentTimestamp - previousTimestamp
-
-                condition[item['anomaly']['N']] += duration
-                totalTime += duration
-            }
-            
-        })
-
-        return {totalTime, condition}
-    }
-
-    return undefined
-}
 
 // --------------------------
 // Component main entry point

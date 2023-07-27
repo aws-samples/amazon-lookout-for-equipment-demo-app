@@ -61,10 +61,11 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
         }
     })
 
-    // ------------------------
-    // Launch model deployment:
-    // ------------------------
+    // ------------------------------------------------------
+    // Launch model deployment when the user clicks on Deploy
+    // ------------------------------------------------------
     const onDeployConfirm = async () => {
+        // Configure the state machine to be launched:
         const sfnArn = 'arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-deploy-model'
         const inputPayload = { 
             modelName: modelName, 
@@ -74,22 +75,47 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
             replayStart: replayStartDate
         }
 
+        // Start the state machine and gets its ARN:
         let response = {}
         await gateway.stepFunctions.startExecution(sfnArn, inputPayload)
             .then((x) => response = x)
             .catch((error) => console.log(error.response))
-
         const executionArn = response['executionArn']
 
+        // Update the current state machine list in the model deployment context:
         let currentStateMachinesList = stateMachinesList
         currentStateMachinesList[modelName] = executionArn
         setStateMachinesList(currentStateMachinesList)
 
+        // Wait for the scheduler to be running to close the modal 
+        // window: replace the Deploy button by a Spinner while the 
+        // scheduler is not running. Also triggers a refresh of the
+        // initial models list component to update the scheduler status:
         setDeployInProgress(true)
-        await new Promise(r => setTimeout(r, 2000));
+        await checkSchedulerStatus(modelName)
         onConfirm()
         onDeployDismiss()
         setDeployInProgress(false)
+    }
+
+    // ----------------------------------------
+    // Wait for a given scheduler to be running
+    // ----------------------------------------
+    async function checkSchedulerStatus(modelName) {
+        let schedulerRunning = false
+
+        do {
+            const response = await gateway.lookoutEquipment
+                .listInferenceSchedulers(modelName)
+                .catch((error) => console.log(error.response))
+
+            if (response['InferenceSchedulerSummaries'].length > 0) {
+                schedulerRunning = response['InferenceSchedulerSummaries'][0]['Status'] === 'RUNNING'
+            }
+
+            await new Promise(r => setTimeout(r, 1000));
+
+        } while (!schedulerRunning)
     }
 
     // ------------------------

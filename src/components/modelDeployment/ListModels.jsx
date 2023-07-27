@@ -36,8 +36,6 @@ function ListModels({ projectName }) {
     const [ currentModelName, setCurrentModelName ] = useState("")
     const modelDeploymentRef = useRef(null)
 
-    console.log('stateMachinesList:', stateMachinesList)
-
     // Loads model configuration:
     useEffect(() => {
         getSchedulerData(gateway, projectName, stateMachinesList)

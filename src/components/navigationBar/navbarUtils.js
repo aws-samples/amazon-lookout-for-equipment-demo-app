@@ -6,7 +6,6 @@ import { getAllModels, getAllProjects, getAllSchedulers } from '../../utils/util
 // application
 // ===============================================
 export const buildHierarchy = async (gateway, currentProject) => {
-    console.log('currentProject:', currentProject)
     let items = []
 
     // Extracts all the projects, models and schedulers visible from this account:

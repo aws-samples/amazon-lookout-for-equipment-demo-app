@@ -120,7 +120,7 @@ function CreateProject() {
                                             showFileLastModified
                                             showFileSize
                                             tokenLimit={1}
-                                            constraintText="Upload a single CSV file or a ZIP archive containing multiple CSV files"
+                                            constraintText="Upload a single CSV file containing the sensors data for an individual asset"
                                         />
                                     </FormField>
 

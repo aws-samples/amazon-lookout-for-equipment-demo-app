@@ -33,6 +33,8 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
         })
     }, [gateway])
 
+    // console.log('signalDetails:', signalDetails)
+
     // The data query is done and the signal details are 
     // available from the Lookout for Equipment service:
     if (!isLoading && signalDetails) {

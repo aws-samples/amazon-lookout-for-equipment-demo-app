@@ -1,9 +1,19 @@
 // Imports:
 import { createContext, useContext } from 'react'
 import { useQuery } from 'react-query'
+
+// Utils:
 import { getAllTimeseries } from '../../utils/dataExtraction.js'
-import ApiGatewayContext from './ApiGatewayContext'
+
+// Cloudscape components:
+import Alert from "@cloudscape-design/components/alert"
+import Container from "@cloudscape-design/components/container"
+import Header from "@cloudscape-design/components/header"
 import Spinner from "@cloudscape-design/components/spinner"
+
+// Context:
+import ApiGatewayContext from './ApiGatewayContext'
+
 const TimeSeriesContext = createContext()
 
 // -----------------------------------------------------------
@@ -88,7 +98,7 @@ export const TimeSeriesProvider = ({children, projectName}) => {
     // ---------------------------
     // Loads the time series data
     const { data, status } = useQuery(["timeseries", gateway, projectName], fetchTimeseries)
-    
+
     if (status === 'success') {
         const tagsList = getTagsList()
 
@@ -103,6 +113,17 @@ export const TimeSeriesProvider = ({children, projectName}) => {
                 {children}
             </TimeSeriesContext.Provider>
         )
+    }
+    else if (status === 'error') {
+        <TimeSeriesContext.Provider value={{data: undefined, queryStatus: 'error'}}>
+            <Container header={<Header variant="h1">Summary</Header>}>
+                <Alert header="Data preparation in progress">
+                    Data preparation and ingestion in the app still in progress: after uploading your
+                    dataset, the app prepares it to optimize visualization speed. This step usually takes
+                    10 to 20 minutes depending on the size of the dataset you uploaded.
+                </Alert>
+            </Container>
+        </TimeSeriesContext.Provider>
     }
     else {
         return (

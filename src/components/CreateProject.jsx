@@ -59,12 +59,13 @@ function CreateProject() {
                 file,
                 { 
                     contentType: file.type,
+                    level: "private",
                     progressCallback
                 }
             )
         }
         catch (error) {
-            console.log("Error uploading file: ", error);
+            console.log("Error uploading file:", error.response);
         }
     }
 

@@ -36,7 +36,7 @@ function OnlineMonitoringSummary({ projectName }) {
     useEffect(() => {
         getSchedulerData(gateway, [projectName])
         .then((x) => setModelsList(x))
-    }, [gateway, range])
+    }, [gateway, range, projectName])
 
     function viewModelDetails(e, modelName) {
         e.preventDefault()

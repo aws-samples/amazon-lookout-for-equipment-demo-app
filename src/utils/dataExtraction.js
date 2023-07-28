@@ -3,33 +3,37 @@
 // ----------------------------------------------------------
 export async function getSignalDetails(gateway, model_name) {
     const lookoutEquipmentProjectName = 'l4e-demo-app-' + model_name
-    
-    const projectDetail = await gateway
-        .lookoutEquipmentDescribeDataset(lookoutEquipmentProjectName)
-        .catch((error) => { 
-            console.log(error.response['data']['Message'])
-        })
 
-    if (!projectDetail) {
-        return undefined
-    }
-    else {
-        const ingestionStatus = projectDetail['Status']
-        if (ingestionStatus !== 'ACTIVE') {
-            return undefined
-        }
-        else {
-            const ingestionJobDetails = await gateway.lookoutEquipmentListDataIngestionJobs(lookoutEquipmentProjectName)
-            const jobId = ingestionJobDetails["DataIngestionJobSummaries"][0]["JobId"]
-            const sensorStatistics = await gateway.lookoutEquipmentListSensorStatistics(lookoutEquipmentProjectName, jobId)
+    const response = await gateway.lookoutEquipment
+        .listDatasets(lookoutEquipmentProjectName)
+        .catch((error) => console.log(error.response))
 
-            return {
-                tagsList: JSON.parse(projectDetail.Schema)['Components'][0]['Columns'],
-                numTags: JSON.parse(projectDetail.Schema)['Components'][0]['Columns'].length - 1,
-                sensorStatistics: sensorStatistics["SensorStatisticsSummaries"]
+    if (response['DatasetSummaries'].length > 0) {
+        const projectDetail = await gateway
+            .lookoutEquipmentDescribeDataset(lookoutEquipmentProjectName)
+            .catch((error) => { console.log(error.response['data']['Message']) })
+
+        if (projectDetail) {
+            const ingestionStatus = projectDetail['Status']
+            if (ingestionStatus !== 'ACTIVE') {
+                return undefined
+            }
+            else {
+                const ingestionJobDetails = await gateway.lookoutEquipmentListDataIngestionJobs(lookoutEquipmentProjectName)
+                // console.log(lookoutEquipmentProjectName, ingestionJobDetails)
+                const jobId = ingestionJobDetails["DataIngestionJobSummaries"][0]["JobId"]
+                const sensorStatistics = await gateway.lookoutEquipmentListSensorStatistics(lookoutEquipmentProjectName, jobId)
+
+                return {
+                    tagsList: JSON.parse(projectDetail.Schema)['Components'][0]['Columns'],
+                    numTags: JSON.parse(projectDetail.Schema)['Components'][0]['Columns'].length - 1,
+                    sensorStatistics: sensorStatistics["SensorStatisticsSummaries"]
+                }
             }
         }
     }
+
+    return undefined
 }
 
 // -----------------------------------------------------------
@@ -85,48 +89,50 @@ export async function getAllTimeseries(gateway, modelName) {
 
     const listTables = await gateway.dynamoDbListTables()
     const tableAvailable = (listTables['TableNames'].indexOf(targetTableName) >= 0)
-    let tableStatus = await gateway.dynamoDbDescribeTable(targetTableName)
-    tableStatus = tableStatus['Table']['TableStatus']
 
-    if (tableAvailable && tableStatus === 'ACTIVE') {
-        const timeSeriesQuery = { 
-            TableName: targetTableName,
-            KeyConditionExpression: "#sr = :sr",
-            ExpressionAttributeNames: {"#sr": "sampling_rate"},
-            ExpressionAttributeValues: { ":sr": {"S": "1h"}}
-        }
+    if (tableAvailable) {
+        let tableStatus = await gateway.dynamoDbDescribeTable(targetTableName)
+        tableStatus = tableStatus['Table']['TableStatus']
 
-        let timeseries = await gateway.dynamoDbQuery(timeSeriesQuery)
-        let current_timeseries = undefined
-        if (timeseries.LastEvaluatedKey) {
-            let lastEvaluatedKey = timeseries.LastEvaluatedKey
+        if (tableStatus === 'ACTIVE') {
+            const timeSeriesQuery = { 
+                TableName: targetTableName,
+                KeyConditionExpression: "#sr = :sr",
+                ExpressionAttributeNames: {"#sr": "sampling_rate"},
+                ExpressionAttributeValues: { ":sr": {"S": "1h"}}
+            }
 
-            do {
-                current_timeseries = await gateway
-                    .dynamoDbQuery({...timeSeriesQuery, ExclusiveStartKey: lastEvaluatedKey})
+            let timeseries = await gateway.dynamoDbQuery(timeSeriesQuery)
+            let current_timeseries = undefined
+            if (timeseries.LastEvaluatedKey) {
+                let lastEvaluatedKey = timeseries.LastEvaluatedKey
 
-                if (current_timeseries.LastEvaluatedKey) {
-                    lastEvaluatedKey = current_timeseries.LastEvaluatedKey
-                }
-                timeseries.Items = [...timeseries.Items, ...current_timeseries.Items]
+                do {
+                    current_timeseries = await gateway
+                        .dynamoDbQuery({...timeSeriesQuery, ExclusiveStartKey: lastEvaluatedKey})
 
-            } while (current_timeseries.LastEvaluatedKey)
-        }
+                    if (current_timeseries.LastEvaluatedKey) {
+                        lastEvaluatedKey = current_timeseries.LastEvaluatedKey
+                    }
+                    timeseries.Items = [...timeseries.Items, ...current_timeseries.Items]
 
-        return {
-            timeseries: timeseries,
-            startDate: timeseries.Items[0]['timestamp']['S'],
-            endDate: timeseries.Items[timeseries.Items.length - 1]['timestamp']['S'],
-            tagsList: Object.keys(timeseries.Items[0]),
+                } while (current_timeseries.LastEvaluatedKey)
+            }
+
+            return {
+                timeseries: timeseries,
+                startDate: timeseries.Items[0]['timestamp']['S'],
+                endDate: timeseries.Items[timeseries.Items.length - 1]['timestamp']['S'],
+                tagsList: Object.keys(timeseries.Items[0]),
+            }
         }
     }
-    else {
-        return {
-            timeseries: undefined,
-            startDate: undefined,
-            endDate: undefined,
-            tagsList: undefined
-        }
+
+    return {
+        timeseries: undefined,
+        startDate: undefined,
+        endDate: undefined,
+        tagsList: undefined
     }
 }
 

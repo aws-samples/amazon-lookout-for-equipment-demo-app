@@ -37,7 +37,7 @@ function ProjectDashboard() {
             setModelDetails(x)
             setIsLoading(false)
         })
-    }, [gateway])
+    }, [gateway, projectName])
 
     // When data loads successfully, we render the full component:
     let children = ""

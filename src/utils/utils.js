@@ -104,9 +104,9 @@ export const getModelList = async (gateway, currentProject) => {
 // Get all the projects listed under this account
 // ==============================================
 export async function getAllProjects() {
-    const folders = await Storage.list('', { pageSize: "ALL"})
+    const folders = await Storage.list('', { level: "private", pageSize: "ALL"})
         .then(({ results }) => { return listFolders(results) })
-        .catch((err) => console.log(err))
+        .catch((error) => console.log(error.response))
 
     let projects = []
     folders.forEach((folder) => {

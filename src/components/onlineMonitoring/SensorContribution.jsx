@@ -70,7 +70,7 @@ function SensorContribution({ range }) {
                     <Box textAlign="center" color="inherit">
                         <b>No data available</b>
                         <Box variant="p" color="inherit">
-                            There is no data available
+                            There is no data available: either the scheduler has not been running for long enough, or no anomalies were detected in the selected time range
                         </Box>
                     </Box>
                 }

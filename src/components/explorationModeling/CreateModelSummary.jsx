@@ -3,17 +3,17 @@ import { forwardRef, useContext, useState, useImperativeHandle } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // Cloudscape components:
-import Alert from "@cloudscape-design/components/alert"
-import Box from "@cloudscape-design/components/box"
-import Button from "@cloudscape-design/components/button"
+import Alert        from "@cloudscape-design/components/alert"
+import Box          from "@cloudscape-design/components/box"
+import Button       from "@cloudscape-design/components/button"
 import ColumnLayout from "@cloudscape-design/components/column-layout"
-import Form from "@cloudscape-design/components/form"
-import FormField from "@cloudscape-design/components/form-field"
-import Input from "@cloudscape-design/components/input"
-import Modal from "@cloudscape-design/components/modal"
+import Form         from "@cloudscape-design/components/form"
+import FormField    from "@cloudscape-design/components/form-field"
+import Input        from "@cloudscape-design/components/input"
+import Modal        from "@cloudscape-design/components/modal"
 import SpaceBetween from "@cloudscape-design/components/space-between"
-import Textarea from "@cloudscape-design/components/textarea"
-import TextContent from "@cloudscape-design/components/text-content"
+import Textarea     from "@cloudscape-design/components/textarea"
+import TextContent  from "@cloudscape-design/components/text-content"
 
 // Contexts
 import ModelParametersContext from '../contexts/ModelParametersContext'
@@ -36,8 +36,6 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
         offConditionValue,
         selectedLabelGroupName
     } = useContext(ModelParametersContext)
-
-    console.log('selectedLabelGroupName:', selectedLabelGroupName.current)
 
     const { x } = useContext(TimeSeriesContext)
     const { gateway } = useContext(ApiGatewayContext)
@@ -210,7 +208,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
                             <FormField label={`${labels.current.length} label${labels.current.length > 1 ? 's' : ''} created (optional):`}>
                                 <SpaceBetween size="s">
                                     {selectedLabelGroupName.current ? <Alert>The following labels are stored in label group <b>{selectedLabelGroupName.current}</b>.</Alert> : ''}
-                                    {!selectedLabelGroupName.current ? <Alert type="error">Your labels must be stored in a group. Navigate back to the <b>Labels</b> tab and create a new label group.</Alert> : ''}
+                                    {(!selectedLabelGroupName.current && labels.current.length > 0) ? <Alert type="error">Your labels must be stored in a group. Navigate back to the <b>Labels</b> tab and create a new label group.</Alert> : ''}
                                     <Textarea
                                         onChange={({ detail }) => setValue(detail.value)}
                                         value={listLabels === "" ? "No label created" : listLabels}

@@ -60,9 +60,10 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
 
         // The options for the eChart component:
         options = {
-            grid: [{ left: 30, right: 30, top: 20, height: 30 }],
+            grid: [{ left: 30, right: 30, top: 30, height: 30 }],
             xAxis: [{ type: 'category', data: results['x'], show: true, min: evaluationStartIndex }],
             yAxis: [{ show: false }],
+            dataZoom: { start: 0, end: 20, type: 'slider', height: 15, bottom: 10},
             series: [{
                 symbol: 'none',
                 data: results['y'],
@@ -107,7 +108,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
                         option={options}
                         notMerge={true}
                         theme="macarons"
-                        style={{height: 80, width: "100%"}}
+                        style={{height: 120, width: "100%"}}
                     />
                 </>
             }

@@ -32,6 +32,18 @@ export const ApiGatewayProvider = ({children}) => {
             return request("LookoutEquipment", "CreateModel", requestArg)
         },
         lookoutEquipment: {
+            // -------------------
+            // Datasets management
+            // -------------------
+            listDatasets(datasetName) {
+                if (datasetName) {
+                    return request("LookoutEquipment", "ListDatasets", {DatasetNameBeginsWith: datasetName})
+                }
+                else {
+                    return request("LookoutEquipment", "ListDatasets")
+                }
+            },
+
             // -----------------
             // Models management
             // -----------------
@@ -63,8 +75,6 @@ export const ApiGatewayProvider = ({children}) => {
                 if (nextToken) {
                     payload['NextToken'] = nextToken
                 }
-
-                console.log(payload)
 
                 return request("LookoutEquipment", "ListInferenceExecutions", payload)
             },

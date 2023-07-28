@@ -25,7 +25,7 @@ function NavigationBar({ activeHref }) {
     useEffect(() => {
         buildHierarchy(gateway, projectName)
         .then((x) => setNavItems(x))
-    }, [])
+    }, [projectName])
 
     // Renders the side navigation bar:
     const NavBar = () => {

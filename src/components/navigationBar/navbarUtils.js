@@ -6,6 +6,7 @@ import { getAllModels, getAllProjects, getAllSchedulers } from '../../utils/util
 // application
 // ===============================================
 export const buildHierarchy = async (gateway, currentProject) => {
+    console.log('currentProject:', currentProject)
     let items = []
 
     // Extracts all the projects, models and schedulers visible from this account:
@@ -20,7 +21,7 @@ export const buildHierarchy = async (gateway, currentProject) => {
         // modeling screen:
         let currentItems = {
             type: 'expandable-link-group', 
-            href: '/project-dashboard/projectName/' + project,
+            // href: '/project-dashboard/projectName/' + project,
             text: project, 
             defaultExpanded: (currentProject === project),
             items: [
@@ -40,10 +41,12 @@ export const buildHierarchy = async (gateway, currentProject) => {
 
         // If some models were already *deployed* in this project, 
         // we list them under a new "Online / live results" section:
-        const currentSchedulers = schedulersList[project]
-        if (currentSchedulers.length > 0) {
-            const onlineMonitoringSection = buildSchedulersSection(currentSchedulers, project)
-            currentItems['items'] = [...currentItems['items'], ...onlineMonitoringSection]
+        if (schedulersList[project]) {
+            const currentSchedulers = schedulersList[project]
+            if (currentSchedulers.length > 0) {
+                const onlineMonitoringSection = buildSchedulersSection(currentSchedulers, project)
+                currentItems['items'] = [...currentItems['items'], ...onlineMonitoringSection]
+            }
         }
 
         items.push(currentItems)

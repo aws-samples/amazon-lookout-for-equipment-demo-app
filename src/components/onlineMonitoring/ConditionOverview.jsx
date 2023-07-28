@@ -31,7 +31,7 @@ function ConditionOverview({ range, modelName, projectName, size, hideTitles }) 
     }, [gateway, range, modelName, projectName])
 
     // Renders the component:
-    if (anomalies) {
+    if (anomalies && anomalies['totalTime'] > 0) {
         const totalTime = anomalies['totalTime']
         const normalTime = anomalies['condition']['0']
         const abnormalTime = anomalies['condition']['1']

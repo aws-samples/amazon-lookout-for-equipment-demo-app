@@ -23,7 +23,7 @@ function UnivariateTimeSeriesChart({ sensorName }) {
     const { setCurrentBrushes, setSelectedRanges } = useContext(SensorOverviewContext)
     const eChartRef = useRef(null)
 
-    if (data) {
+    if (data.timeseries) {
         let tagsList = [...data.tagsList]
         tagsList = cleanList(['asset', 'sampling_rate', 'timestamp', 'unix_timestamp'], tagsList)
 

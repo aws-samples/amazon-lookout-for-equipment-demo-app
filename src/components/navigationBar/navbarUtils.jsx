@@ -17,7 +17,6 @@ export const buildHierarchy = async (gateway, currentProject) => {
 
     // Loops through each project to create the hierarchy for each of them:
     for (const project of projects) {
-    // projects.forEach((project) => {
         // A project is ready to be exposed in the application when the hourly
         // data is imported into DynamoDB and when the ingestion into the 
         // Lookout for Equipment project is done (meaning the Lookout for Equipment

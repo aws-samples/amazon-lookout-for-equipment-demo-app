@@ -24,15 +24,19 @@ export const buildHierarchy = async (gateway, currentProject) => {
         // is not only Created but Active):
         const projectAvailable = await checkProjectAvailability(gateway, project)
 
+        // Adapt the icon color to the context:
+        let iconType = 'normal'
+        if (!projectAvailable) { iconType = 'error' }
+        else if (currentProject === project) { iconType = 'link' }
+
         // Assemble the basic items we always find for all 
         // projects: main dashboard, sensor overview and 
         // modeling screen:
-        // let currentItems = undefined
         let currentItems = {
             type: 'expandable-link-group', 
             text: <>
                 <Icon name={(currentProject === project) ? 'folder-open' : 'folder'} 
-                      variant={(currentProject === project) ? 'link' : 'normal'} />
+                      variant={iconType} />
                 &nbsp;&nbsp;
                 <b>{project}</b>
             </>,

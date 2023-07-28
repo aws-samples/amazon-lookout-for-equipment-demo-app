@@ -28,13 +28,15 @@ import { getProjectDetails } from './projectDashboard/projectDashboardUtils'
 function ProjectDashboard() {
     const { projectName } = useParams()
     const [ modelDetails, setModelDetails ] = useState(undefined)
+    const [ errorMessage, setErrorMessage ] = useState("undefined")
     const [ isLoading, setIsLoading ] = useState(true)
     const { gateway } = useContext(ApiGatewayContext)
 
     useEffect(() => {
         getProjectDetails(gateway, projectName)
-        .then((x) => { 
-            setModelDetails(x)
+        .then(({projectDetails, errorMessage}) => { 
+            setModelDetails(projectDetails)
+            setErrorMessage(errorMessage)
             setIsLoading(false)
         })
     }, [gateway, projectName])
@@ -50,13 +52,21 @@ function ProjectDashboard() {
     else {
         // If loading is done and data is not available, this means
         // that data ingestion and preparation is still in progress:
-        if (!isLoading && !modelDetails) {
+        if (!isLoading && !modelDetails & errorMessage === "") {
             children = <Container header={<Header variant="h1">Summary</Header>}>
                             <Alert header="Data preparation in progress">
                                 Data preparation and ingestion in the app still in progress: after uploading your
                                 dataset, the app prepares it to optimize visualization speed. This step usually takes
                                 10 to 20 minutes depending on the size of the dataset you uploaded.
                             </Alert>
+                        </Container>
+        }
+
+        // If loading is done and an error message was issued,
+        // this usually means this page does not exist:
+        else if (!isLoading && errorMessage !== "") {
+            children = <Container header={<Header variant="h1">Summary</Header>}>
+                            <Alert header="Error" type="error">{errorMessage}</Alert>
                         </Container>
         }
 

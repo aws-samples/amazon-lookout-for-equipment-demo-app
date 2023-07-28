@@ -201,3 +201,39 @@ export function getIndex(x, value) {
 
     return foundIndex
 }
+
+// ------------------------------------------------------------
+// This function checks whether or not a given project is ready
+// ------------------------------------------------------------
+export async function checkProjectAvailability(gateway, projectName) {
+    let availability = false
+    const targetTableName = 'l4edemoapp-' + projectName
+    const lookoutEquipmentProjectName = 'l4e-demo-app-' + projectName
+
+    // Checks if the DynamoDB table with the hourly data is available:
+    const listTables = await gateway.dynamoDbListTables()
+    const tableAvailable = (listTables['TableNames'].indexOf(targetTableName) >= 0)
+
+    // If the table is available, we need it in Active 
+    // status (meaning the data import is finished):
+    if (tableAvailable) {
+        let tableStatus = await gateway.dynamoDbDescribeTable(targetTableName)
+        tableStatus = tableStatus['Table']['TableStatus']
+
+        // If the table is active, we need to check if the L4E 
+        // dataset/project status is ACTIVE. If it's only CREATED 
+        // then, the dataset is created but the data ingestion is 
+        // not done:
+        if (tableStatus === 'ACTIVE') {
+            const response = await gateway.lookoutEquipment.listDatasets()
+
+            response['DatasetSummaries'].forEach((dataset) => {
+                if (dataset['DatasetName'] === lookoutEquipmentProjectName && dataset['Status'] === 'ACTIVE') {
+                    availability = true
+                }
+            })
+        }
+    }
+
+    return availability
+}

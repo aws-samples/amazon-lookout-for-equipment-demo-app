@@ -1,4 +1,6 @@
-import { getAllModels, getAllProjects, getAllSchedulers } from '../../utils/utils'
+import { getAllModels, getAllProjects, getAllSchedulers, checkProjectAvailability } from '../../utils/utils'
+
+import Icon from "@cloudscape-design/components/icon"
 
 // ===============================================
 // Builds the project list based on the available 
@@ -14,42 +16,62 @@ export const buildHierarchy = async (gateway, currentProject) => {
     const schedulersList = await getAllSchedulers(gateway, modelsList)
 
     // Loops through each project to create the hierarchy for each of them:
-    projects.forEach((project) => {
+    for (const project of projects) {
+    // projects.forEach((project) => {
+        // A project is ready to be exposed in the application when the hourly
+        // data is imported into DynamoDB and when the ingestion into the 
+        // Lookout for Equipment project is done (meaning the Lookout for Equipment
+        // is not only Created but Active):
+        const projectAvailable = await checkProjectAvailability(gateway, project)
+
         // Assemble the basic items we always find for all 
         // projects: main dashboard, sensor overview and 
         // modeling screen:
+        // let currentItems = undefined
         let currentItems = {
             type: 'expandable-link-group', 
-            // href: '/project-dashboard/projectName/' + project,
-            text: project, 
-            defaultExpanded: (currentProject === project),
-            items: [
+            text: <>
+                <Icon name={(currentProject === project) ? 'folder-open' : 'folder'} 
+                      variant={(currentProject === project) ? 'link' : 'normal'} />
+                &nbsp;&nbsp;
+                <b>{project}</b>
+            </>,
+            defaultExpanded: (currentProject === project)
+        }
+
+        if (!projectAvailable) {
+            currentItems['items'] = [
+                { type: 'link', text: 'Dashboard', href: '/project-dashboard/projectName/' + project }
+            ]
+        }
+        else {
+            currentItems['items'] = [
                 { type: 'link', text: 'Dashboard', href: '/project-dashboard/projectName/' + project },
                 { type: 'link', text: 'Sensor overview', href: '/sensor-overview/projectName/' + project },
                 { type: 'link', text: 'Exploration & Modeling', href: '/exploration-modeling/projectName/' + project }
             ]
-        }
 
-        // If some models were already trained in this project, 
-        // we list them under a new "Offline results" section:
-        const currentModels = modelsList[project]
-        if (currentModels.length > 0) {
-            const offlineResultsSection = buildOfflineResultsSection(currentModels, project)
-            currentItems['items'] = [...currentItems['items'], ...offlineResultsSection]
-        }
+            // If some models were already trained in this project, 
+            // we list them under a new "Offline results" section:
+            const currentModels = modelsList[project]
+            if (currentModels.length > 0) {
+                const offlineResultsSection = buildOfflineResultsSection(currentModels, project)
+                currentItems['items'] = [...currentItems['items'], ...offlineResultsSection]
+            }
 
-        // If some models were already *deployed* in this project, 
-        // we list them under a new "Online / live results" section:
-        if (schedulersList[project]) {
-            const currentSchedulers = schedulersList[project]
-            if (currentSchedulers.length > 0) {
-                const onlineMonitoringSection = buildSchedulersSection(currentSchedulers, project)
-                currentItems['items'] = [...currentItems['items'], ...onlineMonitoringSection]
+            // If some models were already *deployed* in this project, 
+            // we list them under a new "Online / live results" section:
+            if (schedulersList[project]) {
+                const currentSchedulers = schedulersList[project]
+                if (currentSchedulers.length > 0) {
+                    const onlineMonitoringSection = buildSchedulersSection(currentSchedulers, project)
+                    currentItems['items'] = [...currentItems['items'], ...onlineMonitoringSection]
+                }
             }
         }
 
         items.push(currentItems)
-    })
+    }
 
     // Builds the main navigation items array 
     // that will feed the side navigation bar:

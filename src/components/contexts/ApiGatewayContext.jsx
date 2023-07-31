@@ -22,9 +22,6 @@ export const ApiGatewayProvider = ({children}) => {
                 IngestionJobId: jobId
             })
         },
-        lookoutEquipmentDescribeModel(modelName) {
-            return request("LookoutEquipment", "DescribeModel", {ModelName: modelName})
-        },
         lookoutEquipmentCreateModel(createRequest) {
             let requestArg = createRequest
             requestArg['ClientToken'] = uuidv4()
@@ -49,6 +46,9 @@ export const ApiGatewayProvider = ({children}) => {
             // -----------------
             listModels(datasetName) {
                 return request("LookoutEquipment", "ListModels", {DatasetNameBeginsWith: datasetName})
+            },
+            describeModel(modelName) {
+                return request("LookoutEquipment", "DescribeModel", {ModelName: modelName})
             },
 
             // ---------------------

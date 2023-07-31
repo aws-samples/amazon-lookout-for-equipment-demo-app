@@ -10,7 +10,7 @@ import AreaChart from "@cloudscape-design/components/area-chart"
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 // Utils
-import { getSensorContribution } from './schedulerUtils'
+import { getSensorData } from './schedulerUtils'
 
 function SensorContribution({ range }) {
     const { modelName, projectName } = useParams()
@@ -22,8 +22,8 @@ function SensorContribution({ range }) {
     const [ sensorContribution, setSensorContribution ] = useState(undefined)
 
     useEffect(() => { 
-        getSensorContribution(gateway, asset, `l4edemoapp-${projectName}-sensor_contribution`, startTime, endTime)
-        .then((x) => setSensorContribution(x) )
+        getSensorData(gateway, asset, projectName, modelName, startTime, endTime)
+        .then((x) => setSensorContribution(x))
     }, [gateway, range, modelName, projectName])
 
     // Rendering the component:
@@ -31,7 +31,7 @@ function SensorContribution({ range }) {
         let series = []
         const tagsList = Object.keys(sensorContribution)
 
-        tagsList.forEach((tag) => {
+        tagsList.forEach((tag, index) => {
             series.push({
                 title: tag,
                 type: "area",

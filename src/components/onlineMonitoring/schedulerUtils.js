@@ -28,8 +28,6 @@ async function getDatasetS3Key(gateway, projectName) {
 export async function generateReplayData(modelName, projectName, gateway, s3ProgressCallback) {
     const datasetCsvS3Key = await getDatasetS3Key(gateway, projectName)
 
-    console.log(datasetCsvS3Key)
-
     const result = await Storage.get(
         datasetCsvS3Key, 
         { 
@@ -175,32 +173,32 @@ export async function getAnomalies(gateway, asset, startTime, endTime) {
     return undefined
 }
 
-// ---------------------------------------
-// Build a data structure that can be 
-// directly fed to the LineChart component
-// ---------------------------------------
-function buildSensorContributionSeries(items) {
-    const tagsList = cleanList(['model', 'timestamp'], Object.keys(items[0]))
-    let data = {}
+// // ---------------------------------------
+// // Build a data structure that can be 
+// // directly fed to the LineChart component
+// // ---------------------------------------
+// function buildSensorContributionSeries(items) {
+//     const tagsList = cleanList(['model', 'timestamp'], Object.keys(items[0]))
+//     let data = {}
 
-    items.forEach((item) => {
-        tagsList.forEach((tag) => {
-            if (!data[tag]) { data[tag] = [] }
-            data[tag].push({
-                x: new Date(parseInt(item['timestamp']['N'])*1000),
-                y: parseFloat(item[tag]['N'])
-            })
-        })
-    })
+//     items.forEach((item) => {
+//         tagsList.forEach((tag) => {
+//             if (!data[tag]) { data[tag] = [] }
+//             data[tag].push({
+//                 x: new Date(parseInt(item['timestamp']['N'])*1000),
+//                 y: parseFloat(item[tag]['N'])
+//             })
+//         })
+//     })
 
-    return data
-}
+//     return data
+// }
 
 // ---------------------------------------------------
 // This function gets the raw anomaly scores generated
 // by a given model between a range of time
 // ---------------------------------------------------
-export async function getSensorContribution(gateway, asset, table, startTime, endTime) {
+async function getSensorContribution(gateway, asset, table, startTime, endTime) {
     const anomalyScoreQuery = { 
         TableName: table,
         KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
@@ -240,8 +238,93 @@ export async function getSensorContribution(gateway, asset, table, startTime, en
             } while (currentSensorContribution.LastEvaluatedKey)
         }
 
-        return buildSensorContributionSeries(sensorContribution.Items)
+        return sensorContribution.Items
     }
     
     return undefined
+}
+
+// ---------------------------------------
+// Build a data structure that can be 
+// directly fed to the LineChart component
+// ---------------------------------------
+function buildSensorContributionSeries(x, y, tagsList) {
+    let data = {}
+
+    x.forEach((xItem, index) => {
+        tagsList.forEach((tag) => {
+            if (!data[tag]) { data[tag] = [] }
+            data[tag].push({
+                x: xItem,
+                y: y[index][tag]
+            })
+        })
+    })
+
+    return data
+}
+
+function buildTimeSeries(items, tagsList) {
+    let data = {}
+
+    items.forEach((item) => {
+        let currentItem = {}
+
+        tagsList.forEach((tag) => {
+            currentItem[tag] = parseFloat(item[tag]['N'])
+        })
+        
+        data[new Date(item['timestamp']['N']*1000)] = currentItem
+    })
+
+    return data
+}
+
+// -------------------------------------------
+// Builds an empty record given a list of tags
+// -------------------------------------------
+function getEmptyRecord(tagsList) {
+    let emptyRecord = {}
+
+    tagsList.forEach((tag) => {
+        emptyRecord[tag] = 0.0
+    })
+
+    return emptyRecord
+}
+
+export async function getSensorData(gateway, asset, projectName, modelName, startTime, endTime) {
+    const possibleSamplingRate = {
+        'PT1S': 1, 
+        'PT5S': 5,
+        'PT10S': 10,
+        'PT15S': 15,
+        'PT30S': 30,
+        'PT1M': 60,
+        'PT5M': 300,
+        'PT10M': 600,
+        'PT15M': 900,
+        'PT30M': 1800,
+        'PT1H': 3600
+    }
+
+    const contributionData = await getSensorContribution(gateway, asset, `l4edemoapp-${projectName}-sensor_contribution`, startTime, endTime)
+    const response = await gateway.lookoutEquipment.describeModel(modelName)
+    const samplingRate = possibleSamplingRate[response['DataPreProcessingConfiguration']['TargetSamplingRate']]
+    const tagsList = cleanList(['model', 'timestamp'], Object.keys(contributionData[0]))
+    const ts = buildTimeSeries(contributionData, tagsList)
+    const emptyRow = getEmptyRecord(tagsList)
+    const xStart = new Date(Object.keys(ts)[0])
+    const xEnd = new Date(Object.keys(ts)[Object.keys(ts).length - 1])
+    const numIndexes = parseInt((xEnd - xStart)/1000 / samplingRate)
+
+    const xDomain = Array.from(new Array(numIndexes), (x, index) => new Date(xStart.getTime() + index * samplingRate * 1000))
+    const yData = Array.from(xDomain, x => {
+        if (ts[x]) {
+            return ts[x]
+        }
+        return emptyRow
+    })
+
+    return buildSensorContributionSeries(xDomain, yData, tagsList)
 }

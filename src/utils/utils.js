@@ -33,6 +33,9 @@ export function sortDictionnary(dict, ascending) {
     return keys
 }
 
+// ---------------------------------------------
+// Get width in pixels given a list of tag names
+// ---------------------------------------------
 export function getLegendWidth(legendKeys) {
     let maxLength = 0
     legendKeys.forEach((key) => {
@@ -51,6 +54,9 @@ export function getCurrentISODate(date) {
     return new Date(currentDate).toISOString()
 }
 
+// ----------------------------
+// Get human readable file size
+// ----------------------------
 export function getHumanReadableSize(filesize) {
     let filesizeString = ""
 
@@ -73,6 +79,9 @@ export function getHumanReadableSize(filesize) {
     return filesizeString
 }
 
+// ---------------------------------------------------------------------------
+// Takes a list and some items to remove. Returns the list without the latters
+// ---------------------------------------------------------------------------
 export function cleanList(itemsToRemove, targetList) {
     itemsToRemove.forEach((item) => {
         const index = targetList.indexOf(item)
@@ -82,9 +91,9 @@ export function cleanList(itemsToRemove, targetList) {
     return targetList
 }
 
-// ==========================================================
+// ----------------------------------------------------------
 // Get all the models linked to a given L4E project / dataset
-// ==========================================================
+// ----------------------------------------------------------
 export const getModelList = async (gateway, currentProject) => {
     const lookoutEquipmentProjectName = `l4e-demo-app-${currentProject}`
 
@@ -100,9 +109,9 @@ export const getModelList = async (gateway, currentProject) => {
     return listModelNames
 }
 
-// ==============================================
+// ----------------------------------------------
 // Get all the projects listed under this account
-// ==============================================
+// ----------------------------------------------
 export async function getAllProjects() {
     const folders = await Storage.list('', { level: "private", pageSize: "ALL"})
         .then(({ results }) => { return listFolders(results) })
@@ -116,9 +125,9 @@ export async function getAllProjects() {
     return projects
 }
 
-// ==================================================
+// --------------------------------------------------
 // Get all the models for all the projects / datasets
-// ==================================================
+// --------------------------------------------------
 export async function getAllModels(gateway, projects, uid) {
     let modelsList = {}
 
@@ -139,7 +148,9 @@ export async function getAllModels(gateway, projects, uid) {
     return modelsList
 }
 
-// ==================================
+// ----------------------------
+// Get a given scheduler status
+// ----------------------------
 export const getSchedulerStatus = async (gateway, currentModel) => {
     let status = undefined
     const response = await gateway.lookoutEquipment.listInferenceSchedulers(currentModel)
@@ -150,7 +161,9 @@ export const getSchedulerStatus = async (gateway, currentModel) => {
     return status
 }
 
-// ==================================
+// ---------------------------------------
+// Get all the scehdulers and their status
+// ---------------------------------------
 export async function getAllSchedulers(gateway, models) {
     let schedulersList = {}
     let allPromises = []

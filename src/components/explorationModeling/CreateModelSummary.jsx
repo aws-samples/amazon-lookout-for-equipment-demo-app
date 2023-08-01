@@ -38,7 +38,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
     } = useContext(ModelParametersContext)
 
     const { x } = useContext(TimeSeriesContext)
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const [visible, setVisible] = useState(false)
     const dismissModelSummary = props.dismissFunction
     const navigate = useNavigate()
@@ -104,7 +104,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
 
             let createRequest = {
                 ModelName: datasetName.current + '-' + modelName.current,
-                DatasetName: "l4e-demo-app-" + datasetName.current,
+                DatasetName: `l4e-demo-app-${uid}-${datasetName.current}`,
                 DatasetSchema: { InlineDataSchema: JSON.stringify(schema) },
                 TrainingDataStartTime: parseInt(new Date(trainingStartDate).getTime() / 1000),
                 TrainingDataEndTime: parseInt(new Date(trainingEndDate).getTime() / 1000),
@@ -121,7 +121,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
             // Add labels option:
             if (selectedLabelGroupName.current) {
                 createRequest['LabelsInputConfiguration'] = {
-                    LabelGroupName: datasetName.current + '-' + selectedLabelGroupName.current
+                    LabelGroupName: uid + '-' + datasetName.current + '-' + selectedLabelGroupName.current
                 }
             }
 

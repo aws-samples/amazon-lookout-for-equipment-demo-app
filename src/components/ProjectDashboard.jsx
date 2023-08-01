@@ -30,10 +30,10 @@ function ProjectDashboard() {
     const [ modelDetails, setModelDetails ] = useState(undefined)
     const [ errorMessage, setErrorMessage ] = useState("undefined")
     const [ isLoading, setIsLoading ] = useState(true)
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
 
     useEffect(() => {
-        getProjectDetails(gateway, projectName)
+        getProjectDetails(gateway, uid + '-' + projectName)
         .then(({projectDetails, errorMessage}) => { 
             setModelDetails(projectDetails)
             setErrorMessage(errorMessage)

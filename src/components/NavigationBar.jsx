@@ -16,14 +16,14 @@ import { buildHierarchy } from './navigationBar/navbarUtils'
 // Component main entry point
 // ==========================
 function NavigationBar({ activeHref }) {
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const [navItems, setNavItems] = useState([])
     const navigate = useNavigate()
     const { projectName } = useParams()
 
     // Builds the hierarchy:
     useEffect(() => {
-        buildHierarchy(gateway, projectName)
+        buildHierarchy(gateway, projectName, uid)
         .then((x) => setNavItems(x))
     }, [projectName])
 

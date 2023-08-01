@@ -6,20 +6,20 @@ import ReactEcharts from "echarts-for-react"
 import LabelsTable from "./LabelsTable"
 
 // Cloudscape components:
-import Alert from "@cloudscape-design/components/alert"
-import Box from "@cloudscape-design/components/box"
-import Button from "@cloudscape-design/components/button"
-import Form from "@cloudscape-design/components/form"
-import FormField from '@cloudscape-design/components/form-field'
-import Input from "@cloudscape-design/components/input"
-import Modal from "@cloudscape-design/components/modal"
-import Select from "@cloudscape-design/components/select"
+import Alert        from "@cloudscape-design/components/alert"
+import Box          from "@cloudscape-design/components/box"
+import Button       from "@cloudscape-design/components/button"
+import Form         from "@cloudscape-design/components/form"
+import FormField    from '@cloudscape-design/components/form-field'
+import Input        from "@cloudscape-design/components/input"
+import Modal        from "@cloudscape-design/components/modal"
+import Select       from "@cloudscape-design/components/select"
 import SpaceBetween from "@cloudscape-design/components/space-between"
 
 // Contexts:
-import TimeSeriesContext from '../contexts/TimeSeriesContext'
+import TimeSeriesContext      from '../contexts/TimeSeriesContext'
 import ModelParametersContext from '../contexts/ModelParametersContext'
-import ApiGatewayContext from '../contexts/ApiGatewayContext'
+import ApiGatewayContext      from '../contexts/ApiGatewayContext'
 
 // Utils:
 import { getLegendWidth } from '../../utils/utils.js'
@@ -32,7 +32,7 @@ import "../../styles/chartThemeMacarons.js"
 function LabelsManagement({ componentHeight }) {
     const { data, tagsList, x, signals } = useContext(TimeSeriesContext)
     const { trainingRange, labels, totalLabelDuration, datasetName, selectedLabelGroupName, selectedLabelGroupValue } = useContext(ModelParametersContext)
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const labelsTableRef = useRef(undefined)
     const eChartRef = useRef(null)
     const [ labelGroupName, setLabelGroupName ] = useState(!selectedLabelGroupName.current ? "" : selectedLabelGroupName.current)
@@ -153,7 +153,7 @@ function LabelsManagement({ componentHeight }) {
 
         if (labels.current.length > 0) {
             const labelGroupRequest = {
-                LabelGroupName: datasetName.current + '-' + labelGroupName,
+                LabelGroupName: uid + '-' + datasetName.current + '-' + labelGroupName,
                 Tags: [{ 'Key': 'ProjectName', 'Value': datasetName.current }]
             }
 
@@ -163,7 +163,7 @@ function LabelsManagement({ componentHeight }) {
 
             labels.current.forEach(async (label) => {
                 const labelRequest = {
-                    LabelGroupName: datasetName.current + '-' + labelGroupName,
+                    LabelGroupName: uid + '-' + datasetName.current + '-' + labelGroupName,
                     StartTime: new Date(x[label['start']]).getTime() / 1000,
                     EndTime: new Date(x[label['end']]).getTime() / 1000,
                     Rating: 'ANOMALY'
@@ -183,13 +183,14 @@ function LabelsManagement({ componentHeight }) {
     }
 
     async function getLabelGroups() {
-        const response = await gateway.lookoutEquipment.listLabelGroups(datasetName.current + '-')
+        const response = await gateway.lookoutEquipment.listLabelGroups(uid + '-' + datasetName.current + '-')
 
         let labelGroupOptions = [{label: 'No label', value: 'NoLabel'}]
         if (response['LabelGroupSummaries'].length > 0) {
-            
             response['LabelGroupSummaries'].forEach((labelGroup) => {
-                labelGroupOptions.push({'label': labelGroup['LabelGroupName'], 'value': labelGroup['LabelGroupName']})
+                let label = labelGroup['LabelGroupName']
+                label = label.split('-').slice(2).join('-')
+                labelGroupOptions.push({'label': label, 'value': labelGroup['LabelGroupName']})
             })    
         }
 
@@ -228,9 +229,8 @@ function LabelsManagement({ componentHeight }) {
                 labels.current = currentRanges
             }
 
-            console.log('currentLabelGroupName:', currentLabelGroupName)
             selectedLabelGroupValue.current = currentLabelGroupName
-            currentLabelGroupName = currentLabelGroupName.substring(datasetName.current.length + 1, currentLabelGroupName.length)
+            currentLabelGroupName = currentLabelGroupName.substring(uid.length + 1 + datasetName.current.length + 1, currentLabelGroupName.length)
             setLabelGroupName(currentLabelGroupName)
             selectedLabelGroupName.current = currentLabelGroupName
         }

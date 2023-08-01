@@ -37,7 +37,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     const [ replayStartDate, setReplayStartDate ] = useState(undefined)
     const [ replayDuration, setReplayDuration ] = useState({ label: "1 day", value: "1day" })
 
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const { stateMachinesList, setStateMachinesList } = useContext(ModelDeploymentContext)
 
     const onDeployDismiss = props.onDismiss
@@ -68,7 +68,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
         const sfnArn = 'arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-deploy-model'
         const inputPayload = { 
             modelName: modelName, 
-            projectName: projectName,
+            projectName: uid + '-' + projectName,
             generateReplayData: replayDataChecked,
             replayDuration: replayDuration['value'],
             replayStart: replayStartDate
@@ -174,6 +174,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
                                 replayDuration={replayDuration['value']}
                                 disabled={!replayDataChecked}
                                 setParentReplayStartDate={setReplayStartDate}
+                                uid={uid}
                             />
                         </SpaceBetween>
                     </Container>

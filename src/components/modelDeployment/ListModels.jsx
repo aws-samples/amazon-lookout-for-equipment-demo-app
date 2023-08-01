@@ -26,7 +26,7 @@ import { buildModelTableContent, getSchedulerData } from './deploymentUtils'
 // Component main entry point
 // --------------------------
 function ListModels({ projectName }) {
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const { stateMachinesList, setStateMachinesList } = useContext(ModelDeploymentContext)
     const [ isLoading, setIsLoading ] = useState(true)
     const [ sfnStatus, setSfnStatus ] = useState({})
@@ -38,7 +38,7 @@ function ListModels({ projectName }) {
 
     // Loads model configuration:
     useEffect(() => {
-        getSchedulerData(gateway, projectName, stateMachinesList)
+        getSchedulerData(gateway, uid + '-' + projectName, stateMachinesList)
         .then(({modelSummary, sfnStatus}) => {
             setModelsSummary(modelSummary)
             setIsLoading(false)

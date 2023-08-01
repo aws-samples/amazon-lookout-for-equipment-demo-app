@@ -7,12 +7,12 @@ import Icon from "@cloudscape-design/components/icon"
 // folders in the S3 bucket linked to this Amplify 
 // application
 // ===============================================
-export const buildHierarchy = async (gateway, currentProject) => {
+export const buildHierarchy = async (gateway, currentProject, uid) => {
     let items = []
 
     // Extracts all the projects, models and schedulers visible from this account:
     const projects = await getAllProjects()
-    const modelsList = await getAllModels(gateway, projects)
+    const modelsList = await getAllModels(gateway, projects, uid)
     const schedulersList = await getAllSchedulers(gateway, modelsList)
 
     // Loops through each project to create the hierarchy for each of them:
@@ -21,7 +21,7 @@ export const buildHierarchy = async (gateway, currentProject) => {
         // data is imported into DynamoDB and when the ingestion into the 
         // Lookout for Equipment project is done (meaning the Lookout for Equipment
         // is not only Created but Active):
-        const projectAvailable = await checkProjectAvailability(gateway, project)
+        const projectAvailable = await checkProjectAvailability(gateway, uid + '-' + project)
 
         // Adapt the icon color to the context:
         let iconType = 'normal'

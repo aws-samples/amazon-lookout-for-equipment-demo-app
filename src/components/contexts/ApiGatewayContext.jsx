@@ -5,7 +5,9 @@ import request from "../../utils/request";
 
 const ApiGatewayContext = createContext()
 
-export const ApiGatewayProvider = ({children}) => {
+export const ApiGatewayProvider = ({user, children}) => {
+    const uid = user.attributes.sub.split("-")[0]
+
     const gateway = {
         // ---------------------------
         // Lookout for Equipment calls
@@ -135,7 +137,7 @@ export const ApiGatewayProvider = ({children}) => {
     }
 
     return (
-        <ApiGatewayContext.Provider value={{ gateway }}>
+        <ApiGatewayContext.Provider value={{ gateway, uid }}>
             {children}
         </ApiGatewayContext.Provider>
     )

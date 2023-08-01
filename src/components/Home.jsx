@@ -26,7 +26,7 @@ const queryClient = new QueryClient()
 function Home({ user, signOut }) {
     return (
         <QueryClientProvider client={queryClient}>
-            <ApiGatewayProvider>
+            <ApiGatewayProvider user={user}>
                 <TopMenuBar user={user} signOut={signOut} />
                 <Routes>
                     <Route path="/" element={<Welcome />} />

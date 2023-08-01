@@ -137,7 +137,7 @@ function ModelingSignalSelection() {
     // Collect context information for time series, 
     // gateway and the current model configuration:
     const { data, tagsList, x, signals } = useContext(TimeSeriesContext)
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const { trainingRange, evaluationRange, selectedItems, currentPageIndex, allChecked } = useContext(ModelParametersContext)
     const { setSelectedItems, setCurrentPageIndex, setAllChecked } = useContext(ModelParametersContext)
 
@@ -147,7 +147,7 @@ function ModelingSignalSelection() {
 
     // Extract the details of the signals to be displayed:
     useEffect(() => {
-        getSignalDetails(gateway, projectName)
+        getSignalDetails(gateway, uid + '-' + projectName)
         .then((x) => setSignalDetails(x))
     }, [gateway])
 

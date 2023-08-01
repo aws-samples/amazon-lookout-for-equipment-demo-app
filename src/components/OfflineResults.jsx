@@ -19,11 +19,11 @@ import ApiGatewayContext from './contexts/ApiGatewayContext'
 
 function OfflineResults() {
     const [ modelDetails, setModelDetails ] = useState(undefined)
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const { modelName, projectName } = useParams()
     
     useEffect(() => {
-        getModelDetails(gateway, modelName, projectName)
+        getModelDetails(gateway, modelName, projectName, uid)
         .then((x) => setModelDetails(x))
     }, [gateway, modelName, projectName])
 

@@ -30,7 +30,7 @@ const fetchTimeseries = async ({ queryKey }) => {
 // Time provider definition
 // ========================
 export const TimeSeriesProvider = ({children, projectName}) => {
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
 
     // ---------------------------------------------------
     // Provides a clean tags list from the current dataset
@@ -97,7 +97,7 @@ export const TimeSeriesProvider = ({children, projectName}) => {
     // Context provider definition
     // ---------------------------
     // Loads the time series data
-    const { data, status } = useQuery(["timeseries", gateway, projectName], fetchTimeseries)
+    const { data, status } = useQuery(["timeseries", gateway, uid + '-' + projectName], fetchTimeseries)
 
     if (status === 'success') {
         const tagsList = getTagsList()

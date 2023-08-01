@@ -1,8 +1,8 @@
 // ----------------------------------------------------------
 // Extract a summary of the signals contained in this dataset
 // ----------------------------------------------------------
-export async function getSignalDetails(gateway, model_name) {
-    const lookoutEquipmentProjectName = 'l4e-demo-app-' + model_name
+export async function getSignalDetails(gateway, modelName) {
+    const lookoutEquipmentProjectName = 'l4e-demo-app-' + modelName
 
     const response = await gateway.lookoutEquipment
         .listDatasets(lookoutEquipmentProjectName)
@@ -182,8 +182,8 @@ export async function getAllTimeseriesWindow(gateway, modelName, startTime, endT
 // -----------------------------
 // Get trained model information
 // -----------------------------
-export async function getModelDetails(gateway, modelName, projectName) {
-    const modelResponse = await gateway.lookoutEquipmentDescribeModel(modelName)
+export async function getModelDetails(gateway, modelName, projectName, uid) {
+    const modelResponse = await gateway.lookoutEquipment.describeModel(modelName)
 
     let offCondition = processOffResponse(modelResponse)
     if (offCondition) { offCondition['component'] = projectName }
@@ -239,14 +239,14 @@ export async function getModelDetails(gateway, modelName, projectName) {
     }
 
     if (modelResponse['Status'] === 'SUCCESS') {
-        const modelEvaluationInfos = await getModelEvaluationInfos(gateway, modelName, projectName, modelResponse['EvaluationDataEndTime'])
+        const modelEvaluationInfos = await getModelEvaluationInfos(gateway, modelName, uid + '-' + projectName, modelResponse['EvaluationDataEndTime'])
         const timeseries = await getAllTimeseriesWindow(
             gateway, 
-            projectName, 
+            uid + '-' + projectName, 
             modelResponse['TrainingDataStartTime'],
             modelResponse['EvaluationDataEndTime']
         )
-    
+
         response['modelMetrics'] = JSON.parse(modelResponse['ModelMetrics']),
         response['anomalies'] = modelEvaluationInfos['anomalies'],
         response['dailyAggregation'] = modelEvaluationInfos['dailyAggregation'],

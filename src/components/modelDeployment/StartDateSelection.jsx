@@ -16,13 +16,13 @@ import { getIndex } from '../../utils/utils'
 // ------------------------------------------------------
 // Replay data start date selection component entry point
 // ------------------------------------------------------
-function StartDateSelection({ projectName, modelName, gateway, replayDuration, disabled, setParentReplayStartDate }) {
+function StartDateSelection({ projectName, modelName, gateway, replayDuration, disabled, setParentReplayStartDate, uid }) {
     const [ replayStartDate, setReplayStartDate ] = useState(undefined)
     const [ modelDetails, setModelDetails ] = useState(undefined)
     let options = undefined
 
     useEffect(() => {
-        getModelDetails(gateway, modelName, projectName)
+        getModelDetails(gateway, modelName, projectName, uid)
         .then((x) => {
             setModelDetails(x)
             setReplayStartDate(x['evaluationStart'])

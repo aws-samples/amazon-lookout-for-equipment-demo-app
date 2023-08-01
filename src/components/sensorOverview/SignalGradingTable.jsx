@@ -23,10 +23,10 @@ import { getSignalDetails } from '../../utils/dataExtraction'
 function SignalGradingTable({ projectName, selectedItems, changeSelectedItems }) {
     const [ signalDetails, setSignalDetails ] = useState(undefined)
     const [ isLoading, setIsLoading ] = useState(true)
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
 
     useEffect(() => {
-        getSignalDetails(gateway, projectName)
+        getSignalDetails(gateway, uid + '-' + projectName)
         .then((x) => {
             setSignalDetails(x)
             setIsLoading(false)

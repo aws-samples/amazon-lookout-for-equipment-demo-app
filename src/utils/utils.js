@@ -119,11 +119,11 @@ export async function getAllProjects() {
 // ==================================================
 // Get all the models for all the projects / datasets
 // ==================================================
-export async function getAllModels(gateway, projects) {
+export async function getAllModels(gateway, projects, uid) {
     let modelsList = {}
 
     const promises = Array.from(projects).map(async project => {
-        const modelsList = await getModelList(gateway, project)
+        const modelsList = await getModelList(gateway, uid + '-' + project)
         return {
             project: project,
             models: modelsList 
@@ -207,8 +207,8 @@ export function getIndex(x, value) {
 // ------------------------------------------------------------
 export async function checkProjectAvailability(gateway, projectName) {
     let availability = false
-    const targetTableName = 'l4edemoapp-' + projectName
-    const lookoutEquipmentProjectName = 'l4e-demo-app-' + projectName
+    const targetTableName = `l4edemoapp-${projectName}`
+    const lookoutEquipmentProjectName = `l4e-demo-app-${projectName}`
 
     // Checks if the DynamoDB table with the hourly data is available:
     const listTables = await gateway.dynamoDbListTables()

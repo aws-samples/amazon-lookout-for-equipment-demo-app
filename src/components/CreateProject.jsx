@@ -93,20 +93,28 @@ function CreateProject() {
     // ------------------------------------------------------------
     const handleCreateProjectSubmit = async (e) => {
         e.preventDefault()
+        let currentError = ""
 
         if (projectName.length <= 2) {
-            setErrorMessage('Project name must be at least 3 characters long')
+            currentError = 'Project name must be at least 3 characters long'
         }
         else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(projectName)) {
-            setErrorMessage('Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)')
+            currentError = 'Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
         }
         else if (! await checkProjectNameAvailability(projectName)) {
-            setErrorMessage('Project name not available')
+            currentError = 'Project name not available'
+        }
+        else if (dataset.length < 1) {
+            currentError = 'You must select a file to upload'
         }
 
-        if (errorMessage === "") {
+        if (currentError === "") {
+            setErrorMessage("")
             await uploadFileToS3(projectName, dataset[0])
             navigate('/')
+        }
+        else {
+            setErrorMessage(currentError)
         }
     }
     

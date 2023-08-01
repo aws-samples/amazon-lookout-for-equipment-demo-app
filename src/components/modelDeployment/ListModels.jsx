@@ -148,7 +148,6 @@ function ListModels({ projectName }) {
                 <SpaceBetween size="xl">
                     <Box variant="p">
                         Here is the list of all models trained for asset <b>{projectName}</b>:
-                        Counter: {counter}
                     </Box>
 
                     <Table 

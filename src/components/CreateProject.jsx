@@ -1,14 +1,15 @@
 // Imports:
 import { Storage } from 'aws-amplify'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { useNavigate } from "react-router-dom"
-import { getHumanReadableSize } from '../utils/utils.js'
+import { getHumanReadableSize, getAllProjects } from '../utils/utils.js'
 
 // Application components:
 import NavigationBar from './NavigationBar'
 
 // CloudScape components:
 import AppLayout        from "@cloudscape-design/components/app-layout"
+import Alert            from "@cloudscape-design/components/alert"
 import Button           from "@cloudscape-design/components/button"
 import Container        from "@cloudscape-design/components/container"
 import ContentLayout    from "@cloudscape-design/components/content-layout"
@@ -20,24 +21,31 @@ import Input            from "@cloudscape-design/components/input"
 import ProgressBar      from "@cloudscape-design/components/progress-bar"
 import SpaceBetween     from "@cloudscape-design/components/space-between"
 
+// Context:
+import ApiGatewayContext from './contexts/ApiGatewayContext.jsx'
+
 // ==================================================
 // Component main entry point: this component manages 
 // the Create Project form where a user can create a 
 // new project:
 // ==================================================
 function CreateProject() {
-    const [projectName, setProjectName]           = useState("")
-    const [dataset, setDataset]                   = useState([])
-    const [progressPercent, setProgressPercent]   = useState(0)
-    const [bytesTransferred, setBytesTransferred] = useState("0 bytes loaded")
-    const [filename, setFilename]                 = useState("")
-    const [uploadInProgress, setUploadInProgress] = useState(false)
+    const [ projectName, setProjectName ]           = useState("")
+    const [ dataset, setDataset ]                   = useState([])
+    const [ progressPercent, setProgressPercent ]   = useState(0)
+    const [ bytesTransferred, setBytesTransferred ] = useState("0 bytes loaded")
+    const [ filename, setFilename ]                 = useState("")
+    const [ uploadInProgress, setUploadInProgress ] = useState(false)
+    const [ errorMessage, setErrorMessage ]         = useState("")
 
+    const { uid } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
 
+    // --------------------------------------
     // Called while a file is pushed to S3 to 
     // provide feedback to the user during an 
     // upload:
+    // --------------------------------------
     const progressCallback = (progress) => {
         if (!progress['timeStamp']) {
             setProgressPercent(parseInt(progress.loaded / progress.total * 100))
@@ -49,7 +57,9 @@ function CreateProject() {
         }
     }
 
+    // -----------------------
     // Uploading a file to S3:
+    // -----------------------
     const uploadFileToS3 = async (prefix, file) => {
         try {
             setFilename(file.name)
@@ -60,6 +70,7 @@ function CreateProject() {
                 { 
                     contentType: file.type,
                     level: "private",
+                    tagging: `L4EDemoAppUser=${uid}`,
                     progressCallback
                 }
             )
@@ -69,16 +80,39 @@ function CreateProject() {
         }
     }
 
+    async function checkProjectNameAvailability(projectName) {
+        const projects = await getAllProjects()
+        
+        return projects.indexOf(projectName) < 0
+    }
+
+    // ------------------------------------------------------------
     // Action triggered when the user submits the project creation
     // form: we upload the file to S3, show a progress bar and then 
     // navigate back to the welcome screen:
+    // ------------------------------------------------------------
     const handleCreateProjectSubmit = async (e) => {
         e.preventDefault()
-        await uploadFileToS3(projectName, dataset[0])
-        navigate('/')
+
+        if (projectName.length <= 2) {
+            setErrorMessage('Project name must be at least 3 characters long')
+        }
+        else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(projectName)) {
+            setErrorMessage('Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)')
+        }
+        else if (! await checkProjectNameAvailability(projectName)) {
+            setErrorMessage('Project name not available')
+        }
+
+        if (errorMessage === "") {
+            await uploadFileToS3(projectName, dataset[0])
+            navigate('/')
+        }
     }
     
+    // ---------------------
     // Render the component:
+    // ---------------------
     return (
         <AppLayout
             contentType="default"
@@ -134,6 +168,8 @@ function CreateProject() {
                                             />
                                         }
                                     </FormField>
+
+                                    { errorMessage && <Alert type="error">{errorMessage}</Alert> }
                                 </SpaceBetween>
                             </Container>
                         </Form>

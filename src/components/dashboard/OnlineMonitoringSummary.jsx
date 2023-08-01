@@ -19,22 +19,22 @@ import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 import { getAllModels, getAllSchedulers } from '../../utils/utils'
 
-async function getSchedulerData(gateway, projects) {
-    const modelsList = await getAllModels(gateway, projects)
+async function getSchedulerData(gateway, projects, uid) {
+    const modelsList = await getAllModels(gateway, projects, uid)
     const schedulersList = await getAllSchedulers(gateway, modelsList)
 
     return schedulersList[projects[0]]
 }
 
 function OnlineMonitoringSummary({ projectName }) {
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const [ range, setRange] = useState("7")
     const [ modelsList, setModelsList ] = useState(undefined)
     const navigate = useNavigate()
 
     // Builds the hierarchy:
     useEffect(() => {
-        getSchedulerData(gateway, [projectName])
+        getSchedulerData(gateway, [projectName], uid)
         .then((x) => setModelsList(x))
     }, [gateway, range, projectName])
 

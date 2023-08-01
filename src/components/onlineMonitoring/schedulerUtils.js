@@ -34,7 +34,6 @@ export async function generateReplayData(modelName, projectName, gateway, s3Prog
             download: true,
             progressCallback(progress) {
                 s3ProgressCallback(progress)
-                // console.log(`Downloaded: ${progress.loaded}/${progress.total}`);
             }
         }
     )
@@ -309,22 +308,26 @@ export async function getSensorData(gateway, asset, projectName, modelName, star
     }
 
     const contributionData = await getSensorContribution(gateway, asset, `l4edemoapp-${projectName}-sensor_contribution`, startTime, endTime)
-    const response = await gateway.lookoutEquipment.describeModel(modelName)
-    const samplingRate = possibleSamplingRate[response['DataPreProcessingConfiguration']['TargetSamplingRate']]
-    const tagsList = cleanList(['model', 'timestamp'], Object.keys(contributionData[0]))
-    const ts = buildTimeSeries(contributionData, tagsList)
-    const emptyRow = getEmptyRecord(tagsList)
-    const xStart = new Date(Object.keys(ts)[0])
-    const xEnd = new Date(Object.keys(ts)[Object.keys(ts).length - 1])
-    const numIndexes = parseInt((xEnd - xStart)/1000 / samplingRate)
+    if (contributionData) {
+        const response = await gateway.lookoutEquipment.describeModel(modelName)
+        const samplingRate = possibleSamplingRate[response['DataPreProcessingConfiguration']['TargetSamplingRate']]
+        const tagsList = cleanList(['model', 'timestamp'], Object.keys(contributionData[0]))
+        const ts = buildTimeSeries(contributionData, tagsList)
+        const emptyRow = getEmptyRecord(tagsList)
+        const xStart = new Date(Object.keys(ts)[0])
+        const xEnd = new Date(Object.keys(ts)[Object.keys(ts).length - 1])
+        const numIndexes = parseInt((xEnd - xStart)/1000 / samplingRate)
 
-    const xDomain = Array.from(new Array(numIndexes), (x, index) => new Date(xStart.getTime() + index * samplingRate * 1000))
-    const yData = Array.from(xDomain, x => {
-        if (ts[x]) {
-            return ts[x]
-        }
-        return emptyRow
-    })
+        const xDomain = Array.from(new Array(numIndexes), (x, index) => new Date(xStart.getTime() + index * samplingRate * 1000))
+        const yData = Array.from(xDomain, x => {
+            if (ts[x]) {
+                return ts[x]
+            }
+            return emptyRow
+        })
 
-    return buildSensorContributionSeries(xDomain, yData, tagsList)
+        return buildSensorContributionSeries(xDomain, yData, tagsList)
+    }
+
+    return undefined
 }

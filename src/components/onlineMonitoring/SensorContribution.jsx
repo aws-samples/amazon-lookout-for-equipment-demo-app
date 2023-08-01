@@ -15,14 +15,14 @@ import { getSensorData } from './schedulerUtils'
 function SensorContribution({ range }) {
     const { modelName, projectName } = useParams()
     const asset = `${projectName}|${modelName}`
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const endTime = Date.now() / 1000
     const startTime = parseInt(endTime - range * 86400)
 
     const [ sensorContribution, setSensorContribution ] = useState(undefined)
 
     useEffect(() => { 
-        getSensorData(gateway, asset, projectName, modelName, startTime, endTime)
+        getSensorData(gateway, asset, uid + '-' + projectName, modelName, startTime, endTime)
         .then((x) => setSensorContribution(x))
     }, [gateway, range, modelName, projectName])
 

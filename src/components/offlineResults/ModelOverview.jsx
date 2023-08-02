@@ -40,7 +40,7 @@ function ModelOverview({ modelDetails, modelName }) {
             items = []
             modelDetails['labels'].forEach((label) => {
                 const duration = new Date(label['end']) - new Date(label['start'])
-                const durationDays = parseInt(duration / 1000 / 86400)
+                const durationDays = parseInt(duration / 86400)
                 const daysUnit = durationDays > 1 ? 's' : ''
                 const durationTime = new Date(duration).toISOString().substring(11, 19)
     

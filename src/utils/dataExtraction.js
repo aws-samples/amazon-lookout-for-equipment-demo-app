@@ -20,7 +20,6 @@ export async function getSignalDetails(gateway, modelName) {
             }
             else {
                 const ingestionJobDetails = await gateway.lookoutEquipmentListDataIngestionJobs(lookoutEquipmentProjectName)
-                // console.log(lookoutEquipmentProjectName, ingestionJobDetails)
                 const jobId = ingestionJobDetails["DataIngestionJobSummaries"][0]["JobId"]
                 const sensorStatistics = await gateway.lookoutEquipmentListSensorStatistics(lookoutEquipmentProjectName, jobId)
 

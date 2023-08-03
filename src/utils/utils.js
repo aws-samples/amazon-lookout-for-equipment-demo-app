@@ -165,35 +165,30 @@ export const getSchedulerStatus = async (gateway, currentModel) => {
 // Get all the scehdulers and their status
 // ---------------------------------------
 export async function getAllSchedulers(gateway, models) {
-    let schedulersList = {}
-    let allPromises = []
-    for (const project of Object.keys(models)) {
-        const promises = Array.from(models[project]).map(async model => {
-            const schedulerStatus = await getSchedulerStatus(gateway, model)
-
-            return {
-                project: project,
-                model: model,
-                schedulerStatus: schedulerStatus
-            }
+    // Get all the existing schedulers at once:
+    let allSchedulers = {}
+    let response = await gateway.lookoutEquipment.listInferenceSchedulers()
+    response = response['InferenceSchedulerSummaries']
+    if (response.length > 0) {
+        response.forEach((schedulerSummary) => {
+            allSchedulers[schedulerSummary['ModelName']] = schedulerSummary['ModelName']
         })
-
-        allPromises = [...allPromises, ...promises]
     }
 
-    const allSchedulers = await Promise.all(allPromises)
-
-    allSchedulers.forEach((scheduler) => {
-        if (scheduler['schedulerStatus']) {
-            const currentProject = scheduler['project']
-
-            if (!schedulersList[currentProject]) { schedulersList[currentProject] = [] }
-
-            schedulersList[currentProject].push(scheduler['model'])
+    // Loops through each project to list the schedulers attached to it:
+    let listSchedulers = {}
+    for (const project of Object.keys(models)) {
+        if (models[project] && models[project].length > 0) {
+            models[project].forEach((model) => {
+                if (allSchedulers[model]) {
+                    if (!listSchedulers[project]) { listSchedulers[project] = [] }
+                    listSchedulers[project].push(allSchedulers[model])
+                }
+            })
         }
-    })
+    }
 
-    return schedulersList
+    return listSchedulers
 }
 
 // ---------------------------------------------------------------

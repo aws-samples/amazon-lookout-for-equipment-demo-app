@@ -133,8 +133,7 @@ function ListModels({ projectName }) {
             showModelDeployment, 
             stopScheduler, 
             startScheduler,
-            onDeleteInit,
-            sfnStatus
+            onDeleteInit
         )
 
         return (

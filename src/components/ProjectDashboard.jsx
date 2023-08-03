@@ -4,8 +4,8 @@ import { useParams } from 'react-router-dom'
 
 // App components:
 import NavigationBar from './NavigationBar'
-import DatasetSummary from './dashboard/DatasetSummary'
-import OnlineMonitoringSummary from './dashboard/OnlineMonitoringSummary'
+import DatasetSummary from './projectDashboard/DatasetSummary'
+import OnlineMonitoringSummary from './projectDashboard/OnlineMonitoringSummary'
 
 // Contexts:
 import ApiGatewayContext from './contexts/ApiGatewayContext'

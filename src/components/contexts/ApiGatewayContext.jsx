@@ -57,7 +57,12 @@ export const ApiGatewayProvider = ({user, children}) => {
             // Schedulers management
             // ---------------------
             listInferenceSchedulers(modelName) {
-                return request("LookoutEquipment", "ListInferenceSchedulers", {ModelName: modelName})
+                if (modelName) {
+                    return request("LookoutEquipment", "ListInferenceSchedulers", {ModelName: modelName})
+                }
+                else {
+                    return request("LookoutEquipment", "ListInferenceSchedulers")
+                }
             },
             stopInferenceScheduler(schedulerName) {
                 return request("LookoutEquipment", "StopInferenceScheduler", {InferenceSchedulerName: schedulerName})

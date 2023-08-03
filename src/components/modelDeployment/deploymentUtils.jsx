@@ -12,6 +12,18 @@ export async function getModelsSummary(gateway, projectName) {
     modelsSummaries = modelsSummaries['ModelSummaries']
 
     if (modelsSummaries.length > 0) {
+        // Get all the existing schedulers at once:
+        let listSchedulers = undefined
+        let response = await gateway.lookoutEquipment.listInferenceSchedulers()
+        response = response['InferenceSchedulerSummaries']
+        if (response.length > 0) {
+            listSchedulers = {}
+            response.forEach((schedulerSummary) => {
+                listSchedulers[schedulerSummary['ModelName']] = schedulerSummary
+            })
+        }
+
+        // Now we can get the list of models:
         let modelsList = []
         for (const model of modelsSummaries) {
             let modelDetails = {}
@@ -20,10 +32,8 @@ export async function getModelsSummary(gateway, projectName) {
             modelDetails['Status'] = model['Status']
             modelDetails['Scheduler'] = undefined
 
-            let scheduler = await gateway.lookoutEquipment.listInferenceSchedulers(model['ModelName'])
-            if (scheduler['InferenceSchedulerSummaries'].length > 0) {
-                scheduler = scheduler['InferenceSchedulerSummaries'][0]
-                modelDetails['Scheduler'] = scheduler
+            if (listSchedulers[model['ModelName']]) {
+                modelDetails['Scheduler'] = listSchedulers[model['ModelName']]
             }
 
             modelsList.push(modelDetails)
@@ -39,7 +49,7 @@ export async function getModelsSummary(gateway, projectName) {
 // -------------------------------------
 // Build the model details table content
 // -------------------------------------
-export function buildModelTableContent(modelsList, showModelDeployment, stopScheduler, startScheduler, deleteScheduler, sfnStatus) {
+export function buildModelTableContent(modelsList, showModelDeployment, stopScheduler, startScheduler, deleteScheduler) {
     let items = []
 
     modelsList.forEach((model) => {
@@ -58,6 +68,7 @@ export function buildModelTableContent(modelsList, showModelDeployment, stopSche
             let schedulerBadgeColor = 'grey'
             switch (model['Scheduler']['Status']) {
                 case 'STOPPED': schedulerBadgeColor = 'blue'; break
+                case 'STOPPING': schedulerBadgeColor = 'blue'; break
                 case 'RUNNING': schedulerBadgeColor = 'green'; break
             }
             schedulerStatus = <Badge color={schedulerBadgeColor}>{model['Scheduler']['Status']}</Badge>
@@ -105,6 +116,13 @@ export function getSchedulerStatus(scheduler, modelStatus, modelName, showModelD
                         <Button onClick={() => deleteScheduler(modelName)}>Delete</Button> 
                     </SpaceBetween>
                 break
+            case 'STOPPING':
+                    schedulerActions = 
+                        <SpaceBetween size="xs" direction="horizontal">
+                            <Button disabled={true}>Resume</Button>
+                            <Button disabled={true}>Delete</Button> 
+                        </SpaceBetween>
+                    break
             case 'RUNNING':
                 schedulerActions = <Button onClick={() => stopScheduler(modelName)}>Stop</Button> 
                 break

@@ -24,7 +24,7 @@ function DeleteSchedulerModal({ visible, onDiscard, onDelete, currentModelName }
               }
         >
             <Box variant="span">
-                Permanently delete scheduler <b>{currentModelName}</b>? You can't 
+                Permanently delete scheduler <b>{currentModelName}</b>? You cannot 
                 undo this action. The past results won't be removed from Amazon S3.
             </Box>
         </Modal>

@@ -117,6 +117,11 @@ function CreateProject() {
             setErrorMessage(currentError)
         }
     }
+
+    function cancel(e) {
+        e.preventDefault()
+        navigate('/')
+    }
     
     // ---------------------
     // Render the component:
@@ -130,7 +135,7 @@ function CreateProject() {
                         <Form
                             actions={
                             <SpaceBetween direction="horizontal" size="xs">
-                                <Button variant="link" disabled={uploadInProgress}>Cancel</Button>
+                                <Button variant="link" disabled={uploadInProgress} onClick={(e) => cancel(e)}>Cancel</Button>
                                 <Button variant="primary" disabled={uploadInProgress}>Create project</Button>
                             </SpaceBetween>
                             }

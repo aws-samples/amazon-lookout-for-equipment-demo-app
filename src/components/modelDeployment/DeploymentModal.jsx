@@ -113,7 +113,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
                 schedulerRunning = response['InferenceSchedulerSummaries'][0]['Status'] === 'RUNNING'
             }
 
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1000))
 
         } while (!schedulerRunning)
     }

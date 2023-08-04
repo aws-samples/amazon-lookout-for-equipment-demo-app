@@ -10,6 +10,8 @@ import SensorContribution   from './onlineMonitoring/SensorContribution'
 
 // CloudScape Components:
 import AppLayout        from "@cloudscape-design/components/app-layout"
+import Badge            from "@cloudscape-design/components/badge"
+import Box              from "@cloudscape-design/components/box"
 import Container        from "@cloudscape-design/components/container"
 import ContentLayout    from "@cloudscape-design/components/content-layout"
 import Grid             from "@cloudscape-design/components/grid"
@@ -17,15 +19,47 @@ import Header           from "@cloudscape-design/components/header"
 import SpaceBetween     from "@cloudscape-design/components/space-between"
 import Tiles            from "@cloudscape-design/components/tiles"
 
+// Context:
+import ApiGatewayContext from './contexts/ApiGatewayContext'
+
+// Utils:
+import { getSchedulerStatus } from "../utils/utils"
+
+// --------------------------
+// Component main entry point
+// --------------------------
 function OnlineMonitoring() {
     const { modelName, projectName, initialRange } = useParams()
     const [ range, setRange] = useState(initialRange ? initialRange : "7")
+    const { gateway } = useContext(ApiGatewayContext)
+    const [ schedulerStatus, setSchedulerStatus ] = useState(undefined)
+    const [ statusColor, setStatusColor ] = useState('grey')
 
+    // Get the current status of the scheduler to be displayed:
+    useEffect(() => {
+        getSchedulerStatus(gateway, modelName)
+        .then((x) => { 
+            setSchedulerStatus(x)
+            switch (x) {
+                case 'STOPPED': setStatusColor('red'); break;
+                case 'RUNNING': setStatusColor('green'); break;
+            }
+        })
+    }, [gateway, modelName])
+
+    // Renders the component:
     return (
         <AppLayout
             contentType="default"
             content={
-                <ContentLayout header={<Header variant="h1">{modelName} online monitoring</Header>}>
+                <ContentLayout header={
+                    <Header>
+                        <SpaceBetween size="xl" direction="horizontal">
+                            <Box variant="h1">{modelName} online monitoring</Box>
+                            {schedulerStatus && <Box><Badge color={statusColor}>{schedulerStatus}</Badge></Box>}
+                        </SpaceBetween>
+                    </Header>
+                }>
                     <SpaceBetween size="xl">
                         <Container header={
                             <Header 

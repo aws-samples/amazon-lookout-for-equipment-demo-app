@@ -65,9 +65,9 @@ function buildAnomalyScoreSeries(items) {
 // This function gets the raw anomaly scores generated
 // by a given model between a range of time
 // ---------------------------------------------------
-export async function getAnomalyScores(gateway, asset, startTime, endTime) {
+export async function getAnomalyScores(gateway, asset, startTime, endTime, projectName) {
     const anomalyScoreQuery = { 
-        TableName: 'l4edemoapp-raw-anomalies',
+        TableName: `l4edemoapp-${projectName}-raw-anomalies`,
         KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
         ExpressionAttributeNames: {
             "#model": "model",
@@ -115,9 +115,9 @@ export async function getAnomalyScores(gateway, asset, startTime, endTime) {
 // This function gets the anomalous events detected
 // by a given model between a range of time
 // ------------------------------------------------
-export async function getAnomalies(gateway, asset, startTime, endTime) {
+export async function getAnomalies(gateway, asset, startTime, endTime, projectName) {
     const anomaliesQuery = { 
-        TableName: 'l4edemoapp-anomalies',
+        TableName: `l4edemoapp-${projectName}-anomalies`,
         KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
         ExpressionAttributeNames: {
             "#model": "model",
@@ -171,27 +171,6 @@ export async function getAnomalies(gateway, asset, startTime, endTime) {
 
     return undefined
 }
-
-// // ---------------------------------------
-// // Build a data structure that can be 
-// // directly fed to the LineChart component
-// // ---------------------------------------
-// function buildSensorContributionSeries(items) {
-//     const tagsList = cleanList(['model', 'timestamp'], Object.keys(items[0]))
-//     let data = {}
-
-//     items.forEach((item) => {
-//         tagsList.forEach((tag) => {
-//             if (!data[tag]) { data[tag] = [] }
-//             data[tag].push({
-//                 x: new Date(parseInt(item['timestamp']['N'])*1000),
-//                 y: parseFloat(item[tag]['N'])
-//             })
-//         })
-//     })
-
-//     return data
-// }
 
 // ---------------------------------------------------
 // This function gets the raw anomaly scores generated

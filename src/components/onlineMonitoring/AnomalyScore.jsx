@@ -19,13 +19,13 @@ import { getAnomalyScores } from './schedulerUtils'
 function AnomalyScore({ range }) {
     const { modelName, projectName } = useParams()
     const asset = `${projectName}|${modelName}`
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const endTime = Date.now() / 1000
     const startTime = parseInt(endTime - range * 86400)
     const [ anomalyScores, setAnomalyScores ] = useState([])
 
     useEffect(() => { 
-        getAnomalyScores(gateway, asset, startTime, endTime)
+        getAnomalyScores(gateway, asset, startTime, endTime, uid + '-' + projectName)
         .then((x) => setAnomalyScores(x) )
     }, [gateway, range, modelName, projectName])
 

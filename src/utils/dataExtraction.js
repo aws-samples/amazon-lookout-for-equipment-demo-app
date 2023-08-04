@@ -327,8 +327,8 @@ function getTagsListFromModel(modelResponse) {
 // ----------------------------
 async function getModelEvaluationInfos(gateway, modelName, assetName, endTime) {
     const currentModelName = assetName + '|' + modelName
-    const anomalies = await getAnomalies(gateway, currentModelName, endTime)
-    const dailyAggregation = await getDailyAggregation(gateway, currentModelName, endTime)
+    const anomalies = await getAnomalies(gateway, currentModelName, endTime, assetName)
+    const dailyAggregation = await getDailyAggregation(gateway, currentModelName, endTime, assetName)
     const sensorContribution = await getSensorContribution(gateway, currentModelName, assetName, endTime)
 
     let tagsList = undefined
@@ -347,9 +347,9 @@ async function getModelEvaluationInfos(gateway, modelName, assetName, endTime) {
 // -----------------------------------------------------------
 // Get all the anomalies in the database for the current model
 // -----------------------------------------------------------
-async function getAnomalies(gateway, model, endTime) {
+async function getAnomalies(gateway, model, endTime, projectName) {
     const anomaliesQuery = { 
-        TableName: 'l4edemoapp-anomalies',
+        TableName: `l4edemoapp-${projectName}-anomalies`,
         KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
         ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
         ExpressionAttributeValues: { 
@@ -385,9 +385,9 @@ async function getAnomalies(gateway, model, endTime) {
 // ---------------------------------------------
 // Anomalies daily aggregation for a given model
 // ---------------------------------------------
-async function getDailyAggregation(gateway, model, endTime) {
+async function getDailyAggregation(gateway, model, endTime, projectName) {
     const dailyAggregation = await gateway.dynamoDbQuery({ 
-        TableName: 'l4edemoapp-daily_rate',
+        TableName: `l4edemoapp-${projectName}-daily_rate`,
         KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
         ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
         ExpressionAttributeValues: { 

@@ -42,6 +42,9 @@ export const ApiGatewayProvider = ({user, children}) => {
                     return request("LookoutEquipment", "ListDatasets")
                 }
             },
+            deleteDataset(datasetName) {
+                return request("LookoutEquipment", "DeleteDataset", { DatasetName: datasetName })
+            },
 
             // -----------------
             // Models management
@@ -51,6 +54,9 @@ export const ApiGatewayProvider = ({user, children}) => {
             },
             describeModel(modelName) {
                 return request("LookoutEquipment", "DescribeModel", {ModelName: modelName})
+            },
+            deleteModel(modelName) {
+                return request("LookoutEquipment", "DeleteModel", {ModelName: modelName})
             },
 
             // ---------------------
@@ -138,6 +144,11 @@ export const ApiGatewayProvider = ({user, children}) => {
         },
         dynamoDbQuery(query) {
             return request("DynamoDB", "Query", query)
+        },
+        dynamoDb: {
+            deleteTable(tableName) {
+                return request("DynamoDB", "DeleteTable", { TableName: tableName })
+            }
         }
     }
 

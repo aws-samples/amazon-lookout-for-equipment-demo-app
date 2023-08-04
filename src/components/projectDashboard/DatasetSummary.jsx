@@ -1,5 +1,10 @@
+// Imports:
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
+
 // Cloudscape components:
 import Box               from "@cloudscape-design/components/box"
+import Button            from "@cloudscape-design/components/button"
 import ColumnLayout      from "@cloudscape-design/components/column-layout"
 import Container         from "@cloudscape-design/components/container"
 import ExpandableSection from "@cloudscape-design/components/expandable-section"
@@ -8,8 +13,12 @@ import SpaceBetween      from "@cloudscape-design/components/space-between"
 
 // App components:
 import DatasetOverview from './DatasetOverview'
+import DeleteProjectModal from './DeleteProjectModal'
 
 function DatasetSummary({ modelDetails }) {
+    const [ showDeleteProjectModal, setShowDeleteProjectModal ] = useState(false)
+    const { projectName } = useParams()
+
     // Compute the sampling rate and build a
     // human-readable version with the units:
     const SamplingRate = () => {
@@ -29,16 +38,28 @@ function DatasetSummary({ modelDetails }) {
         }
     }
 
+    const onDiscard = () => { setShowDeleteProjectModal(false) }
+
     // Render the component:
     return (
         <Container 
-            header={<Header variant="h1">Summary</Header>}
+            header={<Header 
+                        variant="h1"
+                        actions={<Button onClick={() => setShowDeleteProjectModal(true)}>Delete project</Button>}
+                    >Summary</Header>}
             footer={
                 <ExpandableSection headerText="Dataset overview" variant="footer">
                     <DatasetOverview modelDetails={modelDetails} />
                 </ExpandableSection>
             }
         >
+            <DeleteProjectModal
+                visible={showDeleteProjectModal}
+                onDiscard={onDiscard}
+                onDelete={false}
+                currentProjectName={projectName}
+            />
+
             <ColumnLayout columns={2} variant="text-grid">
                 <SpaceBetween size="l">
                     <div>

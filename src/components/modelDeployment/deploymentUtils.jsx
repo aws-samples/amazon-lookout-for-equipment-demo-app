@@ -32,7 +32,7 @@ export async function getModelsSummary(gateway, projectName) {
             modelDetails['Status'] = model['Status']
             modelDetails['Scheduler'] = undefined
 
-            if (listSchedulers[model['ModelName']]) {
+            if (listSchedulers && listSchedulers[model['ModelName']]) {
                 modelDetails['Scheduler'] = listSchedulers[model['ModelName']]
             }
 

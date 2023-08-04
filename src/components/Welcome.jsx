@@ -37,9 +37,9 @@ function Welcome() {
                 
                             <Box float="right">
                                 <SpaceBetween direction="horizontal" size="xs">
-                                    {/* <Link to='/model-dashboard?model-name=pretrained_model'> */}
+                                    {/* <Link to='/model-dashboard?model-name=pretrained_model'>
                                         <Button variant="primary" disabled={true}>Pretrained model demonstration</Button>
-                                    {/* </Link> */}
+                                     </Link> */}
                 
                                     <Link to='/create-project'>
                                         <Button variant="primary">Load data and build your first model</Button>

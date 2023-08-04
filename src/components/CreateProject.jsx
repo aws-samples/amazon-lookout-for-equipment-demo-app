@@ -65,7 +65,7 @@ function CreateProject() {
             setFilename(file.name)
             setUploadInProgress(true)
             await Storage.put(
-                prefix + '/' + prefix + '/' + file.name, 
+                prefix + '/' + prefix + '/sensors.csv', 
                 file,
                 { 
                     contentType: file.type,

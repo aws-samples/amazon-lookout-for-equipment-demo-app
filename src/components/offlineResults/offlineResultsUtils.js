@@ -1,6 +1,9 @@
 import { buildTimeseries, getEvaluationStartIndex, getZoomStart } from '../../utils/timeseries.js'
 import { sortDictionnary, getLegendWidth } from '../../utils/utils.js'
 
+// ---------------------------------------------------
+// Prepare the evaluation results from a trained model
+// ---------------------------------------------------
 export function getModelEvaluationData(dailyAggregation, anomalies, modelDetails) {
     // Prepare daily aggregation data:
     let results = buildTimeseries(dailyAggregation.Items, 'anomaly')
@@ -19,11 +22,11 @@ export function getModelEvaluationData(dailyAggregation, anomalies, modelDetails
         y_labels = Array.apply(0.0, Array(y_anomalies.length)).map(() => 0.0)
 
         modelDetails['labels'].forEach((label) => {
-            const start = label['start'] * 1000
-            const end = label['end'] * 1000
+            const start = label['start']
+            const end = label['end']
 
             x_labels.map((element, index) => {
-                (element >= start && element <= end) ? y_labels[index] = 0.5 : y_labels[index] = 0.0
+                if (element >= start && element <= end) { y_labels[index] = 0.5 }
             })
         })
     }
@@ -256,6 +259,9 @@ export function buildOffConditionSeries(modelDetails, signals, yMin, yMax, sorte
     }
 }
 
+// -----------------------------------------------------------------------
+// Builds the eChart options variable to plot the detected events overview
+// -----------------------------------------------------------------------
 export function buildChartOptions(
     tagsList,
     sensorContribution,
@@ -325,7 +331,7 @@ export function buildChartOptions(
             { top: 600, left: 50, text: 'Sensor time series', textStyle: { fontSize: 16, color: '#000' } }
         ],
         grid: [
-            { left: 50, right: legendWidth, top: 30, height: 30, tooltip: { show: false } },
+            { left: 50, right: legendWidth, top: 30, height: 30, tooltip: { show: true } },
             { left: 50, right: legendWidth, top: 180, height: 150 },
             { left: 50, right: legendWidth, top: 410, height: 150 },
             { left: 50, right: legendWidth, top: 650, height: 150 }

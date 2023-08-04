@@ -297,8 +297,8 @@ async function processLabels(gateway, modelResponse) {
             labels = []
             response['LabelSummaries'].forEach((label) => {
                 labels.push({
-                    start: new Date(label['StartTime']),
-                    end: new Date(label['EndTime'])
+                    start: new Date(label['StartTime'] * 1000),
+                    end: new Date(label['EndTime'] * 1000)
                 })
             })
         }

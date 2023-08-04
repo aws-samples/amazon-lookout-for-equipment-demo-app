@@ -76,7 +76,7 @@ function AnomalyScore({ range }) {
                     <Box textAlign="center" color="inherit">
                         <b>No data available</b>
                         <Box variant="p" color="inherit">
-                            There is no data available
+                            There is no data available yet for this asset
                         </Box>
                     </Box>
                 }

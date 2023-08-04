@@ -82,12 +82,12 @@ export async function getAnomalyScores(gateway, asset, startTime, endTime, proje
 
     let anomalyScores = await gateway
         .dynamoDbQuery(anomalyScoreQuery)
-        .catch((error) => console.log(error.response))
+        .catch((error) => { console.log(error.response) })
 
     // If the payload is too large (> 1 MB), the API will paginate
     // the output. Let's collect all the data we need to cover the 
     // range requested by the user:
-    if (anomalyScores.Items.length > 0) {
+    if (anomalyScores && anomalyScores.Items.length > 0) {
         let currentAnomalyScores = undefined
         if (anomalyScores.LastEvaluatedKey) {
             let lastEvaluatedKey = anomalyScores.LastEvaluatedKey

@@ -32,7 +32,7 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
         // projects: main dashboard, sensor overview and 
         // modeling screen:
         let currentItems = {
-            type: 'expandable-link-group', 
+            type: 'section', 
             text: <>
                 <Icon name={(currentProject === project) ? 'folder-open' : 'folder'} 
                       variant={iconType} />

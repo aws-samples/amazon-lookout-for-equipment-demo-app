@@ -6,6 +6,7 @@ import { getHumanReadableSize, getAllProjects } from '../utils/utils.js'
 
 // Application components:
 import NavigationBar from './NavigationBar'
+import HelpSidePanel from './shared/HelpSidePanel'
 
 // CloudScape components:
 import AppLayout        from "@cloudscape-design/components/app-layout"
@@ -18,6 +19,7 @@ import Form             from "@cloudscape-design/components/form"
 import FormField        from "@cloudscape-design/components/form-field"
 import Header           from "@cloudscape-design/components/header"
 import Input            from "@cloudscape-design/components/input"
+import Link             from "@cloudscape-design/components/link"
 import ProgressBar      from "@cloudscape-design/components/progress-bar"
 import SpaceBetween     from "@cloudscape-design/components/space-between"
 
@@ -37,6 +39,7 @@ function CreateProject() {
     const [ filename, setFilename ]                 = useState("")
     const [ uploadInProgress, setUploadInProgress ] = useState(false)
     const [ errorMessage, setErrorMessage ]         = useState("")
+    const [ helpPanelOpen, setHelpPanelOpen ]       = useState(false)
 
     const { uid } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
@@ -80,6 +83,11 @@ function CreateProject() {
         }
     }
 
+    // -------------------------------------------------------
+    // Checks if the project name is already used by this
+    // user: the project namespace is linked to the 
+    // currently authenticated user.
+    // -------------------------------------------------------
     async function checkProjectNameAvailability(projectName) {
         const projects = await getAllProjects()
         
@@ -118,6 +126,9 @@ function CreateProject() {
         }
     }
 
+    // ----------------------------------------------------------
+    // The cancel button will redirect the user to the home page
+    // ----------------------------------------------------------
     function cancel(e) {
         e.preventDefault()
         navigate('/')
@@ -129,6 +140,11 @@ function CreateProject() {
     return (
         <AppLayout
             contentType="default"
+            toolsOpen={helpPanelOpen}
+            onToolsChange={(e) => setHelpPanelOpen(e.detail.open)}
+            tools={
+                <HelpSidePanel page="createProject" section="dataset" />
+            }
             content={
                 <ContentLayout header={<Header variant="h1">Create a new project</Header>}>
                     <form onSubmit={handleCreateProjectSubmit}>
@@ -156,7 +172,8 @@ function CreateProject() {
                                     <FormField
                                         label="Dataset"
                                         description="Pick a dataset on your local computer to upload it"
-                                        >
+                                        info={ <Link variant="info" onFollow={() => setHelpPanelOpen(true)}>Info</Link> }
+                                    >
                                         <FileUpload
                                             onChange={({ detail }) => setDataset(detail.value)}
                                             value={dataset}

@@ -112,14 +112,20 @@ export const getModelList = async (gateway, currentProject) => {
 // ----------------------------------------------
 // Get all the projects listed under this account
 // ----------------------------------------------
-export async function getAllProjects() {
-    const folders = await Storage.list('', { level: "private", pageSize: "ALL"})
-        .then(({ results }) => { return listFolders(results) })
-        .catch((error) => console.log(error.response))
+export async function getAllProjects(gateway, uid) {
+    const projectQuery = { 
+        TableName: 'l4edemoapp-projects',
+        KeyConditionExpression: "#user = :user",
+        ExpressionAttributeNames: {"#user": "user_id"},
+        ExpressionAttributeValues: { 
+            ":user": {"S": uid}, 
+        }
+    }
 
-    let projects = []
-    folders.forEach((folder) => {
-        projects.push(folder.split('/')[1])
+    const response = await gateway.dynamoDbQuery(projectQuery).catch((error) => console.log(error.response))
+    const projects = []
+    response.Items.forEach((project) => {
+        projects.push(project['project']['S'])
     })
 
     return projects

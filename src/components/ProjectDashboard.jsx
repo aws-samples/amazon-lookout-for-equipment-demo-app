@@ -33,7 +33,7 @@ function ProjectDashboard() {
     const { gateway, uid } = useContext(ApiGatewayContext)
 
     useEffect(() => {
-        getProjectDetails(gateway, uid + '-' + projectName)
+        getProjectDetails(gateway, uid, projectName)
         .then(({projectDetails, errorMessage}) => { 
             setModelDetails(projectDetails)
             setErrorMessage(errorMessage)

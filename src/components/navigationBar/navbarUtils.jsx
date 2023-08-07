@@ -11,7 +11,7 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
     let items = []
 
     // Extracts all the projects, models and schedulers visible from this account:
-    const projects = await getAllProjects()
+    const projects = await getAllProjects(gateway, uid)
     const modelsList = await getAllModels(gateway, projects, uid)
     const schedulersList = await getAllSchedulers(gateway, modelsList)
 

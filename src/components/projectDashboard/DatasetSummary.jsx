@@ -23,9 +23,9 @@ function DatasetSummary({ modelDetails }) {
     // human-readable version with the units:
     const SamplingRate = () => {
         if (modelDetails) {
-            const numRows = parseFloat(modelDetails.rowCounts.Table.ItemCount)
-            const endDate = new Date(modelDetails.endDate).getTime() / 1000
-            const startDate = new Date(modelDetails.startDate).getTime() / 1000
+            const numRows = parseFloat(modelDetails['rowCounts'])
+            const endDate = new Date(modelDetails['endDate']).getTime() / 1000
+            const startDate = new Date(modelDetails['startDate']).getTime() / 1000
             const samplingRate = ((endDate - startDate)/numRows).toFixed(1)
 
             if (modelDetails) {
@@ -80,7 +80,7 @@ function DatasetSummary({ modelDetails }) {
                     <div>
                         <Box variant="awsui-key-label">Dataset size</Box>
                         <div>
-                            {modelDetails && parseFloat(modelDetails.rowCounts.Table.ItemCount).toLocaleString('en-US')} rows
+                            {modelDetails && parseFloat(modelDetails['rowCounts']).toLocaleString('en-US')} rows
                         </div>
                     </div>
                     <div>

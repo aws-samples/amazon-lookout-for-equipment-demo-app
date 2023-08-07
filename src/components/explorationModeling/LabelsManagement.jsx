@@ -24,24 +24,34 @@ import ApiGatewayContext      from '../contexts/ApiGatewayContext'
 // Utils:
 import { getLegendWidth } from '../../utils/utils.js'
 import { buildChartOptions } from '../../utils/timeseries.js'
+// import { getLabelGroups } from './labelsUtils'
 import "../../styles/chartThemeMacarons.js"
 
 // --------------------------
 // Component main entry point
 // --------------------------
 function LabelsManagement({ componentHeight }) {
+    const { 
+        trainingRange, 
+        labels, 
+        totalLabelDuration, 
+        datasetName, 
+        selectedLabelGroupName, 
+        selectedLabelGroupValue 
+    } = useContext(ModelParametersContext)
     const { data, tagsList, x, signals } = useContext(TimeSeriesContext)
-    const { trainingRange, labels, totalLabelDuration, datasetName, selectedLabelGroupName, selectedLabelGroupValue } = useContext(ModelParametersContext)
     const { gateway, uid } = useContext(ApiGatewayContext)
+
     const labelsTableRef = useRef(undefined)
     const eChartRef = useRef(null)
+
     const [ labelGroupName, setLabelGroupName ] = useState(!selectedLabelGroupName.current ? "" : selectedLabelGroupName.current)
     const [ groupLabelOptions, setGroupLabelOptions ] = useState([{label: 'No label', value: 'NoLabel'}])
+    const [ deleteButtonDisabled, setDeleteButtonDisabled] = useState(!selectedLabelGroupName.current ? true : false)
+    const [ showDeleteLabelGroupModal, setShowDeleteLabelGroupModal] = useState(false)
     const [ selectedOption, setSelectedOption] = useState(
         !selectedLabelGroupName.current ? undefined : {label: selectedLabelGroupName.current, value: selectedLabelGroupValue.current}
     )
-    const [ deleteButtonDisabled, setDeleteButtonDisabled] = useState(!selectedLabelGroupName.current ? true : false)
-    const [ showDeleteLabelGroupModal, setShowDeleteLabelGroupModal] = useState(false)
 
     if (!componentHeight) { componentHeight = 350 }
 
@@ -54,8 +64,6 @@ function LabelsManagement({ componentHeight }) {
         if (e['type'] && e['type'] == 'datazoom') {
             // initialZoomStart.current = e['start']
             // initialZoomEnd.current = e['end']
-            // updateRanges()
-            // modelDataRangesRef.current.forceUpdate()
         }
     }
 
@@ -116,9 +124,11 @@ function LabelsManagement({ componentHeight }) {
             areas: []
         })
         labelsTableRef.current.updateTable(labels.current)
-        // modelDataRangesRef.current.forceUpdate()
     }
 
+    // -------------------------------------------------------------------
+    // As soon as the chart is ready, we plot the loaded labels as brushes
+    // -------------------------------------------------------------------
     function redrawBrushes() {
         if (eChartRef && eChartRef.current) {
             if (labels.current.length > 0) {
@@ -148,6 +158,9 @@ function LabelsManagement({ componentHeight }) {
         redrawBrushes()
     }
 
+    // -----------------------------------------------------------------------
+    // This function is called when the user wants to create a new label group
+    // -----------------------------------------------------------------------
     const createLabelGroup = async (e) => {
         e.preventDefault()
 
@@ -182,6 +195,9 @@ function LabelsManagement({ componentHeight }) {
         }
     }
 
+    // --------------------------------------
+    // Get the list of available label groups
+    // --------------------------------------
     async function getLabelGroups() {
         const response = await gateway.lookoutEquipment.listLabelGroups(uid + '-' + datasetName.current + '-')
 

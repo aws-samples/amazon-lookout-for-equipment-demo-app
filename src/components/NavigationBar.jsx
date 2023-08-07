@@ -20,26 +20,35 @@ function NavigationBar({ activeHref }) {
     const [navItems, setNavItems] = useState([])
     const navigate = useNavigate()
     const { projectName } = useParams()
+    const [time, setTime] = useState(Date.now())
+
+    // This effects will triggers a refresh of the menu bar every 60 seconds:
+    useEffect(() => {
+      const interval = setInterval(() => setTime(Date.now()), 60 * 1000)
+      return () => { clearInterval(interval) }
+    }, [])
 
     // Builds the hierarchy:
     useEffect(() => {
         buildHierarchy(gateway, projectName, uid)
         .then((x) => setNavItems(x))
-    }, [projectName])
+    }, [projectName, time])
 
     // Renders the side navigation bar:
     const NavBar = () => {
         if (navItems) {
             return (
-                <SideNavigation 
-                    items={navItems} 
-                    header={{ text: 'Home', href: '/' }} 
-                    activeHref={activeHref}
-                    onFollow={event => {
-                        event.preventDefault()
-                        navigate(event['detail']['href'])
-                    }}
-            />
+                <>
+                    <SideNavigation 
+                        items={navItems} 
+                        header={{ text: 'Home', href: '/' }} 
+                        activeHref={activeHref}
+                        onFollow={event => {
+                            event.preventDefault()
+                            navigate(event['detail']['href'])
+                        }}
+                    />
+                </>
             )
         }
         else {

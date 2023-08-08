@@ -1,8 +1,14 @@
-import { createContext, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import ApiGatewayContext from './ApiGatewayContext'
+import { getModelList } from '../../utils/utils'
 
 const ModelParametersContext = createContext()
 
 export const ModelParametersProvider = ({children}) => {
+    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { projectName } = useParams()
+
     const [selectedItems, setSelectedItems] = useState([])
     const [currentPageIndex, setCurrentPageIndex] = useState(1)
     const [allChecked, setAllChecked] = useState(false)
@@ -20,6 +26,12 @@ export const ModelParametersProvider = ({children}) => {
     const modelName = useRef("")
     const selectedLabelGroupName = useRef(undefined)
     const selectedLabelGroupValue = useRef(undefined)
+    const listModels = useRef([])
+
+    useEffect(() => {
+        getModelList(gateway, uid + '-' + projectName)
+        .then((x) => listModels.current = x)
+    }, [gateway])
 
     return (
         <ModelParametersContext.Provider value={{
@@ -39,6 +51,7 @@ export const ModelParametersProvider = ({children}) => {
             offConditionValue,
             selectedLabelGroupName,
             selectedLabelGroupValue,
+            listModels,
 
             setSelectedItems,
             setCurrentPageIndex,

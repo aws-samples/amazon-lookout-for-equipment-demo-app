@@ -5,7 +5,6 @@ import { useContext, useState } from 'react'
 import Alert        from "@cloudscape-design/components/alert"
 import FormField    from '@cloudscape-design/components/form-field'
 import Input        from '@cloudscape-design/components/input'
-import Select       from '@cloudscape-design/components/select'
 import SpaceBetween from '@cloudscape-design/components/space-between'
 
 // Contexts
@@ -39,14 +38,14 @@ function ModelConfiguration() {
                     description={`Your Lookout for Equipment model name will be built using the current asset name (${datasetName.current}) and a suffix, separated by a hyphen ("-") character.`}
                     label="Model name suffix"
                 >
-                    <Input
-                        onChange={({ detail }) => {
-                            modelName.current = detail.value
-                            setValue(value => value + 1)
-                        }}
-                        value={modelName.current}
-                        placeholder="Enter a model name"
-                    />
+                        <Input
+                            onChange={({ detail }) => {
+                                modelName.current = detail.value.slice(datasetName.current.length + 1)
+                                setValue(value => value + 1)
+                            }}
+                            value={datasetName.current + "-" + modelName.current}
+                            placeholder="Enter a model name"
+                        />
                 </FormField>
 
                 <OffTimeSelection />

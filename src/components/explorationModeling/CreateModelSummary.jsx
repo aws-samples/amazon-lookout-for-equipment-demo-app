@@ -1,5 +1,5 @@
 // Imports:
-import { forwardRef, useContext, useState, useImperativeHandle } from 'react'
+import { forwardRef, useContext, useEffect, useState, useImperativeHandle } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // Cloudscape components:
@@ -34,7 +34,8 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
         selectedOption,
         selectedSignal,
         offConditionValue,
-        selectedLabelGroupName
+        selectedLabelGroupName,
+        listModels
     } = useContext(ModelParametersContext)
 
     const { x } = useContext(TimeSeriesContext)
@@ -42,6 +43,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
     const [visible, setVisible] = useState(false)
     const dismissModelSummary = props.dismissFunction
     const navigate = useNavigate()
+    const modelExists = listModels.current.indexOf(datasetName.current + '-' + modelName.current) >= 0
     let error = false
 
     if (trainingRange.current) {
@@ -69,7 +71,12 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
         trainingDuration -= totalLabelDuration.current
         trainingDuration = parseInt(trainingDuration / 1000 / 86400)
 
-        if (trainingDuration < 90 || selectedItems.length === 0 || modelName.current === "" || (!selectedLabelGroupName.current && listLabels !== "")) {
+        if (trainingDuration < 90 || 
+            selectedItems.length === 0 || 
+            modelName.current === "" || 
+            (!selectedLabelGroupName.current && listLabels !== "") || 
+            modelExists
+        ) {
             error = true
         }
 
@@ -84,15 +91,14 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
         async function createModel(e) {
             e.preventDefault()
 
+            // Build the schema based on the signals selected:
             let schema = {
-                Components: [
-                    {
-                        ComponentName: datasetName.current,
-                        Columns: [
-                            { Name: "timestamp", Type: "DATETIME" }
-                        ]
-                    }
-                ]
+                Components: [{
+                    ComponentName: datasetName.current,
+                    Columns: [
+                        { Name: "timestamp", Type: "DATETIME" }
+                    ]
+                }]
             }
 
             selectedItems.forEach((signal) => {
@@ -102,6 +108,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
                 })
             })
 
+            // Assemble the model creation request:
             let createRequest = {
                 ModelName: datasetName.current + '-' + modelName.current,
                 DatasetName: `l4e-demo-app-${uid}-${datasetName.current}`,
@@ -125,8 +132,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
                 }
             }
 
-            console.log(createRequest)
-
+            // Launch the creation request:
             const response = await gateway.lookoutEquipmentCreateModel(createRequest)
                 .then((response) => { console.log(response) })
                 .catch((error) => { console.log(error.response)})
@@ -163,9 +169,10 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
                                 <FormField label="Model name:">
                                     <Input
                                         disabled={true}
-                                        invalid={modelName.current === ""}
+                                        invalid={(modelName.current === "") || (modelExists)}
                                         value={modelName.current === "" ? "Give a name to your model" : modelName.current}
                                     />
+                                    {modelExists && <Box color="text-status-error" float="right">Model name already in use</Box>}
                                 </FormField>
 
                                 <FormField label="Training range:">

@@ -38,8 +38,6 @@ function DatasetSummary({ modelDetails }) {
         }
     }
 
-    // const onDiscard = () => { setShowDeleteProjectModal(false) }
-
     // Render the component:
     return (
         <Container 

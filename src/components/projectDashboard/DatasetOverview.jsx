@@ -46,7 +46,7 @@ function buildTableItems(modelDetails) {
     tableItems.push(current_item)
 
     // Adding the dataset tail:
-    modelDetails.contentTail.Items.forEach((item) => {
+    modelDetails.contentTail.Items.toReversed().forEach((item) => {
         let current_item = {}
 
         current_item['timestamp'] = <b>{item['timestamp'].S}</b>

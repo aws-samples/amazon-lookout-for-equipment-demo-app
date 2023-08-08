@@ -42,8 +42,6 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                     )
                     .catch(() => { fetchError = true })
 
-                console.log(contentTail)
-
                 const rowCounts = await getRowsNumber(gateway, uid, projectName)
 
                 if (!fetchError) {

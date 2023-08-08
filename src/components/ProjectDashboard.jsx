@@ -71,11 +71,21 @@ function ProjectDashboard() {
         // If loading is done and an error message was issued,
         // this usually means this page does not exist:
         else if (!isLoading && errorMessage !== "") {
-            children = <Container 
-                            header={<Header 
-                            variant="h1"
-                            actions={<Button onClick={() => setShowDeleteProjectModal(true)}>Delete project</Button>}
-                       >Summary</Header>}>
+            children = <Container header={
+                            <Header 
+                                variant="h1"
+                                actions={
+                                    <Button 
+                                        iconName="status-negative" 
+                                        onClick={() => setShowDeleteProjectModal(true)}
+                                    >
+                                        Delete project
+                                    </Button>
+                                }
+                            >
+                                Summary
+                            </Header>
+                        }>
                             <Alert header="Error" type="error">
                                 {errorMessage}
                                 {errorDetails && <ExpandableSection headerText="Error details">{errorDetails}</ExpandableSection>}
@@ -84,8 +94,7 @@ function ProjectDashboard() {
                             <DeleteProjectModal
                                 visible={showDeleteProjectModal}
                                 onDiscard={() => { setShowDeleteProjectModal(false) }}
-                                currentProjectName={projectName}
-                            />
+                                currentProjectName={projectName} />
                         </Container>
         }
 

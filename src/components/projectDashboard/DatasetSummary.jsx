@@ -43,7 +43,7 @@ function DatasetSummary({ modelDetails }) {
         <Container 
             header={<Header 
                         variant="h1"
-                        actions={<Button onClick={() => setShowDeleteProjectModal(true)}>Delete project</Button>}
+                        actions={<Button iconName="status-negative" onClick={() => setShowDeleteProjectModal(true)}>Delete project</Button>}
                     >Summary</Header>}
             footer={
                 <ExpandableSection headerText="Dataset overview" variant="footer">
@@ -54,8 +54,7 @@ function DatasetSummary({ modelDetails }) {
             <DeleteProjectModal
                 visible={showDeleteProjectModal}
                 onDiscard={() => { setShowDeleteProjectModal(false) }}
-                currentProjectName={projectName}
-            />
+                currentProjectName={projectName} />
 
             <ColumnLayout columns={2} variant="text-grid">
                 <SpaceBetween size="l">

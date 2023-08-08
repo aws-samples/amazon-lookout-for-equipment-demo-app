@@ -7,6 +7,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
 import FormField    from "@cloudscape-design/components/form-field"
+import Icon         from "@cloudscape-design/components/icon"
 import Modal        from "@cloudscape-design/components/modal"
 import SpaceBetween from "@cloudscape-design/components/space-between"
 import Spinner      from "@cloudscape-design/components/spinner"
@@ -18,7 +19,7 @@ import ApiGatewayContext from "../contexts/ApiGatewayContext"
 // Utils:
 import { getProjectData } from './projectDashboardUtils'
 
-function DeleteProjectModal({ visible, onDiscard, onDelete, currentProjectName }) {
+function DeleteProjectModal({ visible, onDiscard, currentProjectName }) {
     const [ listModels, setListModels ] = useState([])
     const [ listSchedulers, setListSchedulers ] = useState([])
     const [ deleteInProgress, setDeleteInProgress ] = useState(false)
@@ -77,18 +78,22 @@ function DeleteProjectModal({ visible, onDiscard, onDelete, currentProjectName }
         // Delete the DynamoDB Tables:
         setDeleteMessage(`Deleting DynamoDB tables...`)
         const listTables = await gateway.dynamoDbListTables()
-    
         await deleteTable(gateway, listTables, `l4edemoapp-${uid}-${projectName}`)
         await deleteTable(gateway, listTables, `l4edemoapp-${uid}-${projectName}-sensor_contribution`)
         await deleteTable(gateway, listTables, `l4edemoapp-${uid}-${projectName}-anomalies`)
         await deleteTable(gateway, listTables, `l4edemoapp-${uid}-${projectName}-daily_rate`)
         await deleteTable(gateway, listTables, `l4edemoapp-${uid}-${projectName}-raw-anomalies`)
 
+        const projectItem = {
+            'user_id': {'S': uid},
+            'project': {'S': projectName}
+        }
+        await gateway.dynamoDb.deleteItem('l4edemoapp-projects', projectItem).catch((error) => console.log(error.response))
+
         // Delete the L4E project:
         setDeleteMessage(`Deleting Lookout for Equipment project...`)
-        await gateway.lookoutEquipment
-              .deleteDataset(`l4e-demo-app-${uid}-${projectName}`)
-              .catch((error) => { console.log(error.response) })
+        const listDatasets = await gateway.lookoutEquipment.listDatasets()
+        await deleteLookoutEquipmentProject(gateway, listDatasets, `l4e-demo-app-${uid}-${projectName}`, uid)
 
         // Delete the raw data from S3:
         setDeleteMessage(`Deleting S3 artifacts...`)
@@ -104,6 +109,28 @@ function DeleteProjectModal({ visible, onDiscard, onDelete, currentProjectName }
         navigate('/')
     }
 
+    // --------------------------------------------------------------
+    // Checks if a Lookout for Equipment project exists and delete it
+    // --------------------------------------------------------------
+    async function deleteLookoutEquipmentProject(gateway, listDatasets, projectName) {
+        if (listDatasets['DatasetSummaries'].length > 0) {
+            let listProjects = []
+            listDatasets['DatasetSummaries'].forEach((dataset) => {
+                listProjects.push(dataset['DatasetName'])
+            })
+
+            const projectExists = (listProjects.indexOf(projectName) >= 0)
+            if (projectExists) {
+                await gateway.lookoutEquipment
+                      .deleteDataset(projectName)
+                      .catch((error) => { console.log(error.response) })
+            }
+        }
+    }
+
+    // -----------------------------------------------------
+    // Checks if a given DynamoDB table exists and delete it
+    // -----------------------------------------------------
     async function deleteTable(gateway, listTables, tableName) {
         const tableExists = (listTables['TableNames'].indexOf(tableName) >= 0)
         if (tableExists) {
@@ -171,10 +198,6 @@ function DeleteProjectModal({ visible, onDiscard, onDelete, currentProjectName }
         } while (status !== 'DELETED')
     }
 
-    async function deleteProject() {
-
-    }
-
     const [ deleteMessage, setDeleteMessage ] = useState(undefined)
 
     return (
@@ -197,43 +220,38 @@ function DeleteProjectModal({ visible, onDiscard, onDelete, currentProjectName }
         >
             <SpaceBetween size="xs">
                 <Box variant="span">
-                    Permanently delete project <b>{currentProjectName}</b>? You cannot 
-                    undo this action. The following related assets will also be deleted:
+                    Permanently delete project <b>{currentProjectName}</b>? You cannot undo this action.
+                    
+                    {(listModels.length > 0 || listSchedulers.length > 0) && "The following related assets will also be deleted:"}
                 </Box>
 
-                <FormField label="Models" description="Models trained within this project. Note that you have to wait for all models trainings 
+                {listModels && listModels.length > 0 &&
+                    <FormField label="Models" description="Models trained within this project. Note that you have to wait for all models trainings 
                                                        to be finished before you can delete this project">
+                        <Textarea
+                            onChange={({ detail }) => setValue(detail.value)}
+                            value={listModels.length == 0 ? "No model created" : listModels.join('\n')}
+                            disabled={true}
+                            rows={listModels.length == 0 ? 1 : listModels.length > 5 ? 5 : listModels.length}
+                        />                    
+                    </FormField>
+                }
 
-                    {listModels && <Textarea
-                        onChange={({ detail }) => setValue(detail.value)}
-                        value={listModels.length == 0 ? "No model created" : listModels.join('\n')}
-                        disabled={true}
-                        rows={listModels.length == 0 ? 1 : listModels.length > 5 ? 5 : listModels.length}
-                    />}
+                {listSchedulers && listSchedulers.length > 0 && 
+                    <FormField label="Schedulers" description="Some models have been deployed and the following schedulers have been configured. 
+                                                            They will be stopped and deleted before the corresponding models are deleted">
+                        <Textarea
+                            onChange={({ detail }) => setValue(detail.value)}
+                            value={listSchedulers.length > 0 ? listSchedulers.map((scheduler) => (
+                                `${scheduler.model} (${scheduler.status})`
+                            )) : 'No scheduler configured within this project'}
+                            disabled={true}
+                            rows={listSchedulers.length == 0 ? 1 : listSchedulers.length > 5 ? 5 : listSchedulers.length}
+                        />
+                    </FormField>
+                }
 
-                    {!listModels && <Spinner />}
-                </FormField>
-
-                <FormField label="Schedulers" description="Some models have been deployed and the following schedulers have been configured. 
-                                                           They will be stopped and deleted before the corresponding models are deleted">
-                    <Textarea
-                        onChange={({ detail }) => setValue(detail.value)}
-                        value={listSchedulers.length > 0 ? listSchedulers.map((scheduler) => (
-                            `${scheduler.model} (${scheduler.status})`
-                        )) : 'No scheduler configured within this project'}
-                        disabled={true}
-                        rows={listSchedulers.length == 0 ? 1 : listSchedulers.length > 5 ? 5 : listSchedulers.length}
-                    />
-                </FormField>
-
-                <FormField label="Files" description="This application stores intermediate results in Amazon S3 and DynamoDB. They will 
-                                                      also be removed">
-                    S3 resources
-
-                    DynamoDB resources
-                </FormField>
-
-                {deleteMessage && <Box textAlign="center">{deleteMessage}</Box>}
+                {deleteMessage && <Box color="text-status-error"><Icon name="status-negative" variant="error" /> {deleteMessage}</Box>}
             </SpaceBetween>
         </Modal>
     )

@@ -38,7 +38,7 @@ function DatasetSummary({ modelDetails }) {
         }
     }
 
-    const onDiscard = () => { setShowDeleteProjectModal(false) }
+    // const onDiscard = () => { setShowDeleteProjectModal(false) }
 
     // Render the component:
     return (
@@ -55,8 +55,7 @@ function DatasetSummary({ modelDetails }) {
         >
             <DeleteProjectModal
                 visible={showDeleteProjectModal}
-                onDiscard={onDiscard}
-                onDelete={false}
+                onDiscard={() => { setShowDeleteProjectModal(false) }}
                 currentProjectName={projectName}
             />
 

@@ -6,18 +6,21 @@ import { useParams } from 'react-router-dom'
 import NavigationBar from './NavigationBar'
 import DatasetSummary from './projectDashboard/DatasetSummary'
 import OnlineMonitoringSummary from './projectDashboard/OnlineMonitoringSummary'
+import DeleteProjectModal from './projectDashboard/DeleteProjectModal'
 
 // Contexts:
 import ApiGatewayContext from './contexts/ApiGatewayContext'
 
 // CloudScape Components:
-import Alert            from "@cloudscape-design/components/alert"
-import AppLayout        from "@cloudscape-design/components/app-layout"
-import Container        from "@cloudscape-design/components/container"
-import ContentLayout    from "@cloudscape-design/components/content-layout"
-import Header           from "@cloudscape-design/components/header"
-import SpaceBetween     from "@cloudscape-design/components/space-between"
-import Spinner          from "@cloudscape-design/components/spinner"
+import Alert             from "@cloudscape-design/components/alert"
+import Button            from "@cloudscape-design/components/button"
+import AppLayout         from "@cloudscape-design/components/app-layout"
+import Container         from "@cloudscape-design/components/container"
+import ContentLayout     from "@cloudscape-design/components/content-layout"
+import ExpandableSection from "@cloudscape-design/components/expandable-section"
+import Header            from "@cloudscape-design/components/header"
+import SpaceBetween      from "@cloudscape-design/components/space-between"
+import Spinner           from "@cloudscape-design/components/spinner"
 
 // Utils:
 import { getProjectDetails } from './projectDashboard/projectDashboardUtils'
@@ -28,15 +31,18 @@ import { getProjectDetails } from './projectDashboard/projectDashboardUtils'
 function ProjectDashboard() {
     const { projectName } = useParams()
     const [ modelDetails, setModelDetails ] = useState(undefined)
-    const [ errorMessage, setErrorMessage ] = useState("undefined")
+    const [ errorMessage, setErrorMessage ] = useState(undefined)
+    const [ errorDetails, setErrorDetails ] = useState(undefined)
     const [ isLoading, setIsLoading ] = useState(true)
+    const [ showDeleteProjectModal, setShowDeleteProjectModal ] = useState(false)
     const { gateway, uid } = useContext(ApiGatewayContext)
 
     useEffect(() => {
         getProjectDetails(gateway, uid, projectName)
-        .then(({projectDetails, errorMessage}) => { 
+        .then(({projectDetails, errorMessage, errorDetails}) => { 
             setModelDetails(projectDetails)
             setErrorMessage(errorMessage)
+            setErrorDetails(errorDetails)
             setIsLoading(false)
         })
     }, [gateway, projectName])
@@ -65,8 +71,21 @@ function ProjectDashboard() {
         // If loading is done and an error message was issued,
         // this usually means this page does not exist:
         else if (!isLoading && errorMessage !== "") {
-            children = <Container header={<Header variant="h1">Summary</Header>}>
-                            <Alert header="Error" type="error">{errorMessage}</Alert>
+            children = <Container 
+                            header={<Header 
+                            variant="h1"
+                            actions={<Button onClick={() => setShowDeleteProjectModal(true)}>Delete project</Button>}
+                       >Summary</Header>}>
+                            <Alert header="Error" type="error">
+                                {errorMessage}
+                                {errorDetails && <ExpandableSection headerText="Error details">{errorDetails}</ExpandableSection>}
+                            </Alert>
+
+                            <DeleteProjectModal
+                                visible={showDeleteProjectModal}
+                                onDiscard={() => { setShowDeleteProjectModal(false) }}
+                                currentProjectName={projectName}
+                            />
                         </Container>
         }
 

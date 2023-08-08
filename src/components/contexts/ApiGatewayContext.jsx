@@ -130,6 +130,9 @@ export const ApiGatewayProvider = ({user, children}) => {
             },
             getExecutionHistory(arn) {
                 return request("StepFunctions", "GetExecutionHistory", {executionArn: arn})
+            },
+            describeExecution(executionArn) {
+                return request("StepFunctions", "DescribeExecution", {executionArn: executionArn})
             }
         },
     
@@ -148,6 +151,9 @@ export const ApiGatewayProvider = ({user, children}) => {
         dynamoDb: {
             deleteTable(tableName) {
                 return request("DynamoDB", "DeleteTable", { TableName: tableName })
+            },
+            deleteItem(tableName, key) {
+                return request("DynamoDB", "DeleteItem", { TableName: tableName, Key: key })
             }
         }
     }

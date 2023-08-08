@@ -131,6 +131,25 @@ export async function getAllProjects(gateway, uid) {
     return projects
 }
 
+export async function getAllExecutionId(gateway, uid) {
+    const projectQuery = { 
+        TableName: 'l4edemoapp-projects',
+        KeyConditionExpression: "#user = :user",
+        ExpressionAttributeNames: {"#user": "user_id"},
+        ExpressionAttributeValues: { 
+            ":user": {"S": uid}, 
+        }
+    }
+
+    const response = await gateway.dynamoDbQuery(projectQuery).catch((error) => console.log(error.response))
+    const ids = {}
+    response.Items.forEach((project) => {
+        ids[project['project']['S']] = project['executionId'] ? project['executionId']['S'] : undefined
+    })
+
+    return ids
+}
+
 // --------------------------------------------------
 // Get all the models for all the projects / datasets
 // --------------------------------------------------

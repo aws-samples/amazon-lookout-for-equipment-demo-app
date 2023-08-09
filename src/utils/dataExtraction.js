@@ -424,3 +424,17 @@ async function getSensorContribution(gateway, model, assetName, endTime) {
 
     return sensorContribution
 }
+
+// ----------------------------------------
+// Get the scheduler info for a given model
+// ----------------------------------------
+export async function getSchedulerInfo(gateway, modelName) {
+    let response = await gateway.lookoutEquipment.listInferenceSchedulers(modelName)
+    response = response['InferenceSchedulerSummaries']
+
+    if (response.length > 0) {
+        return response[0]
+    }
+    
+    return undefined
+}

@@ -1,10 +1,14 @@
 // Imports:
-import { useRef } from 'react'
+import { useState } from 'react'
+
+// App components:
+import DeleteModelModal from './DeleteModelModal'
 
 // CloudScape components:
 import Alert        from "@cloudscape-design/components/alert"
 import Badge        from "@cloudscape-design/components/badge"
 import Box          from "@cloudscape-design/components/box"
+import Button       from "@cloudscape-design/components/button"
 import ColumnLayout from "@cloudscape-design/components/column-layout"
 import Container    from "@cloudscape-design/components/container"
 import Header       from "@cloudscape-design/components/header"
@@ -15,7 +19,9 @@ import Table        from '@cloudscape-design/components/table'
 // --------------------------
 // Component main entry point
 // --------------------------
-function ModelOverview({ modelDetails, modelName }) {
+function ModelOverview({ modelDetails, modelName, loading }) {
+    const [ showDeleteModelModal, setShowDeleteModelModal ] = useState(false)
+
     // Define the badge color for the training status:
     let color = 'gray'
     if (modelDetails && modelDetails['status'] == 'SUCCESS') {
@@ -26,7 +32,7 @@ function ModelOverview({ modelDetails, modelName }) {
     }
 
     // Renders the component:
-    if (modelDetails) {
+    if (!loading && modelDetails) {
         let offCondition = 'No off condition specified'
         if (modelDetails['offCondition']) {
             offCondition = modelDetails['offCondition']['component'] + '\\' +
@@ -54,7 +60,21 @@ function ModelOverview({ modelDetails, modelName }) {
         }
 
         return (
-            <Container header={<Header variant="h1">Model overview</Header>}>
+            <Container header={
+                <Header 
+                    variant="h1"
+                    actions={
+                        <Button 
+                            iconName="status-negative" 
+                            onClick={() => setShowDeleteModelModal(true)}
+                            disabled={modelDetails['status'] === 'IN_PROGRESS'}
+                        >
+                            Delete model
+                        </Button>
+                    }>
+                    Model overview
+                </Header>
+            }>
                 <SpaceBetween size="xl">
                     <ColumnLayout columns={3} variant="text-grid">
                         <SpaceBetween size="l">
@@ -127,6 +147,11 @@ function ModelOverview({ modelDetails, modelName }) {
                         />
                     </SpaceBetween>}
                 </SpaceBetween>
+
+                <DeleteModelModal
+                    visible={showDeleteModelModal}
+                    onDiscard={() => { setShowDeleteModelModal(false) }}
+                />
             </Container>
         )
     }

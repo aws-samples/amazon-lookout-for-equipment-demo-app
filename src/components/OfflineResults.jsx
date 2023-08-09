@@ -19,12 +19,17 @@ import ApiGatewayContext from './contexts/ApiGatewayContext'
 
 function OfflineResults() {
     const [ modelDetails, setModelDetails ] = useState(undefined)
+    const [ loading, setLoading ] = useState(true)
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { modelName, projectName } = useParams()
     
     useEffect(() => {
+        setLoading(true)
         getModelDetails(gateway, modelName, projectName, uid)
-        .then((x) => setModelDetails(x))
+        .then((x) => { 
+            setModelDetails(x)
+            setLoading(false)
+        })
     }, [gateway, modelName, projectName])
 
     return (
@@ -33,8 +38,8 @@ function OfflineResults() {
             content={
                 <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
                     <SpaceBetween size='xl'>
-                        <ModelOverview modelDetails={modelDetails} modelName={modelName} />
-                        {modelDetails && <DetectedEvents modelDetails={modelDetails} />}
+                        <ModelOverview modelDetails={modelDetails} modelName={modelName} loading={loading} />
+                        {!loading && modelDetails && <DetectedEvents modelDetails={modelDetails} loading={loading} />}
                     </SpaceBetween>
                 </ContentLayout>
             }

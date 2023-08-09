@@ -18,11 +18,13 @@ import ApiGatewayContext from "../contexts/ApiGatewayContext"
 
 // Utils:
 import { getProjectData } from './projectDashboardUtils'
+import { stopAndDeleteScheduler, deleteScheduler } from '../../utils/utils'
 
-function DeleteProjectModal({ visible, onDiscard, currentProjectName }) {
+function DeleteProjectModal({ visible, onDiscard }) {
     const [ listModels, setListModels ] = useState([])
     const [ listSchedulers, setListSchedulers ] = useState([])
     const [ deleteInProgress, setDeleteInProgress ] = useState(false)
+    const [ deleteMessage, setDeleteMessage ] = useState(undefined)
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { projectName } = useParams()
     const navigate = useNavigate()
@@ -46,8 +48,8 @@ function DeleteProjectModal({ visible, onDiscard, currentProjectName }) {
         // Delete the schedulers first: a model with an attached
         // scheduler (even not running, cannot be deleted):
         if (listSchedulers.length > 0) {
+            setDeleteMessage('Stopping and deleting schedulers...')
             for (const scheduler of listSchedulers) {
-                setDeleteMessage('Deleting schedulers...')
                 // If the scheduler is running, we need to stop it first:
                 if (scheduler['status'] === 'RUNNING') {
                     await stopAndDeleteScheduler(gateway, scheduler['model'])
@@ -102,9 +104,9 @@ function DeleteProjectModal({ visible, onDiscard, currentProjectName }) {
         // ### TO DO Delete also the raw-datasets used for ingestion ###
         // s3://.../raw-datasets/{projectName}/{projectName}/${projectName}/sensors.csv
 
-        // Wait for a couple seconds, close the modal window and 
-        // navigate away as this project does not exist anymore:
-        await new Promise(r => setTimeout(r, 2000))
+        // Wait for a second, close the modal window and navigate
+        // away as this project does not exist anymore:
+        await new Promise(r => setTimeout(r, 1000))
         setDeleteInProgress(false)
         navigate('/')
     }
@@ -140,65 +142,63 @@ function DeleteProjectModal({ visible, onDiscard, currentProjectName }) {
         }
     }
 
-    // -------------------------------------------
-    // Stops an existing scheduler, wait for it to
-    // be in 'STOPPED' status and then delete it.
-    // -------------------------------------------
-    async function stopAndDeleteScheduler(gateway, modelName) {
-        let status = 'RUNNING'
+    // // -------------------------------------------
+    // // Stops an existing scheduler, wait for it to
+    // // be in 'STOPPED' status and then delete it.
+    // // -------------------------------------------
+    // async function stopAndDeleteScheduler(gateway, modelName) {
+    //     let status = 'RUNNING'
 
-        await gateway.lookoutEquipment
-              .stopInferenceScheduler(modelName + '-scheduler')
-              .catch((error) => console.log(error.response))
+    //     await gateway.lookoutEquipment
+    //           .stopInferenceScheduler(modelName + '-scheduler')
+    //           .catch((error) => console.log(error.response))
 
-        do {
-            const response = await gateway.lookoutEquipment
-                .listInferenceSchedulers(modelName)
-                .catch((error) => console.log(error.response))
+    //     do {
+    //         const response = await gateway.lookoutEquipment
+    //             .listInferenceSchedulers(modelName)
+    //             .catch((error) => console.log(error.response))
 
-            if (response['InferenceSchedulerSummaries'].length > 0) {
-                status = response['InferenceSchedulerSummaries'][0]['Status']
-            }
-            else {
-                status = 'DELETED'
-            }
+    //         if (response['InferenceSchedulerSummaries'].length > 0) {
+    //             status = response['InferenceSchedulerSummaries'][0]['Status']
+    //         }
+    //         else {
+    //             status = 'DELETED'
+    //         }
 
-            // To prevent API call throttling:
-            await new Promise(r => setTimeout(r, 1000))
+    //         // To prevent API call throttling:
+    //         await new Promise(r => setTimeout(r, 1000))
 
-        } while (status !== 'STOPPED')
+    //     } while (status !== 'STOPPED')
 
-        await deleteScheduler(gateway, modelName)
-    }
+    //     await deleteScheduler(gateway, modelName)
+    // }
 
-    // -----------------------------------------------------------
-    // Launch a scheduler delete request and wait for it to finish
-    // -----------------------------------------------------------
-    async function deleteScheduler(gateway, modelName) {
-        let status = 'STOPPED'
+    // // -----------------------------------------------------------
+    // // Launch a scheduler delete request and wait for it to finish
+    // // -----------------------------------------------------------
+    // async function deleteScheduler(gateway, modelName) {
+    //     let status = 'STOPPED'
 
-        await gateway.lookoutEquipment
-              .deleteInferenceScheduler(modelName + '-scheduler')
-              .catch((error) => console.log(error.response))
+    //     await gateway.lookoutEquipment
+    //           .deleteInferenceScheduler(modelName + '-scheduler')
+    //           .catch((error) => console.log(error.response))
 
-        do {
-            const response = await gateway.lookoutEquipment
-                .listInferenceSchedulers(modelName)
-                .catch((error) => console.log(error.response))
+    //     do {
+    //         const response = await gateway.lookoutEquipment
+    //             .listInferenceSchedulers(modelName)
+    //             .catch((error) => console.log(error.response))
 
-            if (response['InferenceSchedulerSummaries'].length > 0) {
-                status = response['InferenceSchedulerSummaries'][0]['Status']
-            }
-            else {
-                status = 'DELETED'
-            }
+    //         if (response['InferenceSchedulerSummaries'].length > 0) {
+    //             status = response['InferenceSchedulerSummaries'][0]['Status']
+    //         }
+    //         else {
+    //             status = 'DELETED'
+    //         }
 
-            await new Promise(r => setTimeout(r, 1000))
+    //         await new Promise(r => setTimeout(r, 1000))
 
-        } while (status !== 'DELETED')
-    }
-
-    const [ deleteMessage, setDeleteMessage ] = useState(undefined)
+    //     } while (status !== 'DELETED')
+    // }
 
     return (
         <Modal 
@@ -220,7 +220,7 @@ function DeleteProjectModal({ visible, onDiscard, currentProjectName }) {
         >
             <SpaceBetween size="xs">
                 <Box variant="span">
-                    Permanently delete project <b>{currentProjectName}</b>? You cannot undo this action.
+                    Permanently delete project <b>{projectName}</b>? You cannot undo this action.
                     
                     {(listModels.length > 0 || listSchedulers.length > 0) && "The following related assets will also be deleted:"}
                 </Box>

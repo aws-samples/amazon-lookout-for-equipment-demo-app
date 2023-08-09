@@ -270,3 +270,61 @@ export async function checkProjectAvailability(gateway, projectName) {
 
     return availability
 }
+
+// -------------------------------------------
+// Stops an existing scheduler, wait for it to
+// be in 'STOPPED' status and then delete it.
+// -------------------------------------------
+export async function stopAndDeleteScheduler(gateway, modelName) {
+    let status = 'RUNNING'
+
+    await gateway.lookoutEquipment
+            .stopInferenceScheduler(modelName + '-scheduler')
+            .catch((error) => console.log(error.response))
+
+    do {
+        const response = await gateway.lookoutEquipment
+            .listInferenceSchedulers(modelName)
+            .catch((error) => console.log(error.response))
+
+        if (response['InferenceSchedulerSummaries'].length > 0) {
+            status = response['InferenceSchedulerSummaries'][0]['Status']
+        }
+        else {
+            status = 'DELETED'
+        }
+
+        // To prevent API call throttling:
+        await new Promise(r => setTimeout(r, 1000))
+
+    } while (status !== 'STOPPED')
+
+    await deleteScheduler(gateway, modelName)
+}
+
+// -----------------------------------------------------------
+// Launch a scheduler delete request and wait for it to finish
+// -----------------------------------------------------------
+export async function deleteScheduler(gateway, modelName) {
+    let status = 'STOPPED'
+
+    await gateway.lookoutEquipment
+            .deleteInferenceScheduler(modelName + '-scheduler')
+            .catch((error) => console.log(error.response))
+
+    do {
+        const response = await gateway.lookoutEquipment
+            .listInferenceSchedulers(modelName)
+            .catch((error) => console.log(error.response))
+
+        if (response['InferenceSchedulerSummaries'].length > 0) {
+            status = response['InferenceSchedulerSummaries'][0]['Status']
+        }
+        else {
+            status = 'DELETED'
+        }
+
+        await new Promise(r => setTimeout(r, 1000))
+
+    } while (status !== 'DELETED')
+}

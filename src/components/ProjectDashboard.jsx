@@ -94,7 +94,7 @@ function ProjectDashboard() {
                             <DeleteProjectModal
                                 visible={showDeleteProjectModal}
                                 onDiscard={() => { setShowDeleteProjectModal(false) }}
-                                currentProjectName={projectName} />
+                            />
                         </Container>
         }
 

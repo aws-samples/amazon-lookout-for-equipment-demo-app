@@ -316,7 +316,7 @@ function LabelsManagement({ componentHeight }) {
             0,
             100,
             true, // showLegend, 
-            false, // showToolbox, 
+            true, // showToolbox, 
             legendWidth,
             true, // enableBrush
             false // customDatazoomColor

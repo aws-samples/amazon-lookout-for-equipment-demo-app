@@ -84,6 +84,16 @@ function UnivariateTimeSeriesChart({ sensorName }) {
             }
         }
 
+        // ----------------------------------
+        // Called when clearing the selection
+        // ----------------------------------
+        const onClear = (e) => {
+            if (e['command'] && e['command'] === 'clear') {
+                setSelectedRanges([])
+                setCurrentBrushes([])
+            }
+        }
+
         // ---------------------
         // Render the component:
         // ---------------------
@@ -99,6 +109,7 @@ function UnivariateTimeSeriesChart({ sensorName }) {
                         onEvents={{
                             'brushEnd': onBrushEndEvent, 
                             'datazoom': onDataZoomEnd,
+                            'brush': onClear
                         }}
                     />
                 </Box>

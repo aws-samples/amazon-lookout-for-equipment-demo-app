@@ -95,7 +95,7 @@ export function buildChartOptions(
     const datazoomOption = { 
         start: initialZoomStart, 
         end: initialZoomEnd, 
-        top: 0, 
+        top: 40, 
         type: 'slider'
     }
 
@@ -116,7 +116,11 @@ export function buildChartOptions(
         series: series,
         animation: false,
         dataZoom: [datazoomOption],
-        grid: { bottom: 30 }
+        grid: { top: 90, bottom: 30 },
+        toolbox: {
+            right: 110,
+            top: 0
+        }
     }
 
     if (showLegend) {
@@ -133,33 +137,21 @@ export function buildChartOptions(
             ],
             data: tagsList
         }
-        option['grid'] = { left: 50, bottom: 30, right: legendWidth }
+        option['grid'] = { top: 95, left: 50, bottom: 30, right: legendWidth }
+        option['toolbox'] = {
+            right: legendWidth,
+            top: 0
+        }
     }
 
     if (enableBrush) {
         option['brush'] = {
-            // toolbox: ['lineX'],
             toolbox: ['lineX', 'keep'],
             xAxisIndex: 0,
             brushMode: 'multiple',
             brushStyle: {
                 color: 'rgba(151, 181, 82, 0.2)',
                 borderColor: 'rgba(151, 181, 82, 0.7)'
-            }
-        }
-        option['title'] = { 
-            text: 'Toggle labels selection -->', 
-            textStyle: { fontSize: 12, fontStyle: 'italic', color: '#000' },
-            right: 55, top: 3
-        }
-    }
-
-    if (showToolbox) {
-        option['toolbox'] = {
-            feature: {
-                dataZoom: { yAxisIndex: 'none' },
-                restore: {},
-                saveAsImage: {}
             }
         }
     }

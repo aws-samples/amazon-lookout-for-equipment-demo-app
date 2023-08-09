@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const useSplitPanel = selectedItems => {
+const useSplitPanel = (selectedItems) => {
     const [splitPanelSize, setSplitPanelSize] = useState(400);
     const [splitPanelOpen, setSplitPanelOpen] = useState(false);
     const [hasManuallyClosedOnce, setHasManuallyClosedOnce] = useState(false);

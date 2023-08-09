@@ -80,6 +80,7 @@ function TimeSeriesHistograms({
             <div>
                 <ReactEcharts 
                     option={options}
+                    notMerge={true}
                     theme="macarons"
                     style={{
                         height: height ? height : 300,

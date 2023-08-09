@@ -67,7 +67,7 @@ function ExplorationModeling() {
                                                             showLegend={true} 
                                                             showToolbox={false} 
                                                             componentHeight={500}
-                                                            enableBrush={true}
+                                                            enableBrush={false}
                                                         />
                                             },
                                             {

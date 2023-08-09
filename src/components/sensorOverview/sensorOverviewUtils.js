@@ -24,19 +24,14 @@ export function buildChartOptions(items, sensorName, zoomStart, zoomEnd) {
 
     // echart options:
     const chartOptions = {
-        title: { 
-            text: 'Toggle time range selection -->', 
-            textStyle: { fontSize: 12, color: '#000' },
-            right: 22, top: 3
-        },
         xAxis: { type: 'category', data: x },
         yAxis: { type: 'value' },
         series: series,
-        animation: true,
+        animation: false,
         dataZoom: [{ start: zoomStart, end: zoomEnd, type: 'slider'}],
-        grid: {top: 30, bottom: 90, left: 50, right: 10},
+        grid: {top: 35, bottom: 90, left: 50, right: 10},
         brush: {
-            toolbox: ['lineX'],
+            toolbox: ['lineX', 'clear'],
             xAxisIndex: 0,
             brushMode: "single",
             brushStyle: {

@@ -58,8 +58,21 @@ var theme = {
     },
 
     toolbox: {
+        itemSize: 20,
         iconStyle: {
-            borderColor: colorPalette[0]
+            borderColor: colorPalette[4],
+            borderWidth: 2,
+            shadowColor: colorPalette[4],
+            shadowBlur: 0,
+            opacity: 0.5
+        },
+        emphasis: {
+            iconStyle: {
+                borderColor: colorPalette[7],
+                shadowColor: colorPalette[7],
+                shadowBlur: 4,
+                opacity: 1.0
+            }
         }
     },
 

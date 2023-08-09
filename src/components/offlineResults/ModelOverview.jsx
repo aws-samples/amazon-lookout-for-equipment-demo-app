@@ -5,16 +5,17 @@ import { useState } from 'react'
 import DeleteModelModal from './DeleteModelModal'
 
 // CloudScape components:
-import Alert        from "@cloudscape-design/components/alert"
-import Badge        from "@cloudscape-design/components/badge"
-import Box          from "@cloudscape-design/components/box"
-import Button       from "@cloudscape-design/components/button"
-import ColumnLayout from "@cloudscape-design/components/column-layout"
-import Container    from "@cloudscape-design/components/container"
-import Header       from "@cloudscape-design/components/header"
-import SpaceBetween from "@cloudscape-design/components/space-between"
-import Spinner      from '@cloudscape-design/components/spinner'
-import Table        from '@cloudscape-design/components/table'
+import Alert                from "@cloudscape-design/components/alert"
+import Badge                from "@cloudscape-design/components/badge"
+import Box                  from "@cloudscape-design/components/box"
+import Button               from "@cloudscape-design/components/button"
+import ColumnLayout         from "@cloudscape-design/components/column-layout"
+import Container            from "@cloudscape-design/components/container"
+import ExpandableSection    from "@cloudscape-design/components/expandable-section"
+import Header               from "@cloudscape-design/components/header"
+import SpaceBetween         from "@cloudscape-design/components/space-between"
+import Spinner              from '@cloudscape-design/components/spinner'
+import Table                from '@cloudscape-design/components/table'
 
 // --------------------------
 // Component main entry point
@@ -46,14 +47,14 @@ function ModelOverview({ modelDetails, modelName, loading }) {
             items = []
             modelDetails['labels'].forEach((label) => {
                 const duration = new Date(label['end']) - new Date(label['start'])
-                const durationDays = parseInt(duration / 86400)
+                const durationDays = parseInt(duration / 86400 / 1000)
                 const daysUnit = durationDays > 1 ? 's' : ''
                 const durationTime = new Date(duration).toISOString().substring(11, 19)
     
                 // Creates the new label entry:
                 items.push({
-                    startDate: new Date(label['start'] * 1000).toISOString().substring(0, 19).replace('T', ' '),
-                    endDate: new Date(label['end'] * 1000).toISOString().substring(0, 19).replace('T', ' '),
+                    startDate: new Date(label['start']).toISOString().substring(0, 19).replace('T', ' '),
+                    endDate: new Date(label['end']).toISOString().substring(0, 19).replace('T', ' '),
                     duration: (durationDays > 0) ? `${durationDays} day${daysUnit} ${durationTime}` : durationTime,
                 })
             })
@@ -124,8 +125,7 @@ function ModelOverview({ modelDetails, modelName, loading }) {
                     </ColumnLayout>
 
                     {/* Only shows this section if some labels were defined for this model  */}
-                    {!modelDetails['labels'] ? '' : <SpaceBetween size="xxs">
-                        <Box variant="awsui-key-label">Labels</Box>
+                    {!modelDetails['labels'] ? '' : <ExpandableSection headerText="Defined labels"><SpaceBetween size="xxs">
                         <Alert>
                             Some labels were defined to train this model: this labeled data indicates periods 
                             when your equipment or process did not function propertly. When training a model
@@ -145,7 +145,7 @@ function ModelOverview({ modelDetails, modelName, loading }) {
                             ]}
                             items={items}
                         />
-                    </SpaceBetween>}
+                    </SpaceBetween></ExpandableSection>}
                 </SpaceBetween>
 
                 <DeleteModelModal

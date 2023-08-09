@@ -1,6 +1,8 @@
 // Imports:
 import { Storage } from 'aws-amplify'
 import { cleanList } from '../../utils/utils'
+import { getSchedulerInfo } from '../../utils/dataExtraction'
+import awsmobile from '../../aws-exports'
 
 // ------------------------------------------------
 // Get the S3 key of the dataset initially ingested 
@@ -271,6 +273,9 @@ function getEmptyRecord(tagsList) {
     return emptyRecord
 }
 
+// ----------------------------
+// Get sensor contribution data
+// ----------------------------
 export async function getSensorData(gateway, asset, projectName, modelName, startTime, endTime) {
     const possibleSamplingRate = {
         'PT1S': 1, 
@@ -309,4 +314,118 @@ export async function getSensorData(gateway, asset, projectName, modelName, star
     }
 
     return undefined
+}
+
+// -------------------------
+// Get the scheduler details
+// -------------------------
+export async function getSchedulerDetails(gateway, modelName, uid, projectName) {
+    const bucket = awsmobile['aws_user_files_s3_bucket']
+    const possibleFrequency = {
+        'PT5M': 5,
+        'PT10M': 10,
+        'PT15M': 15,
+        'PT30M': 30,
+        'PT1H': 60
+    }
+
+    // Start by getting the direct scheduler details:
+    const response = await getSchedulerInfo(gateway, modelName)
+
+    let schedulerBadgeColor = 'grey'
+    switch (response['Status']) {
+        case 'STOPPED': schedulerBadgeColor = 'blue'; break
+        case 'STOPPING': schedulerBadgeColor = 'blue'; break
+        case 'RUNNING': schedulerBadgeColor = 'green'; break
+    }
+
+    // Get next time:
+    const currentTime = Date.now()
+    const nextExecutionTime = getNextExecutionTime(currentTime, possibleFrequency[response['DataUploadFrequency']])
+    const nextTimestamp = getNextExecutionTimestamp(nextExecutionTime, response['DataInputConfiguration']['InferenceInputNameConfiguration']['TimestampFormat'])
+
+    // Get delimiter between component and timestamp:
+    const delimiter = response['DataInputConfiguration']['InferenceInputNameConfiguration']['ComponentTimestampDelimiter']
+
+    // Get file content:
+    const content = await getExpectedContent(gateway, uid, projectName)
+
+    return {
+        status: response['Status'],
+        statusColor: schedulerBadgeColor,
+        frequency: possibleFrequency[response['DataUploadFrequency']],
+        delay: response['DataDelayOffsetInMinutes'],
+        currentTime: new Date(currentTime).toISOString().replace('T', ' ').slice(0,16),
+        nextExecutionTime: new Date(nextExecutionTime).toISOString().replace('T', ' ').slice(0,16),
+        nextTimestamp: nextTimestamp,
+        inputLocation: `s3://${bucket}/inference-data/${uid}-${modelName}/input/`,
+        outputLocation: `s3://${bucket}/inference-data/${uid}-${modelName}/output/`,
+        delimiter: delimiter,
+        expectedContent: content
+    }
+}
+
+// ---------------------------
+// Get the next execution time
+// ---------------------------
+function getNextExecutionTime(currentTime, frequency) {
+    const now = new Date(currentTime)
+    const nextTime = now - 
+                     (now.getMinutes() % frequency) * 60 * 1000 -
+                     now.getSeconds() * 1000 +
+                     frequency * 60 * 1000
+    
+    return nextTime
+}
+
+// ---------------------------------------------------------
+// Get the timestamp that must be included in the file name
+// of the inference input file so that Lookout for Equipment
+// can find it
+// ---------------------------------------------------------
+function getNextExecutionTimestamp(nextTime, timestampFormat) {
+    const nextDateTime = new Date(nextTime)
+
+    let timestamp = ""
+    switch (timestampFormat) {
+        case 'yyyyMMddHHmmss':
+            timestamp = nextDateTime.getFullYear().toString() +
+                        (nextDateTime.getMonth() + 1).toString().padStart(2, 0) +
+                        nextDateTime.getDate().toString().padStart(2, 0) + 
+                        nextDateTime.getHours().toString().padStart(2, 0) + 
+                        nextDateTime.getMinutes().toString().padStart(2, 0) + 
+                        nextDateTime.getSeconds().toString().padStart(2, 0)
+            break
+
+        case 'yyyy-MM-dd-HH-mm-ss':
+            timestamp = nextDateTime.getFullYear().toString() + '-' +
+                        (nextDateTime.getMonth() + 1).toString().padStart(2, 0) + '-' +
+                        nextDateTime.getDate().toString().padStart(2, 0) + '-' +
+                        nextDateTime.getHours().toString().padStart(2, 0) + '-' +
+                        nextDateTime.getMinutes().toString().padStart(2, 0) + '-' +
+                        nextDateTime.getSeconds().toString().padStart(2, 0)
+            break
+
+        case 'epoch':
+            timestamp = parseInt(nextDateTime.getTime() / 1000)
+            break
+    }
+    
+    return timestamp
+}
+
+// ----------------------------------------------------
+// Get the columns expected in the input inference file
+// ----------------------------------------------------
+async function getExpectedContent(gateway, uid, projectName) {
+    const datasetName = 'l4e-demo-app-' + uid + '-' + projectName
+    const response = await gateway.lookoutEquipmentDescribeDataset(datasetName)
+    const columns = JSON.parse(response['Schema'])['Components'][0]['Columns']
+
+    let content = ""
+    columns.forEach((col) => {
+        content += '- ' + col['Name'] + "\n"
+    })
+
+    return content
 }

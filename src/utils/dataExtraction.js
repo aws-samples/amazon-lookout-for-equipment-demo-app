@@ -433,7 +433,10 @@ export async function getSchedulerInfo(gateway, modelName) {
     response = response['InferenceSchedulerSummaries']
 
     if (response.length > 0) {
-        return response[0]
+        response = response[0]
+        response = await gateway.lookoutEquipment.describeInferenceScheduler(response['InferenceSchedulerName'])
+
+        return response
     }
     
     return undefined

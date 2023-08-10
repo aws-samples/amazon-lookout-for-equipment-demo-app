@@ -8,21 +8,21 @@ import MultivariateTimeSeriesChart from './charts/MultivariateTimeSeriesChart'
 import ModelingSignalSelection from './modelTraining/ModelingSignalSelection'
 import CreateModelSummary from './modelTraining/CreateModelSummary'
 import ModelConfiguration from './modelTraining/ModelConfiguration'
-import LabelsManagement from './modelTraining/LabelsManagement'
+import LabelsManagement from './labelling/LabelsManagement'
 
 // Contexts:
 import { TimeSeriesProvider } from './contexts/TimeSeriesContext'
 import { ModelParametersProvider } from './contexts/ModelParametersContext'
 
 // CloudScape Components:
-import AppLayout from "@cloudscape-design/components/app-layout"
-import Box from "@cloudscape-design/components/box"
-import Button from "@cloudscape-design/components/button"
-import Container from "@cloudscape-design/components/container"
+import AppLayout     from "@cloudscape-design/components/app-layout"
+import Box           from "@cloudscape-design/components/box"
+import Button        from "@cloudscape-design/components/button"
+import Container     from "@cloudscape-design/components/container"
 import ContentLayout from "@cloudscape-design/components/content-layout"
-import Header from "@cloudscape-design/components/header"
-import SpaceBetween from "@cloudscape-design/components/space-between"
-import Tabs from "@cloudscape-design/components/tabs"
+import Header        from "@cloudscape-design/components/header"
+import SpaceBetween  from "@cloudscape-design/components/space-between"
+import Tabs          from "@cloudscape-design/components/tabs"
 
 // ---------------------
 // Component entry point
@@ -78,7 +78,7 @@ function ModelTraining() {
                                             {
                                                 label: 'Labels',
                                                 id: 'labelConfiguration',
-                                                content: <LabelsManagement />
+                                                content: <LabelsManagement readOnly={true} />
                                             },
                                             {
                                                 label: "Model configuration",

@@ -214,8 +214,13 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
                             </FormField>
                             <FormField label={`${labels.current.length} label${labels.current.length > 1 ? 's' : ''} created (optional):`}>
                                 <SpaceBetween size="s">
-                                    {selectedLabelGroupName.current ? <Alert>The following labels are stored in label group <b>{selectedLabelGroupName.current}</b>.</Alert> : ''}
-                                    {(!selectedLabelGroupName.current && labels.current.length > 0) ? <Alert type="error">Your labels must be stored in a group. Navigate back to the <b>Labels</b> tab and create a new label group.</Alert> : ''}
+                                    {selectedLabelGroupName.current ? 
+                                        <Alert>
+                                            The following labels will be used to train this model. 
+                                            They are stored in label group <b>{selectedLabelGroupName.current}</b>.
+                                        </Alert> 
+                                        : ''
+                                    }
                                     <Textarea
                                         onChange={({ detail }) => setValue(detail.value)}
                                         value={listLabels === "" ? "No label created" : listLabels}

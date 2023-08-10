@@ -1,21 +1,16 @@
 // Imports
-import { forwardRef, useContext, useImperativeHandle, useState } from 'react'
+import { forwardRef, useImperativeHandle, useState } from 'react'
 
 // Cloudscape component
 import Box from "@cloudscape-design/components/box"
-import Button from "@cloudscape-design/components/button"
 import FormField from "@cloudscape-design/components/form-field"
 import Table from "@cloudscape-design/components/table"
-
-// Contexts
-import ModelParametersContext from '../contexts/ModelParametersContext'
 
 // --------------------------
 // Component main entry point
 // --------------------------
 const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     const [currentLabels, setCurrentLabels] = useState(props.labels)
-    const { trainingRange } = useContext(ModelParametersContext)
     const x = props.x
 
     // This function will allow the parent component (MultivariateTimeSeriesChart)
@@ -52,7 +47,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
 
     // Render the component:
     return (
-        <FormField>
+        <FormField stretch={true}>
             <Table
                 variant="embedded"
                 contentDensity="compact"
@@ -65,13 +60,14 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 items={items}
                 empty={
                     <Box textAlign="center" color="inherit">
-                        <b>No resources</b>
+                        <b>No labels defined</b>
                         <Box
                             padding={{ bottom: "s" }}
                             variant="p"
                             color="inherit"
                         >
-                            No resources to display.
+                            No labels to display in this table. Use the <b>Labeling</b> option in the left hand menu bar to define
+                            historical events of interest (unplanned downtime, maintenance events...).
                         </Box>
                     </Box>
                 }

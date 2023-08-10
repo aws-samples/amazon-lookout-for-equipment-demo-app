@@ -75,7 +75,8 @@ export function buildChartOptions(
     showToolbox, 
     legendWidth,
     enableBrush,
-    customDatazoomColor
+    customDatazoomColor,
+    readOnly
 ) {
     const series = []
     tagsList.forEach((tag) => {
@@ -144,9 +145,9 @@ export function buildChartOptions(
         }
     }
 
-    if (enableBrush) {
+    if (enableBrush && !readOnly) {
         option['brush'] = {
-            toolbox: ['lineX', 'keep'],
+            toolbox: ['lineX', 'keep', 'clear'],
             xAxisIndex: 0,
             brushMode: 'multiple',
             brushStyle: {
@@ -154,6 +155,22 @@ export function buildChartOptions(
                 borderColor: 'rgba(151, 181, 82, 0.7)'
             }
         }
+    }
+    else if (enableBrush && readOnly) {
+        option['brush'] = {
+            toolbox: ['keep'],
+            xAxisIndex: 0,
+            brushMode: 'multiple',
+            transformable: false,
+            brushStyle: {
+                color: 'rgba(151, 181, 82, 0.2)',
+                borderColor: 'rgba(151, 181, 82, 0.7)'
+            }
+        }
+        option['toolbox'] = { show: false }
+        datazoomOption['top'] = 10
+        option['grid']['top'] = 65
+        option['legend']['top'] = 10
     }
 
     return option

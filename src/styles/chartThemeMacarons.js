@@ -20,26 +20,9 @@
 import * as echarts from 'echarts'
 
 export var colorPalette = [
-    '#2ec7c9',
-    '#b6a2de',
-    '#5ab1ef',
-    '#ffb980',
-    '#d87a80',
-    '#8d98b3',
-    '#e5cf0d',
-    '#97b552',
-    '#95706d',
-    '#dc69aa',
-    '#07a2a4',
-    '#9a7fd1',
-    '#588dd5',
-    '#f5994e',
-    '#c05050',
-    '#59678c',
-    '#c9ab00',
-    '#7eb00a',
-    '#6f5553',
-    '#c14089'
+    '#529ccb', '#a32952', '#67a353', '#6b40b2', '#e07941', '#014a87', '#da7596', '#125502', '#a783e1', '#7e3103', 
+    '#0273bb', '#8b1b42', '#1f8104', '#59309d', '#bc4d01', '#003c75', '#c33d69', '#0f4601', '#8456ce', '#692801', 
+    '#015b9d', '#780d35', '#176702', '#4a238b', '#983c02'
 ];
 
 var theme = {
@@ -48,7 +31,7 @@ var theme = {
     title: {
         textStyle: {
             fontWeight: 'normal',
-            color: '#008acd'
+            color: '#414D5C'
         }
     },
 
@@ -85,10 +68,10 @@ var theme = {
         axisPointer: {
             type: 'line',
             lineStyle: {
-                color: '#008acd'
+                color: '#414D5C'
             },
             crossStyle: {
-                color: '#008acd'
+                color: '#414D5C'
             },
             shadowStyle: {
                 color: 'rgba(200,200,200,0.2)'
@@ -99,7 +82,7 @@ var theme = {
     dataZoom: {
         dataBackgroundColor: '#efefff',
         fillerColor: 'rgba(182,162,222,0.2)',
-        handleColor: '#008acd'
+        handleColor: '#414D5C'
     },
 
     grid: {
@@ -109,7 +92,7 @@ var theme = {
     categoryAxis: {
         axisLine: {
             lineStyle: {
-                color: '#008acd'
+                color: '#414D5C'
             }
         },
         splitLine: {
@@ -122,7 +105,7 @@ var theme = {
     valueAxis: {
         axisLine: {
             lineStyle: {
-                color: '#008acd'
+                color: '#414D5C'
             }
         },
         splitArea: {
@@ -140,11 +123,11 @@ var theme = {
 
     timeline: {
         lineStyle: {
-            color: '#008acd'
+            color: '#414D5C'
         },
         controlStyle: {
-            color: '#008acd',
-            borderColor: '#008acd'
+            color: '#414D5C',
+            borderColor: '#414D5C'
         },
         symbol: 'emptyCircle',
         symbolSize: 3

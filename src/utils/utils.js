@@ -1,6 +1,7 @@
 // Imports
 import { Storage } from 'aws-amplify'
 import { listFolders } from './s3_utils'
+import * as awsui from '@cloudscape-design/design-tokens/index.js'
 
 // -----------------------------------------
 // Function to sort a Javascript dictionnary
@@ -327,4 +328,92 @@ export async function deleteScheduler(gateway, modelName) {
         await new Promise(r => setTimeout(r, 1000))
 
     } while (status !== 'DELETED')
+}
+
+function makeChevronPalette(scales) {
+    const scaleCount = scales.length;
+    const colorsPerScale = scales[0].length;
+    const finalColors = new Array(scaleCount * colorsPerScale);
+  
+    for (let i = 0; i < scaleCount * colorsPerScale; i++) {
+      const round = Math.floor(i / scaleCount);
+      const scaleIndex = i % scaleCount;
+      const colorIndex = ((scaleIndex % 2 === 0 ? 0 : 2) + ((3 * round) % colorsPerScale)) % colorsPerScale;
+      finalColors[i] = scales[scaleIndex][colorIndex];
+    }
+
+    console.log(finalColors)
+
+    finalColors.forEach((c, index) => {
+        finalColors[index] = c.slice(c.length - 8, c.length - 1)
+    })
+  
+    return finalColors;
+  }
+
+export function makeColors() {
+  const colors = makeChevronPalette([
+    [
+        awsui.colorChartsBlue1300,
+        // awsui.colorChartsBlue1400,
+        awsui.colorChartsBlue1500,
+        // awsui.colorChartsBlue1600,
+        awsui.colorChartsBlue1700,
+        // awsui.colorChartsBlue1800,
+        awsui.colorChartsBlue1900,
+        // awsui.colorChartsBlue11000,
+        awsui.colorChartsBlue11100,
+        // awsui.colorChartsBlue11200
+    ],
+    [
+        awsui.colorChartsPink300,
+        // awsui.colorChartsPink400,
+        awsui.colorChartsPink500,
+        // awsui.colorChartsPink600,
+        awsui.colorChartsPink700,
+        // awsui.colorChartsPink800,
+        awsui.colorChartsPink900,
+        // awsui.colorChartsPink1000,
+        awsui.colorChartsPink1100,
+        // awsui.colorChartsPink1200
+    ],
+    [
+        awsui.colorChartsGreen300,
+        // awsui.colorChartsGreen400,
+        awsui.colorChartsGreen500,
+        // awsui.colorChartsGreen600,
+        awsui.colorChartsGreen700,
+        // awsui.colorChartsGreen800,
+        awsui.colorChartsGreen900,
+        // awsui.colorChartsGreen1000,
+        awsui.colorChartsGreen1100,
+        // awsui.colorChartsGreen1200
+    ],
+    [
+        awsui.colorChartsPurple300,
+        // awsui.colorChartsPurple400,
+        awsui.colorChartsPurple500,
+        // awsui.colorChartsPurple600,
+        awsui.colorChartsPurple700,
+        // awsui.colorChartsPurple800,
+        awsui.colorChartsPurple900,
+        // awsui.colorChartsPurple1000,
+        awsui.colorChartsPurple1100,
+        // awsui.colorChartsPurple1200
+    ],
+    [
+        awsui.colorChartsOrange300,
+        // awsui.colorChartsOrange400,
+        awsui.colorChartsOrange500,
+        // awsui.colorChartsOrange600,
+        awsui.colorChartsOrange700,
+        // awsui.colorChartsOrange800,
+        awsui.colorChartsOrange900,
+        // awsui.colorChartsOrange1000,
+        awsui.colorChartsOrange1100,
+        // awsui.colorChartsOrange1200
+    ],
+  ]);
+
+  return colors
 }

@@ -2,7 +2,7 @@
 import { Storage } from 'aws-amplify'
 import { useContext, useState } from 'react'
 import { useNavigate } from "react-router-dom"
-import { getHumanReadableSize, getAllProjects } from '../utils/utils.js'
+import { getHumanReadableSize, getAllProjects, makeColors } from '../utils/utils.js'
 
 // Application components:
 import NavigationBar from './NavigationBar'
@@ -133,6 +133,8 @@ function CreateProject() {
         e.preventDefault()
         navigate('/')
     }
+
+    // console.log(makeColors())
     
     // ---------------------
     // Render the component:

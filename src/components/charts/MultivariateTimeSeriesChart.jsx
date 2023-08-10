@@ -3,7 +3,7 @@ import { useRef, useContext } from 'react'
 import ReactEcharts from "echarts-for-react"
 
 // Application components:
-import ModelDataRanges from "../explorationModeling/ModelDataRanges"
+import ModelDataRanges from "../modelTraining/ModelDataRanges"
 
 // Cloudscape components:
 import Alert from "@cloudscape-design/components/alert"

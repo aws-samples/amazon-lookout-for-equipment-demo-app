@@ -51,7 +51,7 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
             currentItems['items'] = [
                 { type: 'link', text: 'Dashboard', href: '/project-dashboard/projectName/' + project },
                 { type: 'link', text: 'Sensor overview', href: '/sensor-overview/projectName/' + project },
-                { type: 'link', text: 'Exploration & Modeling', href: '/exploration-modeling/projectName/' + project }
+                { type: 'link', text: 'Labeling', href: '/labeling/projectName/' + project }
             ]
 
             // If some models were already trained in this project, 
@@ -60,6 +60,11 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
             if (currentModels.length > 0) {
                 const offlineResultsSection = buildOfflineResultsSection(currentModels, project)
                 currentItems['items'] = [...currentItems['items'], ...offlineResultsSection]
+            }
+            else {
+                currentItems['items'].push(
+                    { type: 'link', text: 'Model training', href: '/model-training/projectName/' + project }
+                )
             }
 
             // If some models were already *deployed* in this project, 
@@ -110,8 +115,9 @@ function buildOfflineResultsSection(currentModels, project) {
     const offlineResultsSection = [
         {
             type: 'expandable-link-group',
-            text: 'Offline results',
-            items: offlineResultsItems
+            text: 'Model training',
+            items: offlineResultsItems,
+            href: '/model-training/projectName/' + project
         },
         { 
             type: 'link', 

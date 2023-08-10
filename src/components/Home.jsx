@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 
 // App components:
 import CreateProject        from './CreateProject'
-import ExplorationModeling  from './ExplorationModeling'
+import ModelTraining        from './ModelTraining'
 import ModelDeployment      from './ModelDeployment'
 import OfflineResults       from './OfflineResults'
 import OnlineMonitoring     from './OnlineMonitoring'
@@ -40,8 +40,8 @@ function Home({ user, signOut }) {
                         element={<SensorOverview />} 
                     />
                     <Route 
-                        path="/exploration-modeling/projectName/:projectName" 
-                        element={<ExplorationModeling />} 
+                        path="/model-training/projectName/:projectName" 
+                        element={<ModelTraining />} 
                     />
                     <Route 
                         path="/offline-results/modelName/:modelName/projectName/:projectName"

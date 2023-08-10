@@ -5,10 +5,10 @@ import { useParams } from 'react-router-dom'
 // App components:
 import NavigationBar from './NavigationBar'
 import MultivariateTimeSeriesChart from './charts/MultivariateTimeSeriesChart'
-import ModelingSignalSelection from './explorationModeling/ModelingSignalSelection'
-import CreateModelSummary from './explorationModeling/CreateModelSummary'
-import ModelConfiguration from './explorationModeling/ModelConfiguration'
-import LabelsManagement from './explorationModeling/LabelsManagement'
+import ModelingSignalSelection from './modelTraining/ModelingSignalSelection'
+import CreateModelSummary from './modelTraining/CreateModelSummary'
+import ModelConfiguration from './modelTraining/ModelConfiguration'
+import LabelsManagement from './modelTraining/LabelsManagement'
 
 // Contexts:
 import { TimeSeriesProvider } from './contexts/TimeSeriesContext'
@@ -27,7 +27,7 @@ import Tabs from "@cloudscape-design/components/tabs"
 // ---------------------
 // Component entry point
 // ---------------------
-function ExplorationModeling() {
+function ModelTraining() {
     const { projectName } = useParams()
     const modelSummaryRef = useRef(null)
     const showModelSummary = useRef(false)
@@ -94,10 +94,10 @@ function ExplorationModeling() {
                     </ContentLayout>
                 }
                 navigation={
-                    <NavigationBar activeHref={"/exploration-modeling/projectName/" + projectName} />}
+                    <NavigationBar activeHref={"/model-training/projectName/" + projectName} />}
             />
         </ModelParametersProvider>
     )
 }
 
-export default ExplorationModeling
+export default ModelTraining

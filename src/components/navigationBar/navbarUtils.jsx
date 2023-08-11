@@ -8,6 +8,9 @@ import Icon from "@cloudscape-design/components/icon"
 // application
 // ===============================================
 export const buildHierarchy = async (gateway, currentProject, uid) => {
+    // If the user ID is not defined yet, we yield an empty response:
+    if (!uid) { return undefined }
+
     let items = []
 
     // Extracts all the projects, models and schedulers visible from this account:

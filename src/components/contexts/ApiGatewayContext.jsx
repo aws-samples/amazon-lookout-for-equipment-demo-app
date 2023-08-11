@@ -6,7 +6,10 @@ import request from "../../utils/request";
 const ApiGatewayContext = createContext()
 
 export const ApiGatewayProvider = ({user, children}) => {
-    const uid = user.attributes.sub.split("-")[0]
+    let uid = undefined
+    if (user && user.attributes) {
+        uid = user.attributes.sub.split("-")[0]
+    }
 
     const gateway = {
         // ---------------------------

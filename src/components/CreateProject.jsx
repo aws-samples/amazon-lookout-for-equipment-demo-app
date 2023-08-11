@@ -58,7 +58,7 @@ function CreateProject() {
         }
         else {
             setProgressPercent(100)
-            setBytesTransferred(`Done (${bytesTransferred})`)
+            setBytesTransferred('Done')
         }
     }
 

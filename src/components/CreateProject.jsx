@@ -2,7 +2,7 @@
 import { Storage } from 'aws-amplify'
 import { useContext, useState } from 'react'
 import { useNavigate } from "react-router-dom"
-import { getHumanReadableSize, getAllProjects, makeColors } from '../utils/utils.js'
+import { getHumanReadableSize, checkProjectNameAvailability } from '../utils/utils.js'
 
 // Application components:
 import NavigationBar from './NavigationBar'
@@ -41,7 +41,7 @@ function CreateProject() {
     const [ errorMessage, setErrorMessage ]         = useState("")
     const [ helpPanelOpen, setHelpPanelOpen ]       = useState(false)
 
-    const { uid } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
 
     // --------------------------------------
@@ -83,17 +83,6 @@ function CreateProject() {
         }
     }
 
-    // -------------------------------------------------------
-    // Checks if the project name is already used by this
-    // user: the project namespace is linked to the 
-    // currently authenticated user.
-    // -------------------------------------------------------
-    async function checkProjectNameAvailability(projectName) {
-        const projects = await getAllProjects()
-        
-        return projects.indexOf(projectName) < 0
-    }
-
     // ------------------------------------------------------------
     // Action triggered when the user submits the project creation
     // form: we upload the file to S3, show a progress bar and then 
@@ -109,7 +98,7 @@ function CreateProject() {
         else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(projectName)) {
             currentError = 'Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
         }
-        else if (! await checkProjectNameAvailability(projectName)) {
+        else if (! await checkProjectNameAvailability(projectName, gateway, uid)) {
             currentError = 'Project name not available'
         }
         else if (dataset.length < 1) {
@@ -126,16 +115,6 @@ function CreateProject() {
         }
     }
 
-    // ----------------------------------------------------------
-    // The cancel button will redirect the user to the home page
-    // ----------------------------------------------------------
-    function cancel(e) {
-        e.preventDefault()
-        navigate('/')
-    }
-
-    // console.log(makeColors())
-    
     // ---------------------
     // Render the component:
     // ---------------------
@@ -153,7 +132,16 @@ function CreateProject() {
                         <Form
                             actions={
                             <SpaceBetween direction="horizontal" size="xs">
-                                <Button variant="link" disabled={uploadInProgress} onClick={(e) => cancel(e)}>Cancel</Button>
+                                <Button 
+                                    variant="link" 
+                                    disabled={uploadInProgress} 
+                                    onClick={
+                                        (e) => {
+                                            e.preventDefault()
+                                            navigate('/')
+                                        }
+                                    }
+                                >Cancel</Button>
                                 <Button variant="primary" disabled={uploadInProgress}>Create project</Button>
                             </SpaceBetween>
                             }

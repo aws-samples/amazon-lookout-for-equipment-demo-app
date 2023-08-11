@@ -417,3 +417,14 @@ export function makeColors() {
 
   return colors
 }
+
+// -------------------------------------------------------
+// Checks if the project name is already used by this
+// user: the project namespace is linked to the 
+// currently authenticated user.
+// -------------------------------------------------------
+export async function checkProjectNameAvailability(projectName, gateway, uid) {
+    const projects = await getAllProjects(gateway, uid)
+    
+    return projects.indexOf(projectName) < 0
+}

@@ -24,10 +24,10 @@ export const helpPanelContent = {
                         with time series data from the sensors on your equipment or process. To provide these time series,
                         you must use properly formatted .csv files to create a dataset. Although Lookout for Equipment
                         accepts a broader set of configuration, this application only allow you to upload a single CSV
-                        file for the time being. You must arrange your data using the following format:
+                        file for the time being. Arrange your data using this format:
                     </Box>
 
-                    <Box variant="code">      
+                    <Box variant="code">
                         Timestamp,Sensor 1,Sensor 2<br />
                         2020/01/01 00:00:00,2,12<br />
                         2020/01/01 00:05:00,3,11<br />
@@ -38,7 +38,7 @@ export const helpPanelContent = {
 
                     <Box variant="p">
                         You can choose your column names. We recommend using "Timestamp" as the name for the column with the 
-                        time-series data. Check the documentation (link below) for the allowed formats for the timestamp column.
+                        time series data. Check the documentation (link below) for the allowed formats of the timestamp column.
                     </Box>
 
                     <Box variant="p">

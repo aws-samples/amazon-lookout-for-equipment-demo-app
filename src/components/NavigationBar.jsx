@@ -16,7 +16,7 @@ import { buildHierarchy } from './navigationBar/navbarUtils'
 // Component main entry point
 // ==========================
 function NavigationBar({ activeHref }) {
-    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const [navItems, setNavItems] = useState(undefined)
     const navigate = useNavigate()
     const { projectName } = useParams()
@@ -32,7 +32,7 @@ function NavigationBar({ activeHref }) {
     useEffect(() => {
         buildHierarchy(gateway, projectName, uid)
         .then((x) => setNavItems(x))
-    }, [projectName, time, uid])
+    }, [projectName, time, uid, navbarCounter])
 
     // Renders the side navigation bar:
     const NavBar = () => {

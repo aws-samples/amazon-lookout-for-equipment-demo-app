@@ -1,16 +1,20 @@
 // Imports:
-import { createContext } from 'react'
+import { createContext, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import request from "../../utils/request";
 
 const ApiGatewayContext = createContext()
 
 export const ApiGatewayProvider = ({user, children}) => {
+    // Define a unique user ID based on the authenticated user property:
     let uid = undefined
     if (user && user.attributes) {
         uid = user.attributes.sub.split("-")[0]
     }
 
+    const [ navbarCounter, setNavbarCounter ] = useState(0)
+
+    // Define all the API request we need for this app:
     const gateway = {
         // ---------------------------
         // Lookout for Equipment calls
@@ -165,7 +169,7 @@ export const ApiGatewayProvider = ({user, children}) => {
     }
 
     return (
-        <ApiGatewayContext.Provider value={{ gateway, uid }}>
+        <ApiGatewayContext.Provider value={{ gateway, uid, navbarCounter, setNavbarCounter }}>
             {children}
         </ApiGatewayContext.Provider>
     )

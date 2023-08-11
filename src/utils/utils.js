@@ -428,3 +428,19 @@ export async function checkProjectNameAvailability(projectName, gateway, uid) {
     
     return projects.indexOf(projectName) < 0
 }
+
+
+// --------------------------------------------------------------------
+// This function waits for the data processing pipeline to start. This
+// allows us to navigate directly to the project dashboard page without 
+// triggering any "not found" error
+// --------------------------------------------------------------------
+export async function waitForPipelineStart(gateway, uid, projectName) {
+    let executionIds = await getAllExecutionId(gateway, uid)
+
+    do {
+        await new Promise((r) => setTimeout(r, 1000))
+        executionIds = await getAllExecutionId(gateway, uid)
+
+    } while (Object.keys(executionIds).indexOf(projectName) < 0)
+}

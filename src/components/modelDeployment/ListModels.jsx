@@ -26,12 +26,12 @@ import { buildModelTableContent, getSchedulerData } from './deploymentUtils'
 // Component main entry point
 // --------------------------
 function ListModels({ projectName }) {
-    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const { stateMachinesList, setStateMachinesList } = useContext(ModelDeploymentContext)
     const [ isLoading, setIsLoading ] = useState(true)
     const [ sfnStatus, setSfnStatus ] = useState({})
     const [ modelsSummary, setModelsSummary ] = useState(undefined)
-    const [ counter, setCounter ] = useState(0)
+    const [ counter, setCounter ] = useState(0) 
     const [ showDeleteSchedulerModal, setShowDeleteSchedulerModal ] = useState(false)
     const [ currentModelName, setCurrentModelName ] = useState("")
     const modelDeploymentRef = useRef(null)
@@ -73,6 +73,9 @@ function ListModels({ projectName }) {
             .deleteInferenceScheduler(schedulerName)
             .catch((error) => console.log(error.response))
         
+        // This forces a refresh of the side bar 
+        // navigation and the list model table:
+        setNavbarCounter(navbarCounter + 1)
         setCounter(counter + 1)
         setShowDeleteSchedulerModal(false)
     }

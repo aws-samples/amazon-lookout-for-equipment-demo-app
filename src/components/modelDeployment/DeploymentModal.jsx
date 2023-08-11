@@ -37,7 +37,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     const [ replayStartDate, setReplayStartDate ] = useState(undefined)
     const [ replayDuration, setReplayDuration ] = useState({ label: "1 day", value: "1day" })
 
-    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const { stateMachinesList, setStateMachinesList } = useContext(ModelDeploymentContext)
 
     const onDeployDismiss = props.onDismiss
@@ -93,6 +93,10 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
         // initial models list component to update the scheduler status:
         setDeployInProgress(true)
         await checkSchedulerStatus(modelName)
+
+        // This forces a refresh of the side bar navigation
+        // so we can see the new project name popping up:
+        setNavbarCounter(navbarCounter + 1)
         onConfirm()
         onDeployDismiss()
         setDeployInProgress(false)

@@ -39,7 +39,7 @@ function CreateProject() {
     const [ bytesTransferred, setBytesTransferred ] = useState("0 bytes loaded")
     const [ filename, setFilename ]                 = useState("")
     const [ uploadInProgress, setUploadInProgress ] = useState(false)
-    const [ errorMessage, setErrorMessage ]         = useState("")
+    const [ errorMessage, setErrorMessage ]         = useState(undefined)
     const [ helpPanelOpen, setHelpPanelOpen ]       = useState(false)
     const [ showFlashbar, setShowFlashbar ]         = useState(false)
 
@@ -101,11 +101,11 @@ function CreateProject() {
         else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(projectName)) {
             currentError = 'Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
         }
-        else if (! await checkProjectNameAvailability(projectName, gateway, uid)) {
-            currentError = 'Project name not available'
-        }
         else if (dataset.length < 1) {
             currentError = 'You must select a file to upload'
+        }
+        else if (! await checkProjectNameAvailability(projectName, gateway, uid)) {
+            currentError = 'Project name not available'
         }
 
         if (currentError === "") {
@@ -127,7 +127,6 @@ function CreateProject() {
             setErrorMessage(currentError)
         }
     }
-
     // ---------------------
     // Render the component:
     // ---------------------
@@ -160,7 +159,7 @@ function CreateProject() {
                             }
                         >
                             <Container header={<Header variant="h2">Project details</Header>}>
-                                <SpaceBetween size="xl">
+                                <SpaceBetween size="xs">
                                     <FormField 
                                         label="Project name"
                                         constraintText={"Project name can't contain \"/\""}

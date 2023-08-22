@@ -25,11 +25,30 @@ export const ApiGatewayProvider = ({user, children}) => {
         lookoutEquipmentListDataIngestionJobs(datasetName) {
             return request("LookoutEquipment", "ListDataIngestionJobs", {DatasetName: datasetName})
         },
-        lookoutEquipmentListSensorStatistics(datasetName, jobId) {
-            return request("LookoutEquipment", "ListSensorStatistics", {
-                DatasetName: datasetName,
-                IngestionJobId: jobId
-            })
+        async lookoutEquipmentListSensorStatistics(datasetName, jobId) {
+            let response = undefined
+            let overallResponse = {SensorStatisticsSummaries: []}
+            do {
+                if (!response) {
+                    response = await request("LookoutEquipment", "ListSensorStatistics", {
+                        DatasetName: datasetName,
+                        IngestionJobId: jobId
+                    })
+                    .catch((error) => console.log(error.response))
+                }
+                else {
+                    response = await request("LookoutEquipment", "ListSensorStatistics", {
+                        DatasetName: datasetName,
+                        IngestionJobId: jobId,
+                        NextToken: response ? response['NextToken'] : ''
+                    })
+                    .catch((error) => console.log(error.response))
+                }
+                
+                overallResponse['SensorStatisticsSummaries'] = [...overallResponse['SensorStatisticsSummaries'], ...response['SensorStatisticsSummaries']]
+            } while (response['NextToken'])
+
+            return overallResponse
         },
         lookoutEquipmentCreateModel(createRequest) {
             let requestArg = createRequest

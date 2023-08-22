@@ -5,7 +5,8 @@ export async function listModelUsingLabelGroup(gateway, labelGroupName, projectN
     if (listModels['ModelSummaries'].length > 0) {
         for (const model of listModels['ModelSummaries']) {
             const modelDetails = await gateway.lookoutEquipment.describeModel(model['ModelName'])
-            if (modelDetails['LabelsInputConfiguration']['LabelGroupName'] === labelGroupName) {
+
+            if (modelDetails['LabelsInputConfiguration'] && modelDetails['LabelsInputConfiguration']['LabelGroupName'] === labelGroupName) {
                 listAttachedModels.push(model['ModelName'])
             }
         }

@@ -16,11 +16,12 @@ import Header               from "@cloudscape-design/components/header"
 import SpaceBetween         from "@cloudscape-design/components/space-between"
 import Spinner              from '@cloudscape-design/components/spinner'
 import Table                from '@cloudscape-design/components/table'
+import TextContent          from '@cloudscape-design/components/text-content'
 
 // --------------------------
 // Component main entry point
 // --------------------------
-function ModelOverview({ modelDetails, modelName, loading }) {
+function ModelOverview({ modelDetails, loading }) {
     const [ showDeleteModelModal, setShowDeleteModelModal ] = useState(false)
 
     // Define the badge color for the training status:
@@ -61,98 +62,127 @@ function ModelOverview({ modelDetails, modelName, loading }) {
         }
 
         return (
-            <Container header={
-                <Header 
-                    variant="h1"
-                    actions={
-                        <Button 
-                            iconName="status-negative" 
-                            onClick={() => setShowDeleteModelModal(true)}
-                            disabled={modelDetails['status'] === 'IN_PROGRESS'}
-                        >
-                            Delete model
-                        </Button>
-                    }>
-                    Model overview
-                </Header>
-            }>
-                <SpaceBetween size="xl">
-                    <ColumnLayout columns={3} variant="text-grid">
-                        <SpaceBetween size="l">
-                            <div>
-                                <Box variant="awsui-key-label">Model status</Box>
-                                <div>{<Badge color={color}>{modelDetails['status']}</Badge>}</div>
-                            </div>
-                            <div>
-                                <Box variant="awsui-key-label">Training time</Box>
-                                <div>{modelDetails['trainingTime']}</div>
-                            </div>
-                            <div>
-                                <Box variant="awsui-key-label">Creation date</Box>
-                                <div>{modelDetails['createdAt']}</div>
-                            </div>
-                        </SpaceBetween>
+            <SpaceBetween size="xl">
+                <Container>
+                    <Alert>
+                            Once a model is trained you can use the <b>Model overview</b> section to visualize the parameters 
+                            used for training. At training time, you can optionnally specify an evaluation range that Lookout
+                            for Equipment will use to help you assess if your model was able to capture any event of interest 
+                            in your historical data. This evaluation is available in the <b>Detected events</b> section below.
+                            From this screen you can also <b>Delete</b> a model that you don't need anymore.
+                    </Alert>
+                </Container>
 
-                        <SpaceBetween size="l">
-                            <div>
-                                <Box variant="awsui-key-label">Training data start date</Box>
-                                <div>{modelDetails['trainingStart']}</div>
-                            </div>
-                            <div>
-                                <Box variant="awsui-key-label">Training data end date</Box>
-                                <div>{modelDetails['trainingEnd']}</div>
-                            </div>
-                            <div>
-                                <Box variant="awsui-key-label">Sampling rate</Box>
-                                <div>{modelDetails['samplingRate']}</div>
-                            </div>
-                        </SpaceBetween>
+                <Container header={
+                    <Header 
+                        variant="h1"
+                        actions={
+                            <Button 
+                                iconName="status-negative" 
+                                onClick={() => setShowDeleteModelModal(true)}
+                                disabled={modelDetails['status'] === 'IN_PROGRESS'}
+                            >
+                                Delete model
+                            </Button>
+                        }>
+                        Model overview
+                    </Header>
+                }>
+                    <SpaceBetween size="xl">
+                        <ColumnLayout columns={3} variant="text-grid">
+                            <SpaceBetween size="l">
+                                <div>
+                                    <Box variant="awsui-key-label">Model status</Box>
+                                    <div>{<Badge color={color}>{modelDetails['status']}</Badge>}</div>
+                                </div>
 
-                        <SpaceBetween size="l">
-                            <div>
-                                <Box variant="awsui-key-label">Evaluation data start date</Box>
-                                <div>{modelDetails['evaluationStart']}</div>
-                            </div>
-                            <div>
-                                <Box variant="awsui-key-label">Evaluation data end date</Box>
-                                <div>{modelDetails['evaluationEnd']}</div>
-                            </div>
-                            <div>
-                                <Box variant="awsui-key-label">Off time detection</Box>
-                                <div>{offCondition}</div>
-                            </div>
-                        </SpaceBetween>
-                    </ColumnLayout>
+                                { 
+                                    (modelDetails && modelDetails['status'] !== 'FAILED') &&
+                                    <div>
+                                        <Box variant="awsui-key-label">Training time</Box>
+                                        <div>{modelDetails['trainingTime']}</div>
+                                    </div>
+                                }
 
-                    {/* Only shows this section if some labels were defined for this model  */}
-                    {!modelDetails['labels'] ? '' : <ExpandableSection headerText="Defined labels"><SpaceBetween size="xxs">
-                        <Alert>
-                            Some labels were defined to train this model: this labeled data indicates periods 
-                            when your equipment or process did not function propertly. When training a model
-                            with labels, Lookout for Equipment will discard these time ranges to increase its
-                            capability to model only the normal operating states of your equipment or process.
-                            It will then use these sames ranges to rank the different models trained and identify
-                            the best performing one.
-                        </Alert>
-                        <Table 
-                            variant="embedded"
-                            contentDensity="compact"
-                            stripedRows={true}
-                            columnDefinitions={[
-                                { id: "startDate", header: "Label start", cell: e => <Box textAlign="right">{e.startDate}</Box> },
-                                { id: "endDate", header: "Label end", cell: e => <Box textAlign="right">{e.endDate}</Box> },
-                                { id: "duration", header: "Label duration", cell: e => <Box textAlign="right">{e.duration}</Box> }
-                            ]}
-                            items={items}
-                        />
-                    </SpaceBetween></ExpandableSection>}
-                </SpaceBetween>
+                                {
+                                    (modelDetails && modelDetails['status'] === 'FAILED') &&
+                                    <div>
+                                        <Alert type="error">
+                                            Model training failed with the following error: 
+                                            <i>{modelDetails['failedReason']}</i> You can delete 
+                                            this model, verify your training parameters and create
+                                            a new one.
+                                        </Alert>
+                                    </div>
+                                }
 
-                <DeleteModelModal
-                    visible={showDeleteModelModal}
-                    onDiscard={() => { setShowDeleteModelModal(false) }}
-                />
-            </Container>
+                                <div>
+                                    <Box variant="awsui-key-label">Creation date</Box>
+                                    <div>{modelDetails['createdAt']}</div>
+                                </div>
+                            </SpaceBetween>
+
+                            <SpaceBetween size="l">
+                                <div>
+                                    <Box variant="awsui-key-label">Training data start date</Box>
+                                    <div>{modelDetails['trainingStart']}</div>
+                                </div>
+                                <div>
+                                    <Box variant="awsui-key-label">Training data end date</Box>
+                                    <div>{modelDetails['trainingEnd']}</div>
+                                </div>
+                                <div>
+                                    <Box variant="awsui-key-label">Sampling rate</Box>
+                                    <div>{modelDetails['samplingRate']}</div>
+                                </div>
+                            </SpaceBetween>
+
+                            <SpaceBetween size="l">
+                                <div>
+                                    <Box variant="awsui-key-label">Evaluation data start date</Box>
+                                    <div>{modelDetails['evaluationStart']}</div>
+                                </div>
+                                <div>
+                                    <Box variant="awsui-key-label">Evaluation data end date</Box>
+                                    <div>{modelDetails['evaluationEnd']}</div>
+                                </div>
+                                <div>
+                                    <Box variant="awsui-key-label">Off time detection</Box>
+                                    <div>{offCondition}</div>
+                                </div>
+                            </SpaceBetween>
+                        </ColumnLayout>
+
+                        {/* Only shows this section if some labels were defined for this model  */}
+                        {!modelDetails['labels'] ? '' : <ExpandableSection headerText="Defined labels"><SpaceBetween size="xxs">
+                            <Alert>
+                                Some labels were defined to train this model: this labeled data indicates periods 
+                                when your equipment or process did not function propertly. When training a model
+                                with labels, Lookout for Equipment will discard these time ranges to increase its
+                                capability to model only the normal operating states of your equipment or process.
+                                It will then use these sames ranges to rank the different models trained and identify
+                                the best performing one.
+                            </Alert>
+                            <Table 
+                                variant="embedded"
+                                contentDensity="compact"
+                                stripedRows={true}
+                                columnDefinitions={[
+                                    { id: "startDate", header: "Label start", cell: e => <Box textAlign="right">{e.startDate}</Box> },
+                                    { id: "endDate", header: "Label end", cell: e => <Box textAlign="right">{e.endDate}</Box> },
+                                    { id: "duration", header: "Label duration", cell: e => <Box textAlign="right">{e.duration}</Box> }
+                                ]}
+                                items={items}
+                            />
+                        </SpaceBetween></ExpandableSection>}
+                    </SpaceBetween>
+
+                    <DeleteModelModal
+                        visible={showDeleteModelModal}
+                        onDiscard={() => { setShowDeleteModelModal(false) }}
+                    />
+                </Container>
+            </SpaceBetween>
         )
     }
 

@@ -254,6 +254,10 @@ export async function getModelDetails(gateway, modelName, projectName, uid) {
         response['timeseries'] = timeseries.timeseries    
     }
 
+    if (modelResponse['Status'] === 'FAILED') {
+        response['failedReason'] = modelResponse['FailedReason']
+    }
+
     return response
 }
 

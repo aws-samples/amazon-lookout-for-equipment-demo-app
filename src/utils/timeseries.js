@@ -76,7 +76,8 @@ export function buildChartOptions(
     legendWidth,
     enableBrush,
     customDatazoomColor,
-    readOnly
+    readOnly,
+    showTopN
 ) {
     const series = []
     tagsList.forEach((tag) => {
@@ -142,6 +143,18 @@ export function buildChartOptions(
         option['toolbox'] = {
             right: legendWidth,
             top: 0
+        }
+
+        if (showTopN) {
+            option['legend']['selected'] = {}
+            tagsList.forEach((tag, index) => {
+                if (index < showTopN) {
+                    option['legend']['selected'][tag] = true
+                }
+                else {
+                    option['legend']['selected'][tag] = false
+                }
+            })
         }
     }
 

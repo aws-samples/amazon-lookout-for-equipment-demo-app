@@ -262,7 +262,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
             legendWidth,
             true,           // enableBrush
             false,          // customDatazoomColor
-            readOnly
+            readOnly,        //readOnly
+            5               // showTopN
         )
 
         useEffect(() => {

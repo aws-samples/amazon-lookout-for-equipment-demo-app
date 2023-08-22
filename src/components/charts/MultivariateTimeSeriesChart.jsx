@@ -99,7 +99,9 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
             showToolbox, 
             legendWidth,
             enableBrush,
-            true // customDatazoomColor
+            true,                   // customDatazoomColor,
+            false,                  // readOnly
+            5                       // Show top 5 signals after loading
         )
 
         // --------------------------------------------------------

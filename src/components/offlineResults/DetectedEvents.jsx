@@ -43,7 +43,8 @@ function DetectedEvents({ modelDetails }) {
                 evaluationStart,
                 modelDetails,
                 dailyAggregation,
-                anomalies
+                anomalies,
+                5                   // showTopN
             )
 
             // Renders the component:

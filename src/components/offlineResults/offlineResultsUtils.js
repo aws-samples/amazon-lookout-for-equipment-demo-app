@@ -269,7 +269,8 @@ export function buildChartOptions(
     evaluationStart,
     modelDetails,
     dailyAggregation,
-    anomalies
+    anomalies,
+    showTopN
 ) {
     const zoomStart = parseInt(getZoomStart(dailyAggregation.Items, evaluationStart) * 0.9)
 
@@ -321,9 +322,11 @@ export function buildChartOptions(
                 borderWidth: 1.0
             }
         }, ...sortedKeys]
+
+        if (showTopN) { showTopN += 1 }
     }
 
-    return {
+    let option = {
         title: [
             { top: 0, left: 50, text: eventTitle, textStyle: { fontSize: 16, color: '#000' } },
             { top: 140, left: 50, text: 'Detected events (aggregated by day)', textStyle: { fontSize: 16, color: '#000' } },
@@ -375,4 +378,19 @@ export function buildChartOptions(
             }
         }
     }
+
+    // If we only wants to show the top N sensors:
+    if (showTopN) {
+        option['legend']['selected'] = {}
+        sortedKeys.forEach((tag, index) => {
+            if (index < showTopN) {
+                option['legend']['selected'][tag] = true
+            }
+            else {
+                option['legend']['selected'][tag] = false
+            }
+        })
+    }
+
+    return option
 }

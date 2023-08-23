@@ -38,7 +38,7 @@ function OfflineResults() {
             content={
                 <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
                     <SpaceBetween size='xl'>
-                        <ModelOverview modelDetails={modelDetails} modelName={modelName} loading={loading} />
+                        <ModelOverview modelDetails={modelDetails} loading={loading} />
                         {!loading && modelDetails && <DetectedEvents modelDetails={modelDetails} loading={loading} />}
                     </SpaceBetween>
                 </ContentLayout>

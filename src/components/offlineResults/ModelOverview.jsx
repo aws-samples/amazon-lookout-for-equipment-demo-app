@@ -16,7 +16,6 @@ import Header               from "@cloudscape-design/components/header"
 import SpaceBetween         from "@cloudscape-design/components/space-between"
 import Spinner              from '@cloudscape-design/components/spinner'
 import Table                from '@cloudscape-design/components/table'
-import TextContent          from '@cloudscape-design/components/text-content'
 
 // --------------------------
 // Component main entry point

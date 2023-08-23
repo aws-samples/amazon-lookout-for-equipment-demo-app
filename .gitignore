@@ -12,6 +12,8 @@ dist
 dist-ssr
 *.local
 *.zip
+*.bkp
+*.dtmp
 
 # Editor directories and files
 .vscode/*

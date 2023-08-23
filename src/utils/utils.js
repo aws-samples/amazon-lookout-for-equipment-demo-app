@@ -1,6 +1,4 @@
 // Imports
-import { Storage } from 'aws-amplify'
-import { listFolders } from './s3_utils'
 import * as awsui from '@cloudscape-design/design-tokens/index.js'
 
 // -----------------------------------------
@@ -443,4 +441,25 @@ export async function waitForPipelineStart(gateway, uid, projectName) {
         executionIds = await getAllExecutionId(gateway, uid)
 
     } while (Object.keys(executionIds).indexOf(projectName) < 0)
+}
+
+// ------------------------------
+// Find an available project name
+// ------------------------------
+export async function getAvailableDefaultProjectName(gateway, uid) {
+    const projectsList = await getAllProjects(gateway, uid)
+
+    let defaultProjectName = "Demo-Project"
+    let index = 1
+    let projectExists = true
+    do {
+        projectExists = projectsList.indexOf(defaultProjectName) >= 0
+        if (projectExists) {
+            index += 1
+            defaultProjectName += `-${index}`
+        }
+
+    } while (projectExists)
+
+    return defaultProjectName
 }

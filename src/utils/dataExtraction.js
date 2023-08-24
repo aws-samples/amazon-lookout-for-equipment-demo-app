@@ -421,7 +421,6 @@ async function getSensorContribution(gateway, model, assetName, endTime) {
                 ":model": {"S": model},
                 ":endTime": {"N": endTime.toString()}
             }
-    
         }
 
         sensorContribution = await gateway.dynamoDbQueryAll(sensorContributionQuery)

@@ -177,35 +177,35 @@ export const ApiGatewayProvider = ({user, children}) => {
         dynamoDbQuery(query) {
             return request("DynamoDB", "Query", query)
         },
-        async dynamoDbQueryAll(query) {
-            let response = undefined
-            let overall_response = {Items: []}
-            let lastEvaluatedKey = undefined
-
-            do {
-                if (!response) {
-                    response = await request("DynamoDB", "Query", query)
-                                     .catch((error) => console.log(error.response))
-                }
-                else {
-                    lastEvaluatedKey = response['LastEvaluatedKey']
-                    response = await request("DynamoDB", "Query", {...query, ExclusiveStartKey: lastEvaluatedKey})
-                                     .catch((error) => console.log(error.response))
-                }
-
-                overall_response['Items'] = [...overall_response['Items'], ...response['Items']]
-
-            } while (response['LastEvaluatedKey'])
-
-            return overall_response
-        },
         dynamoDb: {
             deleteTable(tableName) {
                 return request("DynamoDB", "DeleteTable", { TableName: tableName })
             },
             deleteItem(tableName, key) {
                 return request("DynamoDB", "DeleteItem", { TableName: tableName, Key: key })
-            }
+            },
+            async queryAll(query) {
+                let response = undefined
+                let overall_response = {Items: []}
+                let lastEvaluatedKey = undefined
+    
+                do {
+                    if (!response) {
+                        response = await request("DynamoDB", "Query", query)
+                                         .catch((error) => console.log(error.response))
+                    }
+                    else {
+                        lastEvaluatedKey = response['LastEvaluatedKey']
+                        response = await request("DynamoDB", "Query", {...query, ExclusiveStartKey: lastEvaluatedKey})
+                                         .catch((error) => console.log(error.response))
+                    }
+    
+                    overall_response['Items'] = [...overall_response['Items'], ...response['Items']]
+    
+                } while (response['LastEvaluatedKey'])
+    
+                return overall_response
+            },
         }
     }
 

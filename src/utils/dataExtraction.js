@@ -423,7 +423,7 @@ async function getSensorContribution(gateway, model, assetName, endTime) {
             }
         }
 
-        sensorContribution = await gateway.dynamoDbQueryAll(sensorContributionQuery)
+        sensorContribution = await gateway.dynamoDb.queryAll(sensorContributionQuery)
                             .catch((error) => console.log(error.response))
     }
 

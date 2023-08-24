@@ -1,0 +1,35 @@
+
+[data-amplify-theme="cloudscape"] {
+}
+
+[data-amplify-theme="cloudscape"] .amplify-alert {
+  border: 2px solid #0972d3;
+  border-radius: 12px;
+  font-size: 14px;
+  gap: 6px;
+}
+
+[data-amplify-theme="cloudscape"] .amplify-alert__icon {
+  color: #0972d3;
+  margin-top: 2px;
+}
+
+/* To be able to even style Cloudscape components, some pretty gnarly CSS: */
+#root .cloudscape-amplify-ui button[class*="awsui_button"] {
+  border-radius: var(--amplify-radii-small);
+  border-width: var(--amplify-components-button-border-width);
+  border-color: var(--amplify-components-button-border-color);
+  color: var(--amplify-components-button-color);
+}
+
+#root
+  .cloudscape-amplify-ui
+  button[class*="awsui_button"][class*="variant-primary"] {
+  background-color: var(--amplify-components-button-primary-background-color);
+  border-color: var(--amplify-components-button-primary-background-color);
+}
+
+#root .cloudscape-amplify-ui [class*="awsui_alert"] {
+  background-color: hotpink;
+  border-color: black;
+}

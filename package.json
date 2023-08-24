@@ -1,0 +1,45 @@
+{
+  "name": "lookout-equipment-demo-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@aws-amplify/ui-react": "^4.6.4",
+    "@cloudscape-design/components": "^3.0.303",
+    "@cloudscape-design/design-tokens": "^3.0.15",
+    "@cloudscape-design/global-styles": "^1.0.9",
+    "aws-amplify": "^5.2.5",
+    "echarts": "^5.4.2",
+    "echarts-for-react": "^3.0.2",
+    "echarts-stat": "^1.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^6.12.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.0.0",
+    "@testing-library/react": "^14.0.0",
+    "@types/react": "^18.0.37",
+    "@types/react-dom": "^18.0.11",
+    "@vitejs/plugin-react": "^4.0.4",
+    "@vitest/browser": "^0.34.2",
+    "eslint": "^8.38.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.3.4",
+    "jsdom": "^22.1.0",
+    "sass": "^1.62.1",
+    "vite": "^4.3.9",
+    "vitest": "^0.34.1",
+    "webdriverio": "^8.15.4"
+  }
+}

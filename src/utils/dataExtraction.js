@@ -413,7 +413,7 @@ async function getSensorContribution(gateway, model, assetName, endTime) {
 
     let sensorContribution = undefined
     if (listTables.indexOf(sensorContributionTableName) >= 0) {
-        sensorContribution = await gateway.dynamoDbQuery({ 
+        const sensorContributionQuery = { 
             TableName: `l4edemoapp-${assetName}-sensor_contribution`,
             KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
             ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
@@ -422,8 +422,10 @@ async function getSensorContribution(gateway, model, assetName, endTime) {
                 ":endTime": {"N": endTime.toString()}
             }
     
-        })
-        .catch((error) => console.log(error.response))
+        }
+
+        sensorContribution = await gateway.dynamoDbQueryAll(sensorContributionQuery)
+                            .catch((error) => console.log(error.response))
     }
 
     return sensorContribution

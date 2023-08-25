@@ -16,6 +16,7 @@ import Welcome              from './Welcome'
 
 // Contexts:
 import { ApiGatewayProvider } from './contexts/ApiGatewayContext'
+import { HelpPanelProvider } from './contexts/HelpPanelContext'
 
 ////////////////////////////
 // ADD A BREADCRUMB
@@ -28,43 +29,45 @@ function Home({ user, signOut }) {
     return (
         <QueryClientProvider client={queryClient}>
             <ApiGatewayProvider user={user}>
-                <TopMenuBar user={user} signOut={signOut} />
-                <Routes>
-                    <Route path="/" element={<Welcome />} />
-                    <Route path="/create-project" element={<CreateProject />} />
-                    <Route 
-                        path="/project-dashboard/projectName/:projectName"
-                        element={<ProjectDashboard />} 
-                    />
-                    <Route 
-                        path="/sensor-overview/projectName/:projectName"
-                        element={<SensorOverview />} 
-                    />
-                    <Route 
-                        path="/labeling/projectName/:projectName" 
-                        element={<Labeling />} 
-                    />
-                    <Route 
-                        path="/model-training/projectName/:projectName" 
-                        element={<ModelTraining />} 
-                    />
-                    <Route 
-                        path="/offline-results/modelName/:modelName/projectName/:projectName"
-                        element={<OfflineResults />} 
-                    />
-                    <Route 
-                        path="/online-monitoring/modelName/:modelName/projectName/:projectName"
-                        element={<OnlineMonitoring />} 
-                    />
-                    <Route 
-                        path="/online-monitoring/modelName/:modelName/projectName/:projectName/initialRange/:initialRange"
-                        element={<OnlineMonitoring />}
-                    />
-                    <Route 
-                        path="/model-deployment/projectName/:projectName" 
-                        element={<ModelDeployment />} 
-                    />
-                </Routes>
+                <HelpPanelProvider>
+                    <TopMenuBar user={user} signOut={signOut} />
+                    <Routes>
+                        <Route path="/" element={<Welcome />} />
+                        <Route path="/create-project" element={<CreateProject />} />
+                        <Route 
+                            path="/project-dashboard/projectName/:projectName"
+                            element={<ProjectDashboard />} 
+                        />
+                        <Route 
+                            path="/sensor-overview/projectName/:projectName"
+                            element={<SensorOverview />} 
+                        />
+                        <Route 
+                            path="/labeling/projectName/:projectName" 
+                            element={<Labeling />} 
+                        />
+                        <Route 
+                            path="/model-training/projectName/:projectName" 
+                            element={<ModelTraining />} 
+                        />
+                        <Route 
+                            path="/offline-results/modelName/:modelName/projectName/:projectName"
+                            element={<OfflineResults />} 
+                        />
+                        <Route 
+                            path="/online-monitoring/modelName/:modelName/projectName/:projectName"
+                            element={<OnlineMonitoring />} 
+                        />
+                        <Route 
+                            path="/online-monitoring/modelName/:modelName/projectName/:projectName/initialRange/:initialRange"
+                            element={<OnlineMonitoring />}
+                        />
+                        <Route 
+                            path="/model-deployment/projectName/:projectName" 
+                            element={<ModelDeployment />} 
+                        />
+                    </Routes>
+                </HelpPanelProvider>
             </ApiGatewayProvider>
         </QueryClientProvider>
     )

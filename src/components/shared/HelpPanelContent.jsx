@@ -6,6 +6,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between"
 
 // Contains all the help panel contents:
 export const helpPanelContent = {
+    // ---------------------------------------------------------------------------------------------------------------------------------
     createProject: {
         dataset: {
             header: (<div>Dataset format</div>),
@@ -49,6 +50,45 @@ export const helpPanelContent = {
                 </SpaceBetween>
             )
         }
+    },
+
+    // ---------------------------------------------------------------------------------------------------------------------------------
+    projectDashboard: {
+        summary: {
+            header: (<div>Summary section</div>),
+            footer: "",
+            body: (
+                <div>
+                    You can use this screen to verify that your dataset was correctly ingested and that 
+                    its content is aligned with your expectations. Use the <b>summary</b> section to double
+                    check the following items:
+                    <ul>
+                        <li>The start and end date of your dataset: note that a minimum of 90 days is currently necessary to train a model</li>
+                        <li>The number of attributes found in the CSV file your uploaded when your project was created</li>
+                        <li>The number of rows found in the dataset</li>
+                    </ul>
+                </div>
+            )
+        },
+        datasetOverview: {
+            header: (<div>Dataset overview</div>),
+            footer: "",
+            body: (
+                <div>
+                    Expand the <b>Dataset overview</b> section to verify the following items:
+                    
+                    <ul>
+                        <li>The name of your columns (your sensors)</li>
+                        <li>The format of the data in each column: currently this application will only leverage numeric columns</li>
+                        <li>The format of the timestamp in the first column</li>
+                    </ul>
+                    
+                    If something seems odd, you can use the <b>Delete project</b> button to remove
+                    it from this application: this will also remove any related asset (such as models and
+                    deployments).
+                </div>
+            )
+        },
     }
 }
 

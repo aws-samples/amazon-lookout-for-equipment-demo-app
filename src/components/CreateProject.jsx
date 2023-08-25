@@ -11,7 +11,6 @@ import {
 
 // Application components:
 import NavigationBar from './NavigationBar'
-import HelpSidePanel from './shared/HelpSidePanel'
 
 // CloudScape components:
 import AppLayout        from "@cloudscape-design/components/app-layout"
@@ -32,6 +31,7 @@ import SpaceBetween     from "@cloudscape-design/components/space-between"
 
 // Context:
 import ApiGatewayContext from './contexts/ApiGatewayContext.jsx'
+import HelpPanelContext from './contexts/HelpPanelContext'
 
 // ==================================================
 // Component main entry point: this component manages 
@@ -46,11 +46,10 @@ function CreateProject() {
     const [ filename, setFilename ]                     = useState("")
     const [ uploadInProgress, setUploadInProgress ]     = useState(false)
     const [ errorMessage, setErrorMessage ]             = useState(undefined)
-    const [ helpPanelOpen, setHelpPanelOpen ]           = useState(false)
     const [ showFlashbar, setShowFlashbar ]             = useState(false)
-    const [ defaultProjectName, setDefaultProjectName ] = useState("")
 
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
+    const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
     const navigate = useNavigate()
 
     // --------------------------------------
@@ -146,11 +145,15 @@ function CreateProject() {
     return (
         <AppLayout
             contentType="default"
-            toolsOpen={helpPanelOpen}
-            onToolsChange={(e) => setHelpPanelOpen(e.detail.open)}
-            tools={
-                <HelpSidePanel page="createProject" section="dataset" />
-            }
+
+            toolsOpen={helpPanelOpen.status}
+            onToolsChange={(e) => setHelpPanelOpen({
+                status: e.detail.open,
+                page: helpPanelOpen.page,
+                section: helpPanelOpen.section
+            })}
+            tools={panelContent.current}
+
             content={
                 <ContentLayout header={<Header variant="h1">Create a new project</Header>}>
                     <form onSubmit={handleCreateProjectSubmit}>
@@ -193,7 +196,11 @@ function CreateProject() {
 
                                     <FormField
                                         label="Dataset"
-                                        info={ <Link variant="info" onFollow={() => setHelpPanelOpen(true)}>Info</Link> }
+                                        info={ <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                            status: true,
+                                            page: 'createProject',
+                                            section: 'dataset'
+                                        })}>Info</Link> }
                                     >
                                         <SpaceBetween size="xs">
                                             <Box>

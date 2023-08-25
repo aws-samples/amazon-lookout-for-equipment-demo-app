@@ -141,3 +141,21 @@ export async function getProjectData(gateway, projectName) {
         listSchedulers
     }
 }
+
+// --------------------------------------
+// Compute the sampling rate and build a
+// human-readable version with the units:
+// --------------------------------------
+export const SamplingRate = ({ rowCounts, startDate, endDate }) => {
+    if (rowCounts) {
+        const numRows = parseFloat(rowCounts)
+        const start = new Date(startDate).getTime() / 1000
+        const end = new Date(endDate).getTime() / 1000
+        const samplingRate = ((end - start)/numRows).toFixed(1)
+
+        return ( <div>{samplingRate} seconds</div> )
+    }
+    else {
+        return ( <div>n/a</div> )
+    }
+}

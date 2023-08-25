@@ -10,6 +10,7 @@ import DeleteProjectModal from './projectDashboard/DeleteProjectModal'
 
 // Contexts:
 import ApiGatewayContext from './contexts/ApiGatewayContext'
+import HelpPanelContext from './contexts/HelpPanelContext'
 
 // CloudScape Components:
 import Alert             from "@cloudscape-design/components/alert"
@@ -30,12 +31,14 @@ import { getProjectDetails } from './projectDashboard/projectDashboardUtils'
 // --------------------------
 function ProjectDashboard() {
     const { projectName } = useParams()
-    const [ modelDetails, setModelDetails ] = useState(undefined)
-    const [ errorMessage, setErrorMessage ] = useState(undefined)
-    const [ errorDetails, setErrorDetails ] = useState(undefined)
-    const [ isLoading, setIsLoading ] = useState(true)
+    const [ modelDetails, setModelDetails ]                     = useState(undefined)
+    const [ errorMessage, setErrorMessage ]                     = useState(undefined)
+    const [ errorDetails, setErrorDetails ]                     = useState(undefined)
+    const [ isLoading, setIsLoading ]                           = useState(true)
     const [ showDeleteProjectModal, setShowDeleteProjectModal ] = useState(false)
+
     const { gateway, uid } = useContext(ApiGatewayContext)
+    const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
 
     useEffect(() => {
         getProjectDetails(gateway, uid, projectName)
@@ -110,6 +113,15 @@ function ProjectDashboard() {
     return (
         <AppLayout
             contentType="default"
+
+            toolsOpen={helpPanelOpen.status}
+            onToolsChange={(e) => setHelpPanelOpen({
+                status: e.detail.open,
+                page: helpPanelOpen.page,
+                section: helpPanelOpen.section
+            })}
+            tools={panelContent.current}
+
             content={
                 <ContentLayout header={<Header variant="h1">{projectName} overview</Header>}>
                     <SpaceBetween size="xl">
@@ -117,6 +129,7 @@ function ProjectDashboard() {
                     </SpaceBetween>
                 </ContentLayout>
             }
+            
             navigation={<NavigationBar activeHref={"/project-dashboard/projectName/" + projectName} />}
         />
     )

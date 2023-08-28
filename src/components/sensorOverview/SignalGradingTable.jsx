@@ -5,14 +5,16 @@ import { useEffect, useState, useContext } from 'react'
 import CategoricalFlag from '../shared/CategoricalFlag'
 
 // Cloudscape components:
-import Alert from '@cloudscape-design/components/alert'
+import Alert     from '@cloudscape-design/components/alert'
 import Container from '@cloudscape-design/components/container'
-import Header from "@cloudscape-design/components/header"
-import Spinner from "@cloudscape-design/components/spinner"
-import Table from '@cloudscape-design/components/table'
+import Header    from "@cloudscape-design/components/header"
+import Link      from '@cloudscape-design/components/link'
+import Spinner   from "@cloudscape-design/components/spinner"
+import Table     from '@cloudscape-design/components/table'
 
 // Contexts:
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
+import HelpPanelContext from '../contexts/HelpPanelContext'
 
 // Utils:
 import { getSignalDetails } from '../../utils/dataExtraction'
@@ -24,6 +26,7 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
     const [ signalDetails, setSignalDetails ] = useState(undefined)
     const [ isLoading, setIsLoading ] = useState(true)
     const { gateway, uid } = useContext(ApiGatewayContext)
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
 
     useEffect(() => {
         getSignalDetails(gateway, uid + '-' + projectName)
@@ -75,7 +78,14 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
             })
 
             return (
-                <Container header={<Header variant="h1">Signal grading</Header>}>
+                <Container header={<Header 
+                                        variant="h1"
+                                        info={ <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                            status: true,
+                                            page: 'sensorOverview',
+                                            section: 'signalGradingTable'
+                                        })}>Info</Link> }
+                                   >Signal grading</Header>}>
                     <Table
                         columnDefinitions={columns}
                         items={tableItems}

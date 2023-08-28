@@ -6,9 +6,11 @@ import { cleanList } from "../../utils/utils.js"
 import { buildChartOptions } from "./sensorOverviewUtils"
 
 // CloudScape components:
-import Box from "@cloudscape-design/components/box"
+import Box          from "@cloudscape-design/components/box"
+import Header       from "@cloudscape-design/components/header"
+import Link         from '@cloudscape-design/components/link'
 import SpaceBetween from "@cloudscape-design/components/space-between"
-import Spinner from "@cloudscape-design/components/spinner"
+import Spinner      from "@cloudscape-design/components/spinner"
 
 // App components:
 import TimeSeriesHistograms from '../charts/TimeSeriesHistogram.jsx'
@@ -16,11 +18,13 @@ import TimeSeriesHistograms from '../charts/TimeSeriesHistogram.jsx'
 // Contexts:
 import TimeSeriesContext from '../contexts/TimeSeriesContext.jsx'
 import SensorOverviewContext from '../contexts/SensorOverviewContext.jsx'
+import HelpPanelContext from '../contexts/HelpPanelContext'
 
 function UnivariateTimeSeriesChart({ sensorName }) {
     const { data } = useContext(TimeSeriesContext)
     const { zoomStart, zoomEnd, currentBrushes, selectedRanges } = useContext(SensorOverviewContext)
     const { setCurrentBrushes, setSelectedRanges } = useContext(SensorOverviewContext)
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const eChartRef = useRef(null)
 
     if (data.timeseries) {
@@ -100,10 +104,19 @@ function UnivariateTimeSeriesChart({ sensorName }) {
         return (
             <SpaceBetween size="xxl" direction="horizontal">
                 <Box>
+                    <Header 
+                        variant="h4"
+                        info={ <Link variant="info" onFollow={() => setHelpPanelOpen({
+                            status: true,
+                            page: 'sensorOverview',
+                            section: 'timeseriesPlot'
+                        })}>Info</Link> }
+                    >Signal time series</Header>
+
                     <ReactEcharts 
                         option={chartOptions}
                         theme="macarons"
-                        style={{height: 300, width: 750}}
+                        style={{height: 280, width: 750}}
                         onChartReady={onChartReady}
                         ref={eChartRef}
                         onEvents={{
@@ -113,12 +126,24 @@ function UnivariateTimeSeriesChart({ sensorName }) {
                         }}
                     />
                 </Box>
+
                 <Box>
+                    <Header 
+                        variant="h4"
+                        info={ <Link variant="info" onFollow={() => setHelpPanelOpen({
+                            status: true,
+                            page: 'sensorOverview',
+                            section: 'histogramPlot'
+                        })}>Info</Link> }
+                    >Signal value distribution</Header>
+
                     <TimeSeriesHistograms
                         data={data}
                         ranges={selectedRanges} 
                         sensorName={sensorName}
                         hideAnimation={true}
+                        hideTitle={true}
+                        height={280}
                         colors={['rgb(141, 152, 179, 0.5)', 'rgb(151, 181, 82, 0.7)']}
                     />
                 </Box>

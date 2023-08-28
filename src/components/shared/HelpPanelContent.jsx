@@ -89,6 +89,92 @@ export const helpPanelContent = {
                 </div>
             )
         },
+    },
+
+    // ---------------------------------------------------------------------------------------------------------------------------------
+    sensorOverview: {
+        signalGradingTable: {
+            header: (<div>Signal grading</div>),
+            footer: (
+                <ExternalLinkGroup
+                    items={[{ 
+                        href: 'https://docs.aws.amazon.com/lookout-for-equipment/latest/ug/reading-details-by-sensor.html', 
+                        text: 'Evaluating sensor grades' 
+                    }]}
+                />
+            ),
+            body: (
+                <div>
+                    Once your data is ingested, Amazon Lookout for Equipment will perform a <b>grading</b> of
+                    your individual sensor data with regards to their capability to be good quality signals
+                    for anomaly detection purpose. The following table lets your review the characteristics
+                    of each signal:
+
+                    <ul>
+                        <li>What is the <b>time extent</b> of the signals (start time, end time and number of days)</li>
+                        <li>
+                            Is there a <b>potential issue</b> embedded in the signal (is it categorical, monotonic, is
+                            there any large gap detected...).
+                        </li>
+                        <li>
+                            How many <b>invalid datapoints</b> were detected (missing data, duplicate timestamps...)
+                        </li>
+                    </ul>
+                </div>
+            )
+        },
+
+        timeseriesPlot: {
+            header: (<div>Signal time series plot</div>),
+            footer: "",
+            body: (
+                <div>
+                    You can <b>visually review</b> the behavior of a selected signal by looking at its time series
+                    plot. This plot will help you understand why the grading table mentions large gaps, missing data,
+                    mononotic behavior or multiple operating modes. At the top right of this plot you will also find
+                    two icons:
+
+                    <ul>
+                        <li>
+                            
+                            The first one (<img src="/icon-select-range.png" width="16px" />) will let you <b>horizontally 
+                            select</b> a range on your time series. This range will be highlighted in green. Selecting a 
+                            range will update the histogram plot on the right to display two distributions. One, for the 
+                            selected data (with a green histogram) and one for the remaining data (with a blue histogram).
+                        </li>
+                        <li>
+                            The second icon (<img src="/icon-select-clear.png" width="16px" />) will <b>clear</b> the time
+                            range selection.
+                        </li>
+                    </ul>
+                </div>
+            )
+        },
+
+        histogramPlot: {
+            header: (<div>Signal histogram plot</div>),
+            footer: "",
+            body: (
+                <div>
+                    You can also <b>visually review</b> the behavior of a selected signal by looking at the distribution
+                    of the values it takes over time. This plot will help you understand why the grading table mentions
+                    multiple operating modes (which will be visible as multiple peaks in the histogram). When you use
+                    the range selection icon (<img src="/icon-select-range.png" width="16px" />) at the top of the time
+                    series plot, you will create a split of the histogram and two distributions will be shown:
+
+                    <ul>
+                        <li>A green one showing the distribution of the selected values</li>
+                        <li>A blue one showing the distribution of the remaining values</li>
+                    </ul>
+
+                    When you train a model, you will have to select which portion of your historical data will be used
+                    to train an anomaly detection model. Selecting a training range that showcases a significant shift
+                    with regards of the remaining data may lead to lower quality models which yield more false positives.
+                    Using this feature, helps you understand if this may happen with your data and help you mitigate this
+                    risk by selecting an appropriate training range.
+                </div>
+            )
+        }
     }
 }
 

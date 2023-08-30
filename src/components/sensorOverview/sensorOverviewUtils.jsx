@@ -60,17 +60,17 @@ export async function buildTableItems(gateway, projectName) {
 
     // Defining columns for the table:
     const tableColumns = [
-        {id: "SensorName", header: "Sensor", cell: e => e.SensorName, isRowHeader: true},
-        {id: "DataStartTime", header: "Start time", cell: e => e.DataStartTime},
-        {id: "DataEndTime", header: "End time", cell: e => e.DataEndTime},
-        {id: "Categorical", header: "Categorical?", cell: e => (<CategoricalFlag type={e.Categorical} />)},
-        {id: "LargeGaps", header: "Large gaps?", cell: e => (<CategoricalFlag type={e.LargeGaps} />)},
-        {id: "Monotonic", header: "Monotonic?", cell: e => (<CategoricalFlag type={e.Monotonic} />)},
-        {id: "MultipleModes", header: "Multiple modes?", cell: e => (<CategoricalFlag type={e.MultipleModes} />)},
-        {id: "DuplicateTimestamps", header: "Duplicate timestamps", cell: e => e.DuplicateTimestamps},
-        {id: "InvalidDateEntries", header: "Invalid timestamps", cell: e => e.InvalidDateEntries},
-        {id: "InvalidValues", header: "Invalid values", cell: e => e.InvalidValues},
-        {id: "MissingValues", header: "Missing values", cell: e => e.MissingValues},
+        {id: "SensorName", header: "Sensor", cell: e => e.SensorName, sortingField: 'SensorName'},
+        {id: "DataStartTime", header: "Start time", cell: e => e.DataStartTime, sortingField: 'DataStartTime'},
+        {id: "DataEndTime", header: "End time", cell: e => e.DataEndTime, sortingField: 'DataEndTime'},
+        {id: "Categorical", header: "Categorical?", cell: e => (<CategoricalFlag type={e.Categorical} />), sortingField: 'Categorical'},
+        {id: "LargeGaps", header: "Large gaps?", cell: e => (<CategoricalFlag type={e.LargeGaps} />), sortingField: 'LargeGaps'},
+        {id: "Monotonic", header: "Monotonic?", cell: e => (<CategoricalFlag type={e.Monotonic} />), sortingField: 'Monotonic'},
+        {id: "MultipleModes", header: "Multiple modes?", cell: e => (<CategoricalFlag type={e.MultipleModes} />), sortingField: 'MultipleModes'},
+        {id: "DuplicateTimestamps", header: "Duplicates", cell: e => e.DuplicateTimestamps, sortingField: 'DuplicateTimestamps'},
+        {id: "InvalidDateEntries", header: "Invalid timestamps", cell: e => e.InvalidDateEntries, sortingField: 'InvalidDateEntries'},
+        {id: "InvalidValues", header: "Invalid values", cell: e => e.InvalidValues, sortingField: 'InvalidValues'},
+        {id: "MissingValues", header: "Missing values", cell: e => e.MissingValues, sortingField: 'MissingValues'},
     ]
 
     // Populating the content for the table:

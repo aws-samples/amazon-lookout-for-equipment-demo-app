@@ -3,13 +3,16 @@ import { useEffect, useState, useContext } from 'react'
 
 // App components:
 import SignalTable from './SignalTable'
+import UnivariateSignalPlotPanel from './UnivariateSignalPlotPanel'
 
 // Cloudscape components:
-import Alert     from '@cloudscape-design/components/alert'
-import Container from '@cloudscape-design/components/container'
-import Header    from "@cloudscape-design/components/header"
-import Link      from '@cloudscape-design/components/link'
-import Spinner   from "@cloudscape-design/components/spinner"
+import Alert        from '@cloudscape-design/components/alert'
+import Container    from '@cloudscape-design/components/container'
+import Grid         from '@cloudscape-design/components/grid'
+import Header       from '@cloudscape-design/components/header'
+import Link         from '@cloudscape-design/components/link'
+import SpaceBetween from '@cloudscape-design/components/space-between'
+import Spinner      from '@cloudscape-design/components/spinner'
 
 // Contexts:
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
@@ -26,6 +29,7 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
     const [ isLoading, setIsLoading ] = useState(true)
     const [ items, setItems ] = useState(undefined)
     const [ cols, setCols ] = useState(undefined)
+    const [ showUserGuide, setShowUserGuide ] = useState(true)
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
 
@@ -52,8 +56,28 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
                                             section: 'signalGradingTable'
                                         })}>Info</Link> }
                                    >Signal grading</Header>}>
+                    
+                    <SpaceBetween size="xl">
+                        { showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                            <p>
+                                Once your data is ingested, Amazon Lookout for Equipment will perform a <b>grading</b> of
+                                your individual sensor data with regards to their capability to be good quality signals
+                                for anomaly detection purpose. The following table lets your review the characteristics
+                                of each signal: what is the <b>time extent</b> of the signals (start time, end time and 
+                                number of days), is there a <b>potential issue</b> embedded in the signal (is it categorical, 
+                                monotonic, is there any large gap detected...), how many <b>invalid datapoints</b> were 
+                                detected (missing data, duplicate timestamps...)
+                            </p>
+                        </Alert> }
 
-                    <SignalTable cols={cols} items={items} selectedItems={selectedItems} changeSelectedItems={changeSelectedItems} />
+                        <Grid gridDefinition={[{ colspan: 8 }, { colspan: 4 }]}>
+                            <SignalTable cols={cols} allItems={items} selectedItems={selectedItems} changeSelectedItems={changeSelectedItems} />
+
+                            <Container>
+                                <UnivariateSignalPlotPanel projectName={projectName} selectedItems={selectedItems} />
+                            </Container>
+                        </Grid>
+                    </SpaceBetween>
                 </Container>
             )
         }

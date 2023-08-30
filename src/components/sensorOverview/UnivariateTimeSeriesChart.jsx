@@ -102,7 +102,7 @@ function UnivariateTimeSeriesChart({ sensorName }) {
         // Render the component:
         // ---------------------
         return (
-            <SpaceBetween size="xxl" direction="horizontal">
+            <SpaceBetween size="l">
                 <Box>
                     <Header 
                         variant="h4"
@@ -116,7 +116,7 @@ function UnivariateTimeSeriesChart({ sensorName }) {
                     <ReactEcharts 
                         option={chartOptions}
                         theme="macarons"
-                        style={{height: 280, width: 750}}
+                        style={{height: 280}}
                         onChartReady={onChartReady}
                         ref={eChartRef}
                         onEvents={{
@@ -144,6 +144,7 @@ function UnivariateTimeSeriesChart({ sensorName }) {
                         hideAnimation={true}
                         hideTitle={true}
                         height={280}
+                        width="100%"
                         colors={['rgb(141, 152, 179, 0.5)', 'rgb(151, 181, 82, 0.7)']}
                     />
                 </Box>

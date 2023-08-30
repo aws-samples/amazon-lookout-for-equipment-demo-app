@@ -24,9 +24,21 @@ const getPanelContent = (sensorName) => {
             header: "Select a row in the signal grading table",
             body:
                 <Alert>
-                    Select a row in the table above to plot the time 
-                    series of the signal and a histogram of the values
-                    it takes over time.
+                    <p>
+                        You can <b>visually review</b> each signal data by clicking on the radio button next to the name
+                        of each signal in the table on the left. When selected, this section will be updated with the
+                        following plots:
+                    </p>
+
+                    <ul>
+                        <li>A time series plot which will let you review the behavior of the selected sensor</li>
+                        <li>
+                            A histogram displaying the distribution of the values taken by the selected signal. Use
+                            the icons above the time series plot to highlight an area of the time series in green:
+                            this will toggle a comparison between the distribution of the selected values (in green)
+                            and the distribution of the remaining values (in blue).
+                        </li>
+                    </ul>
                 </Alert>
         }
     }
@@ -44,13 +56,11 @@ function UnivariateSignalPlotPanel({ projectName, selectedItems }) {
 
     const { header: panelHeader, body: panelBody } = getPanelContent(sensorName)
     return (
-        <SplitPanel header={panelHeader} hidePreferencesButton={true}>
-            <TimeSeriesProvider projectName={projectName}>
-                <SensorOverviewProvider>
-                    {panelBody}
-                </SensorOverviewProvider>
-            </TimeSeriesProvider>
-        </SplitPanel>
+        <TimeSeriesProvider projectName={projectName}>
+            <SensorOverviewProvider>
+                {panelBody}
+            </SensorOverviewProvider>
+        </TimeSeriesProvider>
     )
 }
 

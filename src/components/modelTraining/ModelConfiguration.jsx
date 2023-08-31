@@ -1,5 +1,6 @@
 // Imports:
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 
 // Cloudscape components:
 import Alert        from "@cloudscape-design/components/alert"
@@ -14,10 +15,21 @@ import TimeSeriesContext from '../contexts/TimeSeriesContext'
 // App components:
 import OffTimeSelection from './OffTimeSelection'
 
+// Utils:
+import { getAvailableDefaultModelName } from '../../utils/utils'
+import ApiGatewayContext from '../contexts/ApiGatewayContext'
+
 function ModelConfiguration() {
     const { data } = useContext(TimeSeriesContext)
     const [ value, setValue ] = useState(0)
     const { datasetName, modelName } = useContext(ModelParametersContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { projectName } = useParams()
+
+    useEffect(() => {
+        getAvailableDefaultModelName(gateway, uid, projectName)
+        .then((x) => {modelName.current = x; setValue(value + 1)})
+    }, [gateway])
 
     // ------------------------------------------------------
     // Once the data is loaded, we can display the component:
@@ -35,15 +47,15 @@ function ModelConfiguration() {
         return (
             <SpaceBetween size="xl">
                 <FormField
-                    description={`Your Lookout for Equipment model name will be built using the current asset name (${datasetName.current}) and a suffix, separated by a hyphen ("-") character.`}
+                    description={`Your Lookout for Equipment model name will be built using the current project name (${datasetName.current}) and a suffix, separated by a hyphen ("-") character.`}
                     label="Model name suffix"
                 >
                         <Input
                             onChange={({ detail }) => {
-                                modelName.current = detail.value.slice(datasetName.current.length + 1)
-                                setValue(value => value + 1)
+                                modelName.current = detail.value
+                                setValue(value + 1)
                             }}
-                            value={datasetName.current + "-" + modelName.current}
+                            value={modelName.current}
                             placeholder="Enter a model name"
                         />
                 </FormField>

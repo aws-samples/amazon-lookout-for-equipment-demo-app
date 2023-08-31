@@ -464,3 +464,24 @@ export async function getAvailableDefaultProjectName(gateway, uid) {
 
     return defaultProjectName
 }
+
+// ---------------------------------------------------
+// Find an available model name within a given project
+// ---------------------------------------------------
+export async function getAvailableDefaultModelName(gateway, uid, projectName) {
+    const modelsList = await getModelList(gateway, uid + '-' + projectName)
+
+    let defaultModelName = projectName + '-model-1'
+    let index = 1
+    let modelExists = true
+    do {
+        modelExists = modelsList.indexOf(defaultModelName) >= 0
+        if (modelExists) {
+            index += 1
+            defaultModelName = `${projectName}-model-${index}`
+        }
+
+    } while (modelExists)
+
+    return defaultModelName.slice(projectName.length + 1)
+}

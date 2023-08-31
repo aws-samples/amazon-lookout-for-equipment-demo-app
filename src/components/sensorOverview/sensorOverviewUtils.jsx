@@ -10,11 +10,13 @@ export function buildChartOptions(items, sensorName, zoomStart, zoomEnd) {
     let x = []
     let y = []
     items.forEach((item) => {
-        let current_date = new Date(item['timestamp']['S']).getTime()
-        current_date = current_date - new Date().getTimezoneOffset()*30*1000
-        current_date = new Date(current_date).toISOString().substring(0, 19).replace('T', '\n');
-        x.push(current_date)
-        y.push(parseFloat(item[sensorName]['S']))
+        if (item[sensorName]) {
+            let current_date = new Date(item['timestamp']['S']).getTime()
+            current_date = current_date - new Date().getTimezoneOffset()*30*1000
+            current_date = new Date(current_date).toISOString().substring(0, 19).replace('T', '\n');
+            x.push(current_date)
+            y.push(parseFloat(item[sensorName]['S']))
+        }
     })
 
     // Configure the series to be plotted with echart:

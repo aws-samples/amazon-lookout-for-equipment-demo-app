@@ -28,11 +28,13 @@ function TimeSeriesHistograms({
         let values = []
         let selectedValues = []
         data.timeseries.Items.forEach((item, index) => {
-            if (ranges && ranges[0] && index >= ranges[0]["start"] && index <= ranges[0]["end"]) {
-                selectedValues.push(parseFloat(item[sensorName]['S']))
-            }
-            else {
-                values.push(parseFloat(item[sensorName]['S']))
+            if (item[sensorName]) {
+                if (ranges && ranges[0] && index >= ranges[0]["start"] && index <= ranges[0]["end"]) {
+                    selectedValues.push(parseFloat(item[sensorName]['S']))
+                }
+                else {
+                    values.push(parseFloat(item[sensorName]['S']))
+                }
             }
         })
 

@@ -54,15 +54,18 @@ export const TimeSeriesProvider = ({children, projectName}) => {
     // --------------------------------------------------
     // Extract the x-axis tick labels for the time series
     // --------------------------------------------------
-    const getTimestamps = () => {
+    const getTimestamps = (firstTag) => {
         let x_signals = []
 
         if (data.timeseries) {
             data.timeseries.Items.forEach((item) => {
-                let current_date = new Date(item['timestamp']['S']).getTime()
-                current_date = current_date - new Date().getTimezoneOffset()*30*1000
-                current_date = new Date(current_date).toISOString().substring(0, 19).replace('T', '\n');
-                x_signals.push(current_date)
+                // We only collect timestamps for which we have some tag value:
+                if (item[firstTag]) {
+                    let current_date = new Date(item['timestamp']['S']).getTime()
+                    current_date = current_date - new Date().getTimezoneOffset()*30*1000
+                    current_date = new Date(current_date).toISOString().substring(0, 19).replace('T', '\n');
+                    x_signals.push(current_date)
+                }
             })
 
             return x_signals
@@ -82,7 +85,15 @@ export const TimeSeriesProvider = ({children, projectName}) => {
             data.timeseries.Items.forEach((item) => {
                 tagsList.forEach((tag) => {
                     if (!y_signals[tag]) { y_signals[tag] = [] }
-                    y_signals[tag].push(parseFloat(item[tag]['S']))
+                    if (item[tag]) {
+                        try {
+                            y_signals[tag].push(parseFloat(item[tag]['S']))
+                        }
+                        catch (e) {
+                            console.log(item)
+                            throw(e)
+                        }
+                    }
                 })
             })
         }
@@ -106,7 +117,7 @@ export const TimeSeriesProvider = ({children, projectName}) => {
             <TimeSeriesContext.Provider value={{
                 data: data,
                 tagsList: tagsList,
-                x: getTimestamps(),
+                x: getTimestamps(tagsList[0]),
                 signals: getSignalData(tagsList),
                 queryStatus: 'success'
             }}>

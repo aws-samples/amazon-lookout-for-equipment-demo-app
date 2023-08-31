@@ -49,8 +49,9 @@ export function getLegendWidth(legendKeys) {
 export function getCurrentISODate(date) {
     const tzOffset = -60 // new Date().getTimezoneOffset()
     let currentDate = new Date(date).getTime() - tzOffset*60*1000
-
-    return new Date(currentDate).toISOString()
+    currentDate = new Date(currentDate).toISOString()
+    
+    return currentDate
 }
 
 // ----------------------------

@@ -70,19 +70,35 @@ export function buildChartSeries(timeseries, tagsList, y_anomalies, y_daily) {
     // Prepare the raw time series data:
     let x_signals = []
     let signals = {}
+    let firstTag = undefined
+
+    tagsList.forEach((tag) => {
+        if (tag !== 'model' && tag !== 'timestamp') {
+            firstTag = tag
+        }
+    })
 
     timeseries.Items.forEach((item) => {
-        let current_date = new Date(item['timestamp']['S']).getTime()
-        current_date = current_date - new Date().getTimezoneOffset()*30*1000
-        current_date = new Date(current_date).toISOString().substring(0, 19).replace('T', '\n');
-        x_signals.push(current_date)
-        
-        tagsList.forEach((tag) => {
-            if (tag !== 'model' && tag !== 'timestamp') {
-                if (!signals[tag]) { signals[tag] = [] }
-                signals[tag].push(parseFloat(item[tag]['S']))
-            }
-        })
+        if (item[firstTag]) {
+            let current_date = new Date(item['timestamp']['S']).getTime()
+            current_date = current_date - new Date().getTimezoneOffset()*30*1000
+            current_date = new Date(current_date).toISOString().substring(0, 19).replace('T', '\n');
+            x_signals.push(current_date)
+            
+            tagsList.forEach((tag) => {
+                if (tag !== 'model' && tag !== 'timestamp') {
+                    if (!signals[tag]) { signals[tag] = [] }
+                    try {
+                        signals[tag].push(parseFloat(item[tag]['S']))
+                    }
+                    catch (e) {
+                        console.log(tagsList)
+                        console.log(item)
+                        throw(e)
+                    }
+                }
+            })
+        }
     }) 
 
     // Configure the series to be plotted with echart:
@@ -181,6 +197,8 @@ export function buildSignalSeries(sortedKeys, evaluationStartIndex, signals) {
     let yMin = undefined
     let yMax = undefined
     let signalSeries = []
+
+    console.log(signals)
 
     sortedKeys.forEach((tag) => {
         if (tag !== 'model' && tag !== 'timestamp') {

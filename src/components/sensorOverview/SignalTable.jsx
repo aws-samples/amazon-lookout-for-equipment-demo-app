@@ -5,6 +5,7 @@ import Pagination   from '@cloudscape-design/components/pagination'
 import Table        from '@cloudscape-design/components/table'
 import TextFilter   from '@cloudscape-design/components/text-filter'
 
+// Utils
 import { useCollection } from '@cloudscape-design/collection-hooks'
 
 // -------------------------------------------------------

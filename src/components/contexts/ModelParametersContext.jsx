@@ -9,9 +9,9 @@ export const ModelParametersProvider = ({children}) => {
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { projectName } = useParams()
 
-    const [selectedItems, setSelectedItems] = useState([])
-    const [currentPageIndex, setCurrentPageIndex] = useState(1)
-    const [allChecked, setAllChecked] = useState(false)
+    const [ selectedItems, setSelectedItems ] = useState([])
+    const [ currentPageIndex, setCurrentPageIndex ] = useState(1)
+    const [ allChecked, setAllChecked ] = useState(true)
     const [ selectedOption, setSelectedOption ] = useState({ label: "Lesser or equal than", value: "<" })
     const [ selectedSignal, setSelectedSignal ] = useState({label: 'No off time detection', value: undefined})
     const [ offConditionValue, setOffConditionValue ] = useState(0.0)

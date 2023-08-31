@@ -15,6 +15,7 @@ export const ModelParametersProvider = ({children}) => {
     const [ selectedOption, setSelectedOption ] = useState({ label: "Lesser or equal than", value: "<" })
     const [ selectedSignal, setSelectedSignal ] = useState({label: 'No off time detection', value: undefined})
     const [ offConditionValue, setOffConditionValue ] = useState(0.0)
+    const [ selectedSamplingRate, setSelectedSamplingRate] = useState({ label: "5 minutes", value: "PT5M" })
 
     const trainingRange = useRef(undefined)
     const evaluationRange = useRef(undefined)
@@ -52,13 +53,15 @@ export const ModelParametersProvider = ({children}) => {
             selectedLabelGroupName,
             selectedLabelGroupValue,
             listModels,
+            selectedSamplingRate,
 
             setSelectedItems,
             setCurrentPageIndex,
             setAllChecked,
             setSelectedOption,
             setSelectedSignal,
-            setOffConditionValue
+            setOffConditionValue,
+            setSelectedSamplingRate
         }}>
             {children}
         </ModelParametersContext.Provider>

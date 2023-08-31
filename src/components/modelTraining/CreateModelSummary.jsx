@@ -35,7 +35,8 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
         selectedSignal,
         offConditionValue,
         selectedLabelGroupName,
-        listModels
+        listModels,
+        selectedSamplingRate
     } = useContext(ModelParametersContext)
 
     const { x } = useContext(TimeSeriesContext)
@@ -117,7 +118,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
                 TrainingDataEndTime: parseInt(new Date(trainingEndDate).getTime() / 1000),
                 EvaluationDataStartTime: parseInt(new Date(evaluationStartDate).getTime() / 1000),
                 EvaluationDataEndTime: parseInt(new Date(evaluationEndDate).getTime()) / 1000,
-                DataPreProcessingConfiguration: { TargetSamplingRate: 'PT5M' }
+                DataPreProcessingConfiguration: { TargetSamplingRate: selectedSamplingRate['value'] }
             }
 
             // Add off time detection option:
@@ -197,6 +198,13 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
                                     value={`${trainingDuration} day${trainingDuration > 1 ? 's' : ''}`}
                                     invalid={trainingDuration >= 90 ? false : true}
                                     disabled={true}
+                                />
+                            </FormField>
+
+                            <FormField label="Sampling rate:">
+                                <Input
+                                    disabled={true}
+                                    value={selectedSamplingRate['label']}
                                 />
                             </FormField>
                             

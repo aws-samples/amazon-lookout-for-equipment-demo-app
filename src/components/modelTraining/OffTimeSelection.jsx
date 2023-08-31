@@ -135,6 +135,9 @@ function getDraggableLineConfig(chart, x1, x2, y, onDragEvent) {
     }
 }
 
+// --------------------------
+// Component main entry point
+// --------------------------
 function OffTimeSelection() {
     const { data, x, tagsList } = useContext(TimeSeriesContext)
     const { 
@@ -146,9 +149,6 @@ function OffTimeSelection() {
         setSelectedSignal,
         setOffConditionValue
     } = useContext(ModelParametersContext)
-    // const [ selectedOption, setSelectedOption ] = useState({ label: "Lesser or equal than", value: "<" })
-    // const [ selectedSignal, setSelectedSignal ] = useState({label: 'No off time detection', value: undefined})
-    // const [ offConditionValue, setOffConditionValue ] = useState(0.0)
     const eChartRef = useRef(null)
 
     let signalsList = [{label: 'No off time detection', value: undefined}]
@@ -206,14 +206,10 @@ function OffTimeSelection() {
         chart =             
             <Alert>
                 Select a signal in the off time detection drop down to visualize the corresponding signal and the desired threshold.
-
-                Add an option to display a secondary signals
             </Alert>
     }
 
-    // --------------------------
-    // Component main entry point
-    // --------------------------
+    // Rendering the component
     return (
         <SpaceBetween size="xl">
             <FormField 

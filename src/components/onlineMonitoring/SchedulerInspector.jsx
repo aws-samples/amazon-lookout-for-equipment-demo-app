@@ -100,7 +100,7 @@ function SchedulerInspector() {
                     <div>
                         <Box variant="awsui-key-label">Expected input filename</Box>
                         <div>{
-                            modelName.slice(projectName.length + 1) + 
+                            projectName + 
                             schedulerDetails['delimiter'] + 
                             schedulerDetails['nextTimestamp'] + 
                             '.csv'

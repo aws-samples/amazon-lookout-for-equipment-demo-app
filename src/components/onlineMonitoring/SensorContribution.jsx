@@ -14,8 +14,8 @@ import { getSensorData } from './schedulerUtils'
 
 function SensorContribution({ range }) {
     const { modelName, projectName } = useParams()
-    const asset = `${projectName}|${modelName}`
     const { gateway, uid } = useContext(ApiGatewayContext)
+    const asset = `${uid}-${projectName}|${modelName}`
     const endTime = Date.now() / 1000
     const startTime = parseInt(endTime - range * 86400)
 
@@ -70,7 +70,10 @@ function SensorContribution({ range }) {
                     <Box textAlign="center" color="inherit">
                         <b>No data available</b>
                         <Box variant="p" color="inherit">
-                            There is no data available: either the scheduler has not been running for long enough, or no anomaly was detected in the selected time range
+                            There is no sensor contribution data available: either the scheduler has 
+                            not been running for long enough, or no anomaly was detected in the selected
+                            time range. Note that sensor contribution data are only generated when the 
+                            anomaly score is greater than 0.5.
                         </Box>
                     </Box>
                 }

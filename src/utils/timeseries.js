@@ -1,4 +1,4 @@
-export function buildTimeseries(items, field, fieldType) {
+export function buildTimeseries(items, field, fieldType, daily) {
     let x = []
     let y = []
     let sum = 0
@@ -6,7 +6,12 @@ export function buildTimeseries(items, field, fieldType) {
 
     items.forEach((item) => {
         let currentDate = new Date(parseInt(item['timestamp']['N'])*1000)
-        currentDate = new Date(currentDate).toISOString().substring(0, 19).replace('T', '\n');
+        if (daily) {
+            currentDate = new Date(currentDate).toISOString().substring(0, 10)
+        }
+        else {
+            currentDate = new Date(currentDate).toISOString().substring(0, 19).replace('T', '\n')
+        }
         x.push(currentDate)
         y.push(parseFloat(item[field][fieldType]))
         sum += parseFloat(item[field][fieldType])
@@ -26,7 +31,7 @@ export function extractTimeseriesPart(items, field, startDate, endDate) {
         let currentDate = parseInt(item['timestamp']['N']) * 1000
 
         if (currentDate >= startDate * 1000 && currentDate <= endDate * 1000) {
-            currentDate = new Date(currentDate).toISOString().substring(0, 19).replace('T', '\n');
+            currentDate = new Date(currentDate).toISOString().substring(0, 19).replace('T', '\n')
             x.push(currentDate)
             y.push(parseFloat(item[field]['S']))
 

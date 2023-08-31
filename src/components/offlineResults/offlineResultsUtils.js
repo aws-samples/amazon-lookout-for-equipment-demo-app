@@ -6,7 +6,7 @@ import { sortDictionnary, getLegendWidth } from '../../utils/utils.js'
 // ---------------------------------------------------
 export function getModelEvaluationData(dailyAggregation, anomalies, modelDetails) {
     // Prepare daily aggregation data:
-    let results = buildTimeseries(dailyAggregation.Items, 'anomaly')
+    let results = buildTimeseries(dailyAggregation.Items, 'anomaly', 'S', true)
     const x_daily = results['x']
     const y_daily = results['y']
 
@@ -47,7 +47,7 @@ export function getSensorContribution(tagsList, sensorContribution) {
 
     tagsList.forEach((tag) => {
         if (tag !== 'model' && tag !== 'timestamp') {
-            const currentSensorContribution = buildTimeseries(sensorContribution.Items, tag)
+            const currentSensorContribution = buildTimeseries(sensorContribution.Items, tag, 'S', true)
             sensorContributions[tag] = currentSensorContribution
 
             if (!totalContribution[tag]) { totalContribution[tag] = 0 }
@@ -348,7 +348,7 @@ export function buildChartOptions(
         title: [
             { top: 0, left: 50, text: eventTitle, textStyle: { fontSize: 16, color: '#000' } },
             { top: 140, left: 50, text: 'Detected events (aggregated by day)', textStyle: { fontSize: 16, color: '#000' } },
-            { top: 370, left: 50, text: 'Sensor contribution evolution', textStyle: { fontSize: 16, color: '#000' } },
+            { top: 370, left: 50, text: 'Sensor contribution evolution (aggregated by day)', textStyle: { fontSize: 16, color: '#000' } },
             { top: 600, left: 50, text: 'Sensor time series', textStyle: { fontSize: 16, color: '#000' } }
         ],
         grid: [

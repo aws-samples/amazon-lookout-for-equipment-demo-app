@@ -43,7 +43,7 @@ export function getLegendWidth(legendKeys) {
         }
     })
 
-    return maxLength * 7 + 25
+    return parseInt(maxLength * 5.54 + 91)
 }
 
 export function getCurrentISODate(date) {

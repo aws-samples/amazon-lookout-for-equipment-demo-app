@@ -1,46 +1,33 @@
 // Imports
-import { useRef } from 'react'
+import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
 import NavigationBar from './NavigationBar'
-import MultivariateTimeSeriesChart from './charts/MultivariateTimeSeriesChart'
-import ModelingSignalSelection from './modelTraining/ModelingSignalSelection'
-import CreateModelSummary from './modelTraining/CreateModelSummary'
-import ModelConfiguration from './modelTraining/ModelConfiguration'
-import LabelsManagement from './labelling/LabelsManagement'
+import CustomModelConfig from './modelTraining/CustomModelConfig'
+import DefaultModelConfig from './modelTraining/DefaultModelConfig'
 
 // Contexts:
 import { TimeSeriesProvider } from './contexts/TimeSeriesContext'
 import { ModelParametersProvider } from './contexts/ModelParametersContext'
 
 // CloudScape Components:
+import Alert         from "@cloudscape-design/components/alert"
 import AppLayout     from "@cloudscape-design/components/app-layout"
-import Box           from "@cloudscape-design/components/box"
-import Button        from "@cloudscape-design/components/button"
 import Container     from "@cloudscape-design/components/container"
 import ContentLayout from "@cloudscape-design/components/content-layout"
+import FormField     from "@cloudscape-design/components/form-field"
 import Header        from "@cloudscape-design/components/header"
 import SpaceBetween  from "@cloudscape-design/components/space-between"
-import Tabs          from "@cloudscape-design/components/tabs"
+import Tiles         from "@cloudscape-design/components/tiles"
 
 // ---------------------
 // Component entry point
 // ---------------------
 function ModelTraining() {
     const { projectName } = useParams()
-    const modelSummaryRef = useRef(null)
-    const showModelSummary = useRef(false)
-
-    const toggleModelSummary = (e) => {
-        e.preventDefault()
-        showModelSummary.current = !showModelSummary.current
-        modelSummaryRef.current.showModal(showModelSummary.current)
-    }
-
-    const dismissModelSummary = () => {
-        showModelSummary.current = false
-    }
+    const [ showUserGuide, setShowUserGuide ] = useState(true)
+    const [ trainingConfig, setTrainingConfig ] = useState("default")
 
     return (
         <ModelParametersProvider>
@@ -48,49 +35,43 @@ function ModelTraining() {
                 contentType="default"
                 content={
                     <ContentLayout header={<Header variant="h1">{projectName} exploration and modeling</Header>}>
-                        <Container>
-                            <TimeSeriesProvider projectName={projectName}>
-                                <SpaceBetween size="xxs">
-                                    <Box>
-                                        Use the following tabs to explore your dataset and configure a model to be trained.
-                                        Then click <b>Train model</b> to create a new model based on the selected parameters.
-                                        <Box float="right">
-                                            <Button variant="primary" onClick={toggleModelSummary}>Create model</Button>
-                                        </Box>
-                                    </Box>
-                                    <Tabs
-                                        tabs={[
-                                            {
-                                                label: "Training data range",
-                                                id: "ranges",
-                                                content: <MultivariateTimeSeriesChart 
-                                                            showLegend={true} 
-                                                            showToolbox={false} 
-                                                            componentHeight={500}
-                                                            enableBrush={false}
-                                                        />
-                                            },
-                                            {
-                                                label: "Signal selection",
-                                                id: "signals",
-                                                content: <ModelingSignalSelection />
-                                            },
-                                            {
-                                                label: 'Labels',
-                                                id: 'labelConfiguration',
-                                                content: <LabelsManagement readOnly={true} />
-                                            },
-                                            {
-                                                label: "Model configuration",
-                                                id: "modelConfiguration",
-                                                content: <ModelConfiguration />,
-                                            }
-                                        ]}
-                                    />
-                                    <CreateModelSummary ref={modelSummaryRef} dismissFunction={dismissModelSummary} projectName={projectName} />
-                                </SpaceBetween>
-                            </TimeSeriesProvider>
-                        </Container>
+                        <TimeSeriesProvider projectName={projectName}>
+                            <SpaceBetween size="l">
+                                <Container>
+                                    <SpaceBetween size="l">
+                                        { showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                                            <p>
+                                                Now that your data is ingested, you can train an anomaly detection model using 
+                                                this page. After training, a model can be deployed to receive fresh data and 
+                                                provide live analysis. To train your first models, you can use the <b>default 
+                                                configuration</b>. Once you're more familiar with this application and the 
+                                                anomalies you want to capture, you will probably want to take the
+                                                more <b>customized</b> approach.
+                                            </p>
+                                        </Alert> }
+
+                                        <FormField 
+                                            label="Model configuration mode" 
+                                            description="You can either let the application choose some default parameters 
+                                                        to train your model, or customize them.">
+                                            <Tiles
+                                                onChange={({ detail }) => setTrainingConfig(detail.value)}
+                                                value={trainingConfig}
+                                                items={[
+                                                    { value: "default", label: "Default configuration" },
+                                                    { value: "custom", label: "Custom configuration" }
+                                                ]}
+                                            />
+                                        </FormField>
+                                    </SpaceBetween>
+                                </Container>
+
+                                <Container>
+                                    { trainingConfig === 'custom' && <CustomModelConfig /> }
+                                    { trainingConfig === 'default' && <DefaultModelConfig /> }
+                                </Container>
+                            </SpaceBetween>
+                        </TimeSeriesProvider>
                     </ContentLayout>
                 }
                 navigation={

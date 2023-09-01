@@ -28,6 +28,7 @@ export const ModelParametersProvider = ({children}) => {
     const selectedLabelGroupName = useRef(undefined)
     const selectedLabelGroupValue = useRef(undefined)
     const listModels = useRef([])
+    const defaultModelConfig = useRef({})
 
     useEffect(() => {
         getModelList(gateway, uid + '-' + projectName)
@@ -54,6 +55,7 @@ export const ModelParametersProvider = ({children}) => {
             selectedLabelGroupValue,
             listModels,
             selectedSamplingRate,
+            defaultModelConfig,
 
             setSelectedItems,
             setCurrentPageIndex,

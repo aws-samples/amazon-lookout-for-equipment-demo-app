@@ -12,13 +12,13 @@ import SpaceBetween from '@cloudscape-design/components/space-between'
 // Contexts
 import ModelParametersContext from '../contexts/ModelParametersContext'
 import TimeSeriesContext from '../contexts/TimeSeriesContext'
+import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 // App components:
 import OffTimeSelection from './OffTimeSelection'
 
 // Utils:
 import { getAvailableDefaultModelName } from '../../utils/utils'
-import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 function ModelConfiguration() {
     const { data } = useContext(TimeSeriesContext)

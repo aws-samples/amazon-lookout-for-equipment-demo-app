@@ -99,7 +99,10 @@ function ModelOverview({ modelDetails, loading }) {
                                     (modelDetails && modelDetails['status'] !== 'FAILED') &&
                                     <div>
                                         <Box variant="awsui-key-label">Training time</Box>
-                                        <div>{modelDetails['trainingTime']}</div>
+                                        <div>
+                                            {modelDetails && modelDetails['status'] === 'SUCCESS' && modelDetails['trainingTime']}
+                                            {modelDetails && modelDetails['status'] !== 'SUCCESS' && 'n/a'}
+                                        </div>
                                     </div>
                                 }
 

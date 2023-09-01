@@ -142,20 +142,46 @@ export async function getProjectData(gateway, projectName) {
     }
 }
 
+export function getSamplingRate(rowCounts, startDate, endDate) {
+    const numRows = parseFloat(rowCounts)
+    const start = new Date(startDate).getTime() / 1000
+    const end = new Date(endDate).getTime() / 1000
+    const samplingRate = ((end - start)/numRows).toFixed(1)
+
+    return samplingRate
+}
+
 // --------------------------------------
 // Compute the sampling rate and build a
 // human-readable version with the units:
 // --------------------------------------
 export const SamplingRate = ({ rowCounts, startDate, endDate }) => {
     if (rowCounts) {
-        const numRows = parseFloat(rowCounts)
-        const start = new Date(startDate).getTime() / 1000
-        const end = new Date(endDate).getTime() / 1000
-        const samplingRate = ((end - start)/numRows).toFixed(1)
-
+        const samplingRate = getSamplingRate(rowCounts, startDate, endDate)
         return ( <div>{samplingRate} seconds</div> )
     }
     else {
         return ( <div>n/a</div> )
     }
+}
+
+export function getClosestSamplingRate(samplingRate) {
+    const samplingRateList = [1, 5, 10, 15, 30, 60, 300, 600, 900, 1800, 3600]
+    let calculatedSR = undefined
+
+    let index = 0
+    do {
+        const currentSR = samplingRateList[index]
+        if (samplingRate / currentSR < 2) {
+            calculatedSR = currentSR
+        }
+
+        index += 1
+    } while (!calculatedSR || index == samplingRateList.length)
+
+    if (!calculatedSR) {
+        calculatedSR = samplingRateList[samplingRateList.length - 1]
+    }
+
+    return calculatedSR
 }

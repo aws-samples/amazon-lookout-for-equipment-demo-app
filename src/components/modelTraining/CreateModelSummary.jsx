@@ -211,6 +211,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
                             <FormField label="Off-time detection:">
                                 {selectedSignal.value ? offCondition : 'No off time condition configured'}
                             </FormField>
+                            
                             <FormField label={`${selectedItems.length} signal${selectedItems.length > 1 ? 's' : ''} selected (1 signal minimum):`}>
                                 <Textarea
                                     onChange={({ detail }) => setValue(detail.value)}
@@ -220,6 +221,7 @@ const CreateModelSummary = forwardRef(function CreateModelSummary(props, ref) {
                                     rows={listSignals === "" ? 1 : 5}
                                 />
                             </FormField>
+
                             <FormField label={`${labels.current.length} label${labels.current.length > 1 ? 's' : ''} created (optional):`}>
                                 <SpaceBetween size="s">
                                     {selectedLabelGroupName.current ? 

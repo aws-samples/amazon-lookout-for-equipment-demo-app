@@ -61,7 +61,7 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
             // we list them under a new "Offline results" section:
             const currentModels = modelsList[project]
             if (currentModels.length > 0) {
-                const offlineResultsSection = buildOfflineResultsSection(currentModels, project)
+                const offlineResultsSection = await buildOfflineResultsSection(gateway, currentModels, project)
                 currentItems['items'] = [...currentItems['items'], ...offlineResultsSection]
             }
             else {
@@ -104,16 +104,27 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
 // Build the offline results section where the user can visualize 
 // model evaluation results after they have been trained
 // --------------------------------------------------------------
-function buildOfflineResultsSection(currentModels, project) {
+async function buildOfflineResultsSection(gateway, currentModels, project) {
     let offlineResultsItems = []
 
-    currentModels.forEach((model) => {
+    // currentModels.forEach((model) => {
+    for (const model of currentModels) {
+        const modelDetails = await gateway.lookoutEquipment.describeModel(model)
+
         offlineResultsItems.push({ 
             type: 'link', 
-            text: model,
+            text: <>
+                <Icon 
+                    name={modelDetails['Status'] === 'SUCCESS' ? 'status-positive' : 'status-in-progress'} 
+                    variant={modelDetails['Status'] === 'SUCCESS' ? 'success': 'error'} />
+                &nbsp;&nbsp;
+                {model.slice(project.length + 1)}
+            </>,
             href: `/offline-results/modelName/${model}/projectName/${project}`
         })
-    })
+
+
+    }
 
     const offlineResultsSection = [
         {

@@ -47,6 +47,7 @@ function CreateProject() {
     const [ uploadInProgress, setUploadInProgress ]     = useState(false)
     const [ errorMessage, setErrorMessage ]             = useState(undefined)
     const [ showFlashbar, setShowFlashbar ]             = useState(false)
+    const [ projectNameError, setProjectNameError ]     = useState("")
 
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
@@ -134,6 +135,30 @@ function CreateProject() {
         }
     }
 
+    // ----------------------------------------------
+    // Dynamically check if the project name is valid
+    // ----------------------------------------------
+    async function checkProjectNameValidity(desiredProjectName) {
+        let error = true
+        let errorMessage = ""
+
+        // Error checking:
+        if (desiredProjectName.length <= 2) {
+            errorMessage = 'Project name must be at least 3 characters long'
+        }
+        else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(desiredProjectName)) {
+            errorMessage = 'Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
+        }
+        else if (! await checkProjectNameAvailability(desiredProjectName, gateway, uid)) {
+            errorMessage = 'Project name not available'
+        }
+        else {
+            error = false
+        }
+
+        setProjectNameError(errorMessage)
+    }
+
     useEffect(() => {
         getAvailableDefaultProjectName(gateway, uid)
         .then((x) => setProjectName(x))
@@ -170,7 +195,7 @@ function CreateProject() {
                                         }
                                     }
                                 >Cancel</Button>
-                                <Button variant="primary" disabled={uploadInProgress}>Create project</Button>
+                                <Button variant="primary" disabled={uploadInProgress || projectNameError !== ""}>Create project</Button>
                             </SpaceBetween>
                             }
                         >
@@ -178,7 +203,7 @@ function CreateProject() {
                                 <SpaceBetween size="l">
                                     <FormField 
                                         label="Project name"
-                                        constraintText={"Project name can't contain \"/\""}
+                                        constraintText={projectNameError !== "" ? projectNameError : ""}
                                     >
                                         <SpaceBetween size="xs">
                                             <Box>
@@ -187,8 +212,13 @@ function CreateProject() {
                                                 default name suggested below or customize it:
                                             </Box>
                                             <Input
-                                                onChange={({detail}) => setProjectName(detail.value)}
+                                                onChange={({detail}) => {
+                                                    checkProjectNameValidity(detail.value)
+                                                    setProjectName(detail.value)
+                                                }}
+                                                autoFocus={true}
                                                 value={projectName}
+                                                invalid={projectNameError !== ""}
                                                 placeholder="Enter a project name"
                                             />
                                         </SpaceBetween>

@@ -29,7 +29,12 @@ const samplingRateTable = {
     10: ['10 seconds', 'PT10S'],
     15: ['15 seconds', 'PT15S'],
     30: ['30 seconds', 'PT30S'],
-    60: ['1 minute', 'PT1M']
+    60: ['1 minute', 'PT1M'],
+    300: ['5 minutes', 'PT5M'],
+    600: ['10 minutes', 'PT10M'],
+    900: ['15 minutes', 'PT15M'],
+    180: ['30 minutes', 'PT30M'],
+    3600: ['1 hour', 'PT1H']
 }
 
 function DefaultModelConfig() {
@@ -54,11 +59,11 @@ function DefaultModelConfig() {
             setModelDetails(projectDetails)
             setCalculatedSR(
                 getClosestSamplingRate(
-                    getSamplingRate(
+                    Math.round(getSamplingRate(
                         projectDetails['rowCounts'],
                         projectDetails['startDate'],
                         projectDetails['endDate']
-                    )
+                    ))
                 )
             )
         })
@@ -98,6 +103,9 @@ function DefaultModelConfig() {
                 Type: "DOUBLE"
             })
         })
+
+        console.log(samplingRateTable)
+        console.log('calculatedSR:', calculatedSR)
 
         defaultModelConfig.current = {
             modelName: projectName + '-' + modelName.current,
@@ -170,11 +178,11 @@ function DefaultModelConfig() {
                                 <div>{samplingRateTable[calculatedSR][0]}</div>
                                 <div>
                                     <i>Note: the average sampling rate from your dataset is:&nbsp;
-                                    {getSamplingRate(
+                                    {Math.round(getSamplingRate(
                                         modelDetails['rowCounts'],
                                         modelDetails['startDate'],
                                         modelDetails['endDate']
-                                    )} seconds</i>
+                                    ))} seconds</i>
                                 </div>
                             </>}
                         </div>

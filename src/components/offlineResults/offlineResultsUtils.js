@@ -198,8 +198,6 @@ export function buildSignalSeries(sortedKeys, evaluationStartIndex, signals) {
     let yMax = undefined
     let signalSeries = []
 
-    console.log(signals)
-
     sortedKeys.forEach((tag) => {
         if (tag !== 'model' && tag !== 'timestamp') {
             // We only set up a markLine for the first time series plot:

@@ -18,7 +18,7 @@ const percentageFormatter = (value) => `${(value * 100).toFixed(0)}%`
 // Component main entry point
 // --------------------------
 function ConditionOverview({ range, modelName, projectName, size, hideTitles }) {
-    const asset = `${projectName}|${modelName}`
+    const asset = modelName
     const { gateway, uid } = useContext(ApiGatewayContext)
     const endTime = Date.now()
     const startTime = parseInt((endTime - range * 86400 * 1000) / 1000)

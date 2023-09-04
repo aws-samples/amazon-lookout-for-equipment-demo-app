@@ -55,7 +55,6 @@ function DatasetSummary({ modelDetails }) {
             navigate(`/model-training/ProjectName/${projectName}`)
         }}>Model training</Link>
     
-
     // Render the component:
     return (
         <SpaceBetween size="l">

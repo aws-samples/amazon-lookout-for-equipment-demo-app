@@ -15,7 +15,7 @@ import { getSensorData } from './schedulerUtils'
 function SensorContribution({ range }) {
     const { modelName, projectName } = useParams()
     const { gateway, uid } = useContext(ApiGatewayContext)
-    const asset = `${uid}-${projectName}|${modelName}`
+    const asset = modelName
     const endTime = Date.now() / 1000
     const startTime = parseInt(endTime - range * 86400)
 

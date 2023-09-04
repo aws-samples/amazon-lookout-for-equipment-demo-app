@@ -2,6 +2,9 @@
 import { Storage } from 'aws-amplify'
 import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom"
+
+// Utils:
+import { checkProjectNameValidity } from './createProject/createProjectUtils.js'
 import { 
     getHumanReadableSize, 
     checkProjectNameAvailability, 
@@ -15,7 +18,7 @@ import NavigationBar from './NavigationBar'
 // CloudScape components:
 import AppLayout        from "@cloudscape-design/components/app-layout"
 import Alert            from "@cloudscape-design/components/alert"
-import Box           from "@cloudscape-design/components/box"
+import Box              from "@cloudscape-design/components/box"
 import Button           from "@cloudscape-design/components/button"
 import Container        from "@cloudscape-design/components/container"
 import ContentLayout    from "@cloudscape-design/components/content-layout"
@@ -135,30 +138,6 @@ function CreateProject() {
         }
     }
 
-    // ----------------------------------------------
-    // Dynamically check if the project name is valid
-    // ----------------------------------------------
-    async function checkProjectNameValidity(desiredProjectName) {
-        let error = true
-        let errorMessage = ""
-
-        // Error checking:
-        if (desiredProjectName.length <= 2) {
-            errorMessage = 'Project name must be at least 3 characters long'
-        }
-        else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(desiredProjectName)) {
-            errorMessage = 'Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
-        }
-        else if (! await checkProjectNameAvailability(desiredProjectName, gateway, uid)) {
-            errorMessage = 'Project name not available'
-        }
-        else {
-            error = false
-        }
-
-        setProjectNameError(errorMessage)
-    }
-
     useEffect(() => {
         getAvailableDefaultProjectName(gateway, uid)
         .then((x) => setProjectName(x))
@@ -213,7 +192,7 @@ function CreateProject() {
                                             </Box>
                                             <Input
                                                 onChange={({detail}) => {
-                                                    checkProjectNameValidity(detail.value)
+                                                    checkProjectNameValidity(detail.value, setProjectNameError, gateway, uid)
                                                     setProjectName(detail.value)
                                                 }}
                                                 autoFocus={true}
@@ -267,7 +246,6 @@ function CreateProject() {
                                         </FormField>
                                     }
                                     
-
                                     { errorMessage && <Alert type="error">{errorMessage}</Alert> }
 
                                     { showFlashbar && <Flashbar items={[{

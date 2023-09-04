@@ -179,7 +179,7 @@ export async function getAnomalies(gateway, asset, startTime, endTime, projectNa
 // by a given model between a range of time
 // ---------------------------------------------------
 async function getSensorContribution(gateway, asset, table, startTime, endTime) {
-    const anomalyScoreQuery = { 
+    const sensorContributionQuery = { 
         TableName: table,
         KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
         ExpressionAttributeNames: {
@@ -194,7 +194,7 @@ async function getSensorContribution(gateway, asset, table, startTime, endTime) 
     }
 
     let sensorContribution = await gateway
-        .dynamoDbQuery(anomalyScoreQuery)
+        .dynamoDbQuery(sensorContributionQuery)
         .catch((error) => console.log(error.response))
 
     // If the payload is too large (> 1 MB), the API will paginate
@@ -207,7 +207,7 @@ async function getSensorContribution(gateway, asset, table, startTime, endTime) 
 
             do {
                 currentSensorContribution = await gateway
-                    .dynamoDbQuery({...anomalyScoreQuery, ExclusiveStartKey: lastEvaluatedKey})
+                    .dynamoDbQuery({...sensorContributionQuery, ExclusiveStartKey: lastEvaluatedKey})
                     .catch((error) => console.log(error.response))
 
                 if (currentSensorContribution.LastEvaluatedKey) {

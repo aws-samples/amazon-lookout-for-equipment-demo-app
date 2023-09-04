@@ -238,7 +238,7 @@ export async function getModelDetails(gateway, modelName, projectName, uid) {
     }
 
     if (modelResponse['Status'] === 'SUCCESS') {
-        const modelEvaluationInfos = await getModelEvaluationInfos(gateway, modelName, uid + '-' + projectName, modelResponse['EvaluationDataEndTime'])
+        const modelEvaluationInfos = await getModelEvaluationInfos(gateway, modelName, projectName, modelResponse['EvaluationDataEndTime'], uid)
         const timeseries = await getAllTimeseriesWindow(
             gateway, 
             uid + '-' + projectName, 
@@ -329,14 +329,14 @@ function getTagsListFromModel(modelResponse) {
 // ----------------------------
 // Get model evaluation details
 // ----------------------------
-async function getModelEvaluationInfos(gateway, modelName, assetName, endTime) {
-    const currentModelName = assetName + '|' + modelName
-    const anomalies = await getAnomalies(gateway, currentModelName, endTime, assetName)
-    const dailyAggregation = await getDailyAggregation(gateway, currentModelName, endTime, assetName)
-    const sensorContribution = await getSensorContribution(gateway, currentModelName, assetName, endTime)
+async function getModelEvaluationInfos(gateway, modelName, assetName, endTime, uid) {
+    // const currentModelName = assetName + '|' + modelName
+    const anomalies = await getAnomalies(gateway, modelName, endTime, assetName, uid)
+    const dailyAggregation = await getDailyAggregation(gateway, modelName, endTime, assetName, uid)
+    const sensorContribution = await getSensorContribution(gateway, modelName, assetName, endTime, uid)
 
     let tagsList = undefined
-    if (sensorContribution) {
+    if (sensorContribution && sensorContribution.Items.length > 0) {
         tagsList = Object.keys(sensorContribution.Items[0]) 
     }
 
@@ -351,9 +351,9 @@ async function getModelEvaluationInfos(gateway, modelName, assetName, endTime) {
 // -----------------------------------------------------------
 // Get all the anomalies in the database for the current model
 // -----------------------------------------------------------
-async function getAnomalies(gateway, model, endTime, projectName) {
+async function getAnomalies(gateway, model, endTime, projectName, uid) {
     const anomaliesQuery = { 
-        TableName: `l4edemoapp-${projectName}-anomalies`,
+        TableName: `l4edemoapp-${uid}-${projectName}-anomalies`,
         KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
         ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
         ExpressionAttributeValues: { 
@@ -389,9 +389,9 @@ async function getAnomalies(gateway, model, endTime, projectName) {
 // ---------------------------------------------
 // Anomalies daily aggregation for a given model
 // ---------------------------------------------
-async function getDailyAggregation(gateway, model, endTime, projectName) {
+async function getDailyAggregation(gateway, model, endTime, projectName, uid) {
     const dailyAggregation = await gateway.dynamoDbQuery({ 
-        TableName: `l4edemoapp-${projectName}-daily_rate`,
+        TableName: `l4edemoapp-${uid}-${projectName}-daily_rate`,
         KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
         ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
         ExpressionAttributeValues: { 
@@ -407,14 +407,14 @@ async function getDailyAggregation(gateway, model, endTime, projectName) {
 // ------------------------------------------------------
 // Sensor contribution for the event found for this model
 // ------------------------------------------------------
-async function getSensorContribution(gateway, model, assetName, endTime) {
-    const sensorContributionTableName = `l4edemoapp-${assetName}-sensor_contribution`
+async function getSensorContribution(gateway, model, assetName, endTime, uid) {
+    const sensorContributionTableName = `l4edemoapp-${uid}-${assetName}-sensor_contribution`
     const { TableNames: listTables } = await gateway.dynamoDbListTables()
 
     let sensorContribution = undefined
     if (listTables.indexOf(sensorContributionTableName) >= 0) {
         const sensorContributionQuery = { 
-            TableName: `l4edemoapp-${assetName}-sensor_contribution`,
+            TableName: sensorContributionTableName,
             KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
             ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
             ExpressionAttributeValues: { 

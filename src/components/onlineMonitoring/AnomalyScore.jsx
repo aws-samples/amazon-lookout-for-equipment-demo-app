@@ -18,7 +18,7 @@ import { getAnomalyScores } from './schedulerUtils'
 // --------------------------
 function AnomalyScore({ range }) {
     const { modelName, projectName } = useParams()
-    const asset = `${projectName}|${modelName}`
+    const asset = modelName
     const { gateway, uid } = useContext(ApiGatewayContext)
     const endTime = Date.now() / 1000
     const startTime = parseInt(endTime - range * 86400)

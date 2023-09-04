@@ -165,6 +165,10 @@ export const SamplingRate = ({ rowCounts, startDate, endDate }) => {
     }
 }
 
+// --------------------------------------------
+// Computes the closest sampling rate that 
+// matches the ones calculated from the dataset
+// --------------------------------------------
 export function getClosestSamplingRate(samplingRate) {
     const samplingRateList = [1, 5, 10, 15, 30, 60, 300, 600, 900, 1800, 3600]
     let calculatedSR = undefined
@@ -172,8 +176,11 @@ export function getClosestSamplingRate(samplingRate) {
     let index = 0
     do {
         const currentSR = samplingRateList[index]
-        if (samplingRate / currentSR < 2) {
-            calculatedSR = currentSR
+        if (samplingRate / currentSR < 2) { calculatedSR = currentSR }
+
+        if (index < samplingRateList.length - 1) {
+            const nextSR = samplingRateList[index + 1]
+            if (samplingRate / nextSR >= 0.95 && samplingRate / nextSR <= 1.05) { calculatedSR = nextSR }
         }
 
         index += 1

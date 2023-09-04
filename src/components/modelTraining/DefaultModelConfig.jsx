@@ -104,9 +104,6 @@ function DefaultModelConfig() {
             })
         })
 
-        console.log(samplingRateTable)
-        console.log('calculatedSR:', calculatedSR)
-
         defaultModelConfig.current = {
             modelName: projectName + '-' + modelName.current,
             datasetName: `l4e-demo-app-${uid}-${projectName}`,

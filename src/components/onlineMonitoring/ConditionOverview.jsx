@@ -31,48 +31,35 @@ function ConditionOverview({ range, modelName, projectName, size, hideTitles }) 
     }, [gateway, range, modelName, projectName])
 
     // Renders the component:
-    if (anomalies && anomalies['totalTime'] > 0) {
-        const totalTime = anomalies['totalTime']
-        const normalTime = anomalies['condition']['0']
-        const abnormalTime = anomalies['condition']['1']
+    let totalTime = 1.0
+    let normalTime = 1.0
+    let abnormalTime = 0.0
 
-        return (
-            <PieChart 
-                hideFilter={true}
-                hideLegend={true}
-                hideTitles={hideTitles ? hideTitles : false}
-                size={size ? size : 'large'}
-                innerMetricDescription="health"
-                innerMetricValue={percentageFormatter(normalTime / totalTime)}
-                variant="donut"
-                data={[
-                    { title: 'Normal', value: normalTime, color: colorChartsStatusPositive },
-                    { title: 'Abnormal', value: abnormalTime, color: colorChartsStatusHigh },
+    if (anomalies && anomalies['totalTime'] > 0) {
+        totalTime = anomalies['totalTime']
+        normalTime = anomalies['condition']['0']
+        abnormalTime = anomalies['condition']['1']
+    }
+
+    return (
+        <PieChart 
+            hideFilter={true}
+            hideLegend={true}
+            hideTitles={hideTitles ? hideTitles : false}
+            size={size ? size : 'large'}
+            innerMetricDescription="health"
+            innerMetricValue={percentageFormatter(normalTime / totalTime)}
+            variant="donut"
+            data={[
+                { title: 'Normal', value: normalTime, color: colorChartsStatusPositive },
+                { title: 'Abnormal', value: abnormalTime, color: colorChartsStatusHigh },
+            ]}
+            detailPopoverContent={(data, sum) => [
+                { key: 'Anomalies count', value: data.value },
+                { key: 'Percentage', value: percentageFormatter(data.value / sum) }
                 ]}
-                detailPopoverContent={(data, sum) => [
-                    { key: 'Anomalies count', value: data.value },
-                    { key: 'Percentage', value: percentageFormatter(data.value / sum) }
-                    ]}
-            />
-        )
-    }
-    else {
-        return (
-            <PieChart 
-                hideFilter={true}
-                size={size ? size : 'small'}
-                data={[]}
-                empty={
-                    <Box textAlign="center" color="inherit">
-                        <b>No data available</b>
-                        <Box variant="p" color="inherit">
-                            There is no data available yet for this asset
-                        </Box>
-                    </Box>
-                }
-            />
-        )
-    }
+        />
+    )
 }
 
 export default ConditionOverview

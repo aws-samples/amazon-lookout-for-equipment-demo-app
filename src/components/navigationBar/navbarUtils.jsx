@@ -153,7 +153,7 @@ function buildSchedulersSection(currentSchedulers, project) {
     currentSchedulers.forEach((model) => {
         onlineMonitoringItems.push({ 
             type: 'link', 
-            text: model,
+            text: model.slice(project.length + 1),
             href: `/online-monitoring/modelName/${model}/projectName/${project}`
         })
     })

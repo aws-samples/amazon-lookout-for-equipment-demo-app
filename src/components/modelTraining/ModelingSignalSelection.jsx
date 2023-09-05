@@ -131,7 +131,7 @@ function SignalSelectionCards({ cardItems, selectedItems, tagsList, trainingRang
                                         hideTitle={true}
                                         hideAnimation={true}
                                         gridOptions={{top: 20, left: 50, right: 35, bottom: 45}}
-                                        colors={['rgb(141, 152, 179, 0.3)', 'rgb(151, 181, 82, 0.7)']}
+                                        colors={['rgb(82, 156, 203, 0.5)', 'rgb(151, 181, 82, 0.5)']}
                                         legend={{top: 0, right: 40, orient: 'vertical'}}
                                         unselectedTitle={'Evaluation'}
                                         selectedTitle={'Training'}

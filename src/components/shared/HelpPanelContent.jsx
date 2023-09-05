@@ -175,6 +175,144 @@ export const helpPanelContent = {
                 </div>
             )
         }
+    },
+
+    // ---------------------------------------------------------------------------------------------------------------------------------
+    modelTraining: {
+        wizardTrainingDataRange: {
+            header: (<div>Training data range</div>),
+            footer: "",
+            body: (
+                <div>
+                    <p>
+                        To train a model, you can select part of the historical data that you ingested. Ideally, you should
+                        select a training range that mostly focuses on the normal operating conditions your pieces of equipment
+                        or process went through.
+                    </p>
+
+                    <p>
+                        To highlight a training range, use the slider at the top of the chart:<br />
+                        <img src="/help-training-range.gif" width="220px" />
+                        The training data ranges will be updated live while you use the slider to let
+                        you precisely define your start and end dates.
+                    </p>
+
+                    <p>
+                        <b>Note:</b> <i>although Lookout for Equipment can deal with a moderate level of actual anomalies present in the training
+                        range, a large amount of anomalies will negatively impact the relevance of the model trained: similar 
+                        anomalies happening in live production may not be captured. To reduce this risk, you can use the labelling
+                        screen of this application and use the labels identified it in step 3 of this wizard.</i>
+                    </p>
+                </div>
+            )
+        },
+        wizardSignalSelection: {
+            header: (<div>Signal selection</div>),
+            footer: "",
+            body: (
+                <div>
+                    <p>
+                        Select the signals you want to use to train your model. By default, all the signals are 
+                        selected. You can use the controls at the top of the page to filter and navigate through
+                        the signals included in your dataset.
+                    </p>
+
+                    <p>
+                        Each signal is described in a card the includes the following information to help you
+                        with your selection:
+                        <ul>
+                            <li>The name of the signal</li>
+                            <li>
+                                The potential issues found by Lookout for Equipment at ingestion time. These 
+                                issues are also summarized in the <b>Sensor overview</b> page of this application.
+                            </li>
+                            <li>
+                                The start and end time of the data available for this signal: when comparing with
+                                the training data range selected at the previous step, this will help you identify
+                                if a given signal may have too many missing values to be relevant.
+                            </li>
+                            <li>
+                                A time series plot to help you visualize your signals: to train a good anomaly detection
+                                model, you should avoid (mostly) constant signals, signals that are monotonic (always
+                                increasing or decreasing) or categorical (with just a few different values across the desired
+                                time range). Some signals may show different operating modes across the training data range:
+                                when possible, try and select a training range that encompasses all the normal operation 
+                                conditions. Leaving a mode out, may generate an increase level of false positives when 
+                                the model tackles new data.
+                            </li>
+                            <li>
+                                The training range is highlighted in green over each time series data:
+                                <img src="/help-timeseries.png" width="220px" />
+                            </li>
+                            <li>
+                                You can also visualize the distributions of the values taken by each individual sensors. Two
+                                histograms are shown: a green one with the values the signals takes during the selected
+                                training data range and another one with the remaining values. If these distributions are 
+                                very different (as the example below showcase), your model may generate too many false 
+                                positives to be relevant:
+
+                                <img src="/help-histograms.png" width="220px" />
+                            </li>
+                        </ul>
+                    </p>
+                </div>
+            )
+        },
+        wizardLabels: {
+            header: (<div>Labels</div>),
+            footer: "",
+            body: (
+                <div>
+                    <p>
+                        You can create a group of labels in the <b>Labelling</b> page of this application. Once defined,
+                        all your label groups will be listed under the <b>Select labels</b> drop down. Selecting a
+                        label group will display your time series and overlay the defined labels, to let you review
+                        how relevant they are for your model before you train it.
+                    </p>
+
+                    <p>
+                        Lookout for Equipment only leverages unsupervised approaches: labels are not mandatory and can
+                        be tackled as an iteration to improve your first models, or after you've confirmed some anomalies
+                        detected in your live data after deployment.
+                    </p>
+                </div>
+            )
+        },
+        wizardOtherParameters: {
+            header: (<div>Other parameters</div>),
+            footer: "",
+            body: (
+                <div>
+                    <p>
+                        On this page you will be able to finalize your model by:
+                        <ul>
+                            <li>Giving it a name if the default one does not suit you</li>
+                            <li>Adjust the rate to be used to resample your data at training time</li>
+                            <li>Define a signal to use for off time detection</li>
+                        </ul>
+                    </p>
+
+                    <p>
+                        The selected <b>Sampling rate</b> will have an impact on the training time. A 10-seconds sampling
+                        rate will require more training time than a 1-hour sampling rate. However, a high sampling rate
+                        (e.g. 1 hour) may cut off the early warning signals of interest that lay in the highest frequency
+                        domains of your signals.
+                    </p>
+
+                    <p>
+                        <b>Off time detection:</b> sometime, your process or piece of equipment may be off or not running: 
+                        using the data collected during these time ranges is not relevant and you may want to discard them 
+                        automatically. Lookout for Equipment gives you the opportunity to use of your selected signals as 
+                        an off time detector. For instance, a rotating equipment may be considered off if the rotation speed
+                        is less than 10 RPM. Use the signal drop down to select the one to use for off time detection purpose.
+                        A time series plot for this signal will be shown. Drag and drop the red thick like to position the 
+                        threshold or adjust it manually:
+
+                        <img src="/help-off-time-selection.gif" width="220px" />
+                    </p>
+                </div>
+            )
+        },
     }
 }
 

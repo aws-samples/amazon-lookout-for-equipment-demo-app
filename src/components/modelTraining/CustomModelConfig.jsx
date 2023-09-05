@@ -13,11 +13,12 @@ import LabelsManagement            from '../labelling/LabelsManagement'
 // Contexts:
 import ModelParametersContext from '../contexts/ModelParametersContext'
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
+import HelpPanelContext from '../contexts/HelpPanelContext'
 
 // CloudScape Components:
-import Link          from "@cloudscape-design/components/link"
+import Link             from "@cloudscape-design/components/link"
 import SegmentedControl from "@cloudscape-design/components/segmented-control"
-import Wizard        from "@cloudscape-design/components/wizard"
+import Wizard           from "@cloudscape-design/components/wizard"
 
 // --------------------
 // Component definition
@@ -25,6 +26,7 @@ import Wizard        from "@cloudscape-design/components/wizard"
 function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
     const [ activeStepIndex, setActiveStepIndex ] = useState(0)
     const { gateway, uid } = useContext(ApiGatewayContext)
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { 
         trainingRange, 
         evaluationRange, 
@@ -38,7 +40,6 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
         selectedSamplingRate
     } = useContext(ModelParametersContext)
     const navigate = useNavigate()
-    const { projectName } = useParams()
 
     const wizardSteps = [
         {
@@ -56,7 +57,12 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
                 <p>Start by defining training and (optionally), the evaluation range of your model</p>
                 </>
             ),
-            info: <Link variant="info">Info</Link>,
+            info: 
+                <Link variant="info" onFollow={() => setHelpPanelOpen({
+                    status: true,
+                    page: 'modelTraining',
+                    section: 'wizardTrainingDataRange'
+                })}>Info</Link>,
             content: <MultivariateTimeSeriesChart 
                 showLegend={true} 
                 showToolbox={false} 
@@ -66,13 +72,23 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
         },
         {
             title: "Signal selection",
-            info: <Link variant="info">Info</Link>,
+            info: 
+                <Link variant="info" onFollow={() => setHelpPanelOpen({
+                    status: true,
+                    page: 'modelTraining',
+                    section: 'wizardSignalSelection'
+                })}>Info</Link>,
             description: "Select the signals to be used to train this model",
             content: <ModelingSignalSelection />
         },
         {
             title: "Labels",
-            info: <Link variant="info">Info</Link>,
+            info: 
+                <Link variant="info" onFollow={() => setHelpPanelOpen({
+                    status: true,
+                    page: 'modelTraining',
+                    section: 'wizardLabels'
+                })}>Info</Link>,
             description: `You may use an existing group of labels that Lookout for Equipment will
                           leverage to identify periods of time to discard from the normal operating
                           conditions of your process or asset. In addition, these labels will be
@@ -82,7 +98,12 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
         },
         {
             title: "Other parameters",
-            info: <Link variant="info">Info</Link>,
+            info: 
+                <Link variant="info" onFollow={() => setHelpPanelOpen({
+                    status: true,
+                    page: 'modelTraining',
+                    section: 'wizardOtherParameters'
+                })}>Info</Link>,
             description: `On this last page, you can name your model or select a rate to resample your
                           data. You can also select a signal that Lookout for Equipment will use to
                           identify when your piece of equipment or your process is not running.`,
@@ -90,7 +111,6 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
         },
         {
             title: "Review and create",
-            info: <Link variant="info">Info</Link>,
             description: `Review your model parameters. Fields with invalid values will be marked in 
                           red: you can navigate the other pages of this wizard to address any issue
                           before creating your model.`,

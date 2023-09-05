@@ -145,7 +145,7 @@ function UnivariateTimeSeriesChart({ sensorName }) {
                         hideTitle={true}
                         height={280}
                         width="100%"
-                        colors={['rgb(141, 152, 179, 0.5)', 'rgb(151, 181, 82, 0.7)']}
+                        colors={['rgb(82, 156, 203, 0.5)', 'rgb(151, 181, 82, 0.5)']}
                     />
                 </Box>
             </SpaceBetween>

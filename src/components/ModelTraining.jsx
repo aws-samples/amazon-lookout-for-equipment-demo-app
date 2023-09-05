@@ -10,6 +10,7 @@ import DefaultModelConfig from './modelTraining/DefaultModelConfig'
 // Contexts:
 import { TimeSeriesProvider } from './contexts/TimeSeriesContext'
 import { ModelParametersProvider } from './contexts/ModelParametersContext'
+import HelpPanelContext from './contexts/HelpPanelContext'
 
 // CloudScape Components:
 import AppLayout     from "@cloudscape-design/components/app-layout"
@@ -23,6 +24,7 @@ import SegmentedControl from "@cloudscape-design/components/segmented-control"
 function ModelTraining() {
     const { projectName } = useParams()
     const [ trainingConfig, setTrainingConfig ] = useState("default")
+    const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
 
     return (
         <ModelParametersProvider>
@@ -33,6 +35,13 @@ function ModelTraining() {
                    * --------------------------- */ }
                 { trainingConfig === "default" && <AppLayout
                     contentType="default"
+                    toolsOpen={helpPanelOpen.status}
+                    onToolsChange={(e) => setHelpPanelOpen({
+                        status: e.detail.open,
+                        page: helpPanelOpen.page,
+                        section: helpPanelOpen.section
+                    })}
+                    tools={panelContent.current}
                     content={
                         <ContentLayout header={
                             <Header 
@@ -62,6 +71,13 @@ function ModelTraining() {
                    * -------------------------- */ }
                 { trainingConfig === "custom" && <AppLayout
                     contentType="default"
+                    toolsOpen={helpPanelOpen.status}
+                    onToolsChange={(e) => setHelpPanelOpen({
+                        status: e.detail.open,
+                        page: helpPanelOpen.page,
+                        section: helpPanelOpen.section
+                    })}
+                    tools={panelContent.current}
                     maxContentWidth={Number.MAX_VALUE}
                     content={
                         <CustomModelConfig trainingConfig={trainingConfig} setTrainingConfig={setTrainingConfig} />

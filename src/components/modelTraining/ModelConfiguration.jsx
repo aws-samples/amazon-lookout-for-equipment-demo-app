@@ -5,12 +5,14 @@ import { useContext, useState } from 'react'
 import Alert        from "@cloudscape-design/components/alert"
 import FormField    from '@cloudscape-design/components/form-field'
 import Input        from '@cloudscape-design/components/input'
+import Link         from '@cloudscape-design/components/link'
 import Select       from '@cloudscape-design/components/select'
 import SpaceBetween from '@cloudscape-design/components/space-between'
 
 // Contexts
 import ModelParametersContext from '../contexts/ModelParametersContext'
 import TimeSeriesContext from '../contexts/TimeSeriesContext'
+import HelpPanelContext from '../contexts/HelpPanelContext'
 
 // App components:
 import OffTimeSelection from './OffTimeSelection'
@@ -19,6 +21,7 @@ function ModelConfiguration() {
     const { data } = useContext(TimeSeriesContext)
     const [ value, setValue ] = useState(0)
     const { datasetName, modelName, selectedSamplingRate, setSelectedSamplingRate } = useContext(ModelParametersContext)
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
 
     const samplingRateList = [
         {label: '1 second', value: 'PT1S'},
@@ -68,6 +71,13 @@ function ModelConfiguration() {
                                  value (e.g. 1 hour), may cut out some of the early warning signals of interest. This
                                  will depend on the specific anomaly pattern of interest for your equipment or process."
                     label="Sampling rate"
+                    info={ 
+                        <Link variant="info" onFollow={() => setHelpPanelOpen({
+                            status: true,
+                            page: 'modelTraining',
+                            section: 'wizardSamplingRate'
+                        })}>Info</Link>
+                    }
                 >
                     <Select 
                         selectedOption={selectedSamplingRate}

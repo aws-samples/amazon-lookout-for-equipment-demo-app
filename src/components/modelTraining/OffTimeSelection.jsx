@@ -9,12 +9,14 @@ import Alert        from '@cloudscape-design/components/alert'
 import Box          from '@cloudscape-design/components/box'
 import FormField    from '@cloudscape-design/components/form-field'
 import Input        from '@cloudscape-design/components/input'
+import Link         from '@cloudscape-design/components/link'
 import Select       from '@cloudscape-design/components/select'
 import SpaceBetween from '@cloudscape-design/components/space-between'
 
 // Contexts
 import TimeSeriesContext from '../contexts/TimeSeriesContext'
 import ModelParametersContext from '../contexts/ModelParametersContext'
+import HelpPanelContext from '../contexts/HelpPanelContext'
 
 function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, eChartRef, onConditionValueDragEnd) {
     if (!tag) { return undefined }
@@ -139,7 +141,8 @@ function getDraggableLineConfig(chart, x1, x2, y, onDragEvent) {
 // Component main entry point
 // --------------------------
 function OffTimeSelection() {
-    const { data, x, tagsList } = useContext(TimeSeriesContext)
+    const { data, x } = useContext(TimeSeriesContext)
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { 
         selectedItems,
         selectedOption,
@@ -215,6 +218,13 @@ function OffTimeSelection() {
             <FormField 
                 label="Off time detection"
                 description={<>You configure off-time detection by choosing one of the sensor selected in the <b>Signal selection</b> tab that is representative of your process' or machine's on/off state.</>}
+                info={ 
+                    <Link variant="info" onFollow={() => setHelpPanelOpen({
+                        status: true,
+                        page: 'modelTraining',
+                        section: 'wizardOffTimeDetection'
+                    })}>Info</Link>
+                }
             >
                 <SpaceBetween size="xl" direction="horizontal">
                     <Select

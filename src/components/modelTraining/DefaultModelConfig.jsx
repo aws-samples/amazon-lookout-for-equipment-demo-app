@@ -11,6 +11,7 @@ import Alert                from "@cloudscape-design/components/alert"
 import Box                  from "@cloudscape-design/components/box"
 import Button               from "@cloudscape-design/components/button"
 import ColumnLayout         from "@cloudscape-design/components/column-layout"
+import Container            from "@cloudscape-design/components/container"
 import SpaceBetween         from "@cloudscape-design/components/space-between"
 import Spinner              from "@cloudscape-design/components/spinner"
 import Textarea             from "@cloudscape-design/components/textarea"
@@ -47,6 +48,7 @@ function DefaultModelConfig() {
     const showModelSummary = useRef(false)
     const [ modelDetails, setModelDetails ] = useState(undefined)
     const [ calculatedSR, setCalculatedSR ] = useState(undefined)
+    const [ showUserGuide, setShowUserGuide ] = useState(true)
 
     useEffect(() => {
         getAvailableDefaultModelName(gateway, uid, projectName)
@@ -128,74 +130,90 @@ function DefaultModelConfig() {
 
         // Renders the component:
         return (
-            <SpaceBetween size="xxs">
-                <Box>
-                    The following parameters have been defined automatically for your dataset. Click <b>Create model</b> to create a new model
-                    after you've reviewed these parameters.
-                    <Box float="right">
-                        <Button 
-                            variant="primary" 
-                            onClick={toggleModelSummary}
-                            disabled={errorMessage.current !== ""}
-                        >
-                            Create model
-                        </Button>
-                    </Box>
-                </Box>
-                <ColumnLayout columns={2} variant="text-grid">
-                    <SpaceBetween size="l">
-                        <div>
-                            <Box variant="awsui-key-label">Model name</Box>
-                            <div>{modelName.current}</div>
-                        </div>
+            <SpaceBetween size="l">
+                { showUserGuide && <Container><Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                    <p>
+                        Now that your data is ingested, you can train an anomaly detection model using 
+                        this page. After training, a model can be deployed to receive fresh data and 
+                        provide live analysis. To train your first models, you can use the <b>default 
+                        configuration</b>. Once you're more familiar with this application and the 
+                        anomalies you want to capture, you will probably want to take the
+                        more <b>customized</b> approach. Use the segmentation controls below this
+                        page title to switch between the default and the custom configuration view.
+                    </p>
+                </Alert></Container> }
 
-                        { errorMessage.current !== "" && <Alert type="error">{errorMessage.current}</Alert> }
-
-                        { errorMessage.current === "" && <>
-                            <div>
-                                <Box variant="awsui-key-label">Training range</Box>
-                                <TextContent><p>
-                                    From {trainingStartDate} to {trainingEndDate}<br />
-                                    <i>(Total duration: {parseInt((new Date(trainingEndDate).getTime() - new Date(trainingStartDate).getTime()) / 1000 / 86400)} days)</i>
-                                </p></TextContent>
-                            </div>
-
-                            <div>
-                                <Box variant="awsui-key-label">Evaluation range</Box>
-                                <TextContent><p>
-                                    From {evaluationStartDate} to {evaluationEndDate}<br />
-                                    <i>(Total duration: {parseInt((new Date(evaluationEndDate).getTime() - new Date(evaluationStartDate).getTime()) / 1000 / 86400)} days)</i>
-                                </p></TextContent>
-                            </div>
-                        </> }
-
-                        <div>
-                            <Box variant="awsui-key-label">Suggested sampling rate</Box>
-                            {modelDetails && <>
-                                <div>{samplingRateTable[calculatedSR][0]}</div>
+                <Container>
+                    <SpaceBetween size="xxs">
+                        <Box>
+                            The following parameters have been defined automatically for your dataset. Click <b>Create model</b> to create a new model
+                            after you've reviewed these parameters.
+                            <Box float="right">
+                                <Button 
+                                    variant="primary" 
+                                    onClick={toggleModelSummary}
+                                    disabled={errorMessage.current !== ""}
+                                >
+                                    Create model
+                                </Button>
+                            </Box>
+                        </Box>
+                        <ColumnLayout columns={2} variant="text-grid">
+                            <SpaceBetween size="l">
                                 <div>
-                                    <i>Note: the average sampling rate from your dataset is:&nbsp;
-                                    {Math.round(getSamplingRate(
-                                        modelDetails['rowCounts'],
-                                        modelDetails['startDate'],
-                                        modelDetails['endDate']
-                                    ))} seconds</i>
+                                    <Box variant="awsui-key-label">Model name</Box>
+                                    <div>{modelName.current}</div>
                                 </div>
-                            </>}
-                        </div>
+
+                                { errorMessage.current !== "" && <Alert type="error">{errorMessage.current}</Alert> }
+
+                                { errorMessage.current === "" && <>
+                                    <div>
+                                        <Box variant="awsui-key-label">Training range</Box>
+                                        <TextContent><p>
+                                            From {trainingStartDate} to {trainingEndDate}<br />
+                                            <i>(Total duration: {parseInt((new Date(trainingEndDate).getTime() - new Date(trainingStartDate).getTime()) / 1000 / 86400)} days)</i>
+                                        </p></TextContent>
+                                    </div>
+
+                                    <div>
+                                        <Box variant="awsui-key-label">Evaluation range</Box>
+                                        <TextContent><p>
+                                            From {evaluationStartDate} to {evaluationEndDate}<br />
+                                            <i>(Total duration: {parseInt((new Date(evaluationEndDate).getTime() - new Date(evaluationStartDate).getTime()) / 1000 / 86400)} days)</i>
+                                        </p></TextContent>
+                                    </div>
+                                </> }
+
+                                <div>
+                                    <Box variant="awsui-key-label">Suggested sampling rate</Box>
+                                    {modelDetails && <>
+                                        <div>{samplingRateTable[calculatedSR][0]}</div>
+                                        <div>
+                                            <i>Note: the average sampling rate from your dataset is:&nbsp;
+                                            {Math.round(getSamplingRate(
+                                                modelDetails['rowCounts'],
+                                                modelDetails['startDate'],
+                                                modelDetails['endDate']
+                                            ))} seconds</i>
+                                        </div>
+                                    </>}
+                                </div>
+                            </SpaceBetween>
+
+                            <div>
+                                <Box variant="awsui-key-label">Signals list</Box>
+                                <Textarea
+                                    value={tagsList.join('\n')}
+                                    readOnly={true}
+                                    rows={12}
+                                />
+                            </div>
+                        </ColumnLayout>
+
+                        <CreateDefaultModel ref={modelSummaryRef} dismissFunction={dismissModelSummary} modelConfig={defaultModelConfig.current} />
                     </SpaceBetween>
-
-                    <div>
-                        <Box variant="awsui-key-label">Signals list</Box>
-                        <Textarea
-                            value={tagsList.join('\n')}
-                            readOnly={true}
-                            rows={12}
-                        />
-                    </div>
-                </ColumnLayout>
-
-                <CreateDefaultModel ref={modelSummaryRef} dismissFunction={dismissModelSummary} modelConfig={defaultModelConfig.current} />
+                </Container>
             </SpaceBetween>
         )
     }

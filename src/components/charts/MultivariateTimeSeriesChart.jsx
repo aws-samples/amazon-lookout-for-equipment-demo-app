@@ -6,12 +6,13 @@ import ReactEcharts from "echarts-for-react"
 import ModelDataRanges from "../modelTraining/ModelDataRanges"
 
 // Cloudscape components:
-import Alert from "@cloudscape-design/components/alert"
-import Box from "@cloudscape-design/components/box"
-import Form from "@cloudscape-design/components/form"
+import Alert        from "@cloudscape-design/components/alert"
+import Box          from "@cloudscape-design/components/box"
+import Container    from "@cloudscape-design/components/container"
+import Form         from "@cloudscape-design/components/form"
 import SpaceBetween from "@cloudscape-design/components/space-between"
-import Spinner from "@cloudscape-design/components/spinner"
-import TextContent from "@cloudscape-design/components/text-content"
+import Spinner      from "@cloudscape-design/components/spinner"
+import TextContent  from "@cloudscape-design/components/text-content"
 
 // Contexts:
 import TimeSeriesContext from '../contexts/TimeSeriesContext'
@@ -161,10 +162,6 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
             modelDataRangesRef.current.forceUpdate()
         }
 
-        const handleModelCreationSubmit = (e) => {
-            e.preventDefault()
-        }
-
         // ---------------------------------------------------------
         // This function is triggered when the chart is finished 
         // rendering. If some labels where highlighted using eCharts 
@@ -194,36 +191,34 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
         // Renders the component
         // ---------------------
         return (
-            <SpaceBetween size="xl">
-                <TextContent>
-                    Training range selection: use the slider below to highlight the time
-                    range that will be used for training a Lookout for Equipment model. 
-                    The remaining data located after this range will be used for evaluation
-                    purpose:
-                </TextContent>
+            <Container>
+                <SpaceBetween size="l">
+                    <TextContent>
+                        Training range selection: use the slider below to highlight the time
+                        range that will be used for training a Lookout for Equipment model. 
+                        The remaining data located after this range will be used for evaluation
+                        purpose:
+                    </TextContent>
 
-                <ReactEcharts 
-                    option={option}
-                    theme="macarons"
-                    style={{ height: componentHeight, width: "100%" }}
-                    ref={eChartRef}
-                    onEvents={{
-                        'datazoom': onDataZoomEnd, 
-                        'brushEnd': onBrushEndEvent
-                    }}
-                    onChartReady={onChartReady}
-                />
+                    <Container>
+                    <ReactEcharts 
+                        option={option}
+                        theme="macarons"
+                        style={{ height: componentHeight, width: "100%" }}
+                        ref={eChartRef}
+                        onEvents={{
+                            'datazoom': onDataZoomEnd, 
+                            'brushEnd': onBrushEndEvent
+                        }}
+                        onChartReady={onChartReady}
+                    />
+                    </Container>
 
-                <Box>
-                    <form onSubmit={handleModelCreationSubmit}>
-                        <Form>
-                            <SpaceBetween size="xl">
-                                <ModelDataRanges ref={modelDataRangesRef} x={x} updateRanges={updateRanges} />
-                            </SpaceBetween>
-                        </Form>
-                    </form>
-                </Box>
-            </SpaceBetween>
+                    <Box>
+                        <ModelDataRanges ref={modelDataRangesRef} x={x} updateRanges={updateRanges} />
+                    </Box>
+                </SpaceBetween>
+            </Container>
         )
     }
     else {

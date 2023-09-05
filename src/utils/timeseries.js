@@ -99,10 +99,15 @@ export function buildChartOptions(
         })
     })
 
+    let top = 0
+    if (showToolbox) {
+        top = 40
+    }
+
     const datazoomOption = { 
         start: initialZoomStart, 
         end: initialZoomEnd, 
-        top: 40, 
+        top: top, 
         type: 'slider'
     }
 
@@ -137,14 +142,14 @@ export function buildChartOptions(
             textStyle: { fontSize: 10 },
             icon: "circle",
             right: 0,
-            top: 40,
+            top: top,
             selector: [
                 { type: 'all', title: 'All' },
                 { type: 'inverse', title: 'Inverse' }
             ],
             data: tagsList
         }
-        option['grid'] = { top: 95, left: 50, bottom: 30, right: legendWidth }
+        option['grid'] = { top: 55 + top, left: 50, bottom: 30, right: legendWidth }
         option['toolbox'] = {
             right: legendWidth,
             top: 0

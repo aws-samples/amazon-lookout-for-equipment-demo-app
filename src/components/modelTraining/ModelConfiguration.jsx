@@ -1,6 +1,5 @@
 // Imports:
-import { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useContext, useState } from 'react'
 
 // Cloudscape components:
 import Alert        from "@cloudscape-design/components/alert"
@@ -12,20 +11,14 @@ import SpaceBetween from '@cloudscape-design/components/space-between'
 // Contexts
 import ModelParametersContext from '../contexts/ModelParametersContext'
 import TimeSeriesContext from '../contexts/TimeSeriesContext'
-import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 // App components:
 import OffTimeSelection from './OffTimeSelection'
-
-// Utils:
-import { getAvailableDefaultModelName } from '../../utils/utils'
 
 function ModelConfiguration() {
     const { data } = useContext(TimeSeriesContext)
     const [ value, setValue ] = useState(0)
     const { datasetName, modelName, selectedSamplingRate, setSelectedSamplingRate } = useContext(ModelParametersContext)
-    const { gateway, uid } = useContext(ApiGatewayContext)
-    const { projectName } = useParams()
 
     const samplingRateList = [
         {label: '1 second', value: 'PT1S'},
@@ -40,11 +33,6 @@ function ModelConfiguration() {
         {label: '30 minutes', value: 'PT30M'},
         {label: '1 hour', value: 'PT1H'}
     ]
-
-    useEffect(() => {
-        getAvailableDefaultModelName(gateway, uid, projectName)
-        .then((x) => {modelName.current = x; setValue(value + 1)})
-    }, [gateway])
 
     // ------------------------------------------------------
     // Once the data is loaded, we can display the component:

@@ -82,7 +82,8 @@ export function buildChartOptions(
     enableBrush,
     customDatazoomColor,
     readOnly,
-    showTopN
+    showTopN,
+    frozenMarkers
 ) {
     const series = []
     tagsList.forEach((tag) => {
@@ -178,6 +179,15 @@ export function buildChartOptions(
                 borderColor: 'rgba(151, 181, 82, 0.7)'
             }
         }
+
+        if (frozenMarkers) {
+            option['brush']['transformable'] = false
+            option['toolbox']['show'] = false
+        }
+        else {
+            option['brush']['transformable'] = true
+            option['toolbox']['show'] = true
+        }
     }
     else if (enableBrush && readOnly) {
         option['brush'] = {
@@ -190,10 +200,17 @@ export function buildChartOptions(
                 borderColor: 'rgba(151, 181, 82, 0.7)'
             }
         }
-        option['toolbox'] = { show: false }
+        option['toolbox']['show'] = false
         datazoomOption['top'] = 10
         option['grid']['top'] = 65
         option['legend']['top'] = 10
+
+        if (frozenMarkers) {
+            option['brush']['transformable'] = false
+        }
+        else {
+            option['brush']['transformable'] = true
+        }
     }
 
     return option

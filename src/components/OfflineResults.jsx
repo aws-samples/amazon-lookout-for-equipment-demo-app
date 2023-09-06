@@ -16,11 +16,13 @@ import SpaceBetween from "@cloudscape-design/components/space-between"
 
 // Contexts:
 import ApiGatewayContext from './contexts/ApiGatewayContext'
+import HelpPanelContext from './contexts/HelpPanelContext'
 
 function OfflineResults() {
     const [ modelDetails, setModelDetails ] = useState(undefined)
     const [ loading, setLoading ] = useState(true)
     const { gateway, uid } = useContext(ApiGatewayContext)
+    const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
     const { modelName, projectName } = useParams()
     
     useEffect(() => {
@@ -35,6 +37,15 @@ function OfflineResults() {
     return (
         <AppLayout
             contentType="default"
+
+            toolsOpen={helpPanelOpen.status}
+            onToolsChange={(e) => setHelpPanelOpen({
+                status: e.detail.open,
+                page: helpPanelOpen.page,
+                section: helpPanelOpen.section
+            })}
+            tools={panelContent.current}
+
             content={
                 <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
                     <SpaceBetween size='xl'>

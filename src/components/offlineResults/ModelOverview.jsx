@@ -1,5 +1,5 @@
 // Imports:
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 
 // App components:
 import DeleteModelModal from './DeleteModelModal'
@@ -13,15 +13,21 @@ import ColumnLayout         from "@cloudscape-design/components/column-layout"
 import Container            from "@cloudscape-design/components/container"
 import ExpandableSection    from "@cloudscape-design/components/expandable-section"
 import Header               from "@cloudscape-design/components/header"
+import Link                 from "@cloudscape-design/components/link"
 import SpaceBetween         from "@cloudscape-design/components/space-between"
 import Spinner              from '@cloudscape-design/components/spinner'
 import Table                from '@cloudscape-design/components/table'
+
+// Contexts:
+import HelpPanelContext from '../contexts/HelpPanelContext'
 
 // --------------------------
 // Component main entry point
 // --------------------------
 function ModelOverview({ modelDetails, loading }) {
     const [ showDeleteModelModal, setShowDeleteModelModal ] = useState(false)
+    const [ showUserGuide, setShowUserGuide ] = useState(true)
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
 
     // Define the badge color for the training status:
     let color = 'gray'
@@ -62,19 +68,16 @@ function ModelOverview({ modelDetails, loading }) {
 
         return (
             <SpaceBetween size="xl">
-                <Container>
-                    <Alert>
-                            Once a model is trained you can use the <b>Model overview</b> section to visualize the parameters 
-                            used for training. At training time, you can optionnally specify an evaluation range that Lookout
-                            for Equipment will use to help you assess if your model was able to capture any event of interest 
-                            in your historical data. This evaluation is available in the <b>Detected events</b> section below.
-                            From this screen you can also <b>Delete</b> a model that you don't need anymore.
-                    </Alert>
-                </Container>
-
                 <Container header={
                     <Header 
                         variant="h1"
+                        info={
+                            <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                status: true,
+                                page: 'offlineResults',
+                                section: 'modelOverview'
+                            })}>Info</Link>
+                        }
                         actions={
                             <Button 
                                 iconName="status-negative" 
@@ -88,6 +91,14 @@ function ModelOverview({ modelDetails, loading }) {
                     </Header>
                 }>
                     <SpaceBetween size="xl">
+                        { showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                            Once a model is trained you can use the <b>Model overview</b> section to visualize the parameters 
+                            used for training. At training time, you can optionnally specify an evaluation range that Lookout
+                            for Equipment will use to help you assess if your model was able to capture any event of interest 
+                            in your historical data. This evaluation is available in the <b>Detected events</b> section below.
+                            From this screen you can also <b>Delete</b> a model that you don't need anymore.
+                        </Alert> }
+                        
                         <ColumnLayout columns={3} variant="text-grid">
                             <SpaceBetween size="l">
                                 <div>

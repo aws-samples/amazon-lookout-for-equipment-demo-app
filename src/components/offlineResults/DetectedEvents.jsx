@@ -1,5 +1,5 @@
 // Imports:
-import { useRef } from 'react'
+import { useContext, useRef } from 'react'
 import ReactEcharts from "echarts-for-react"
 import "../../styles/chartThemeMacarons.js"
 
@@ -7,20 +7,25 @@ import "../../styles/chartThemeMacarons.js"
 import Alert        from "@cloudscape-design/components/alert"
 import Header       from "@cloudscape-design/components/header"
 import Container    from "@cloudscape-design/components/container"
+import Link         from "@cloudscape-design/components/link"
 import SpaceBetween from "@cloudscape-design/components/space-between"
+
+// Contexts:
+import HelpPanelContext from '../contexts/HelpPanelContext'
 
 // Utils:
 import { buildChartOptions } from './offlineResultsUtils'
 
 function DetectedEvents({ modelDetails }) {
     if (modelDetails && modelDetails['status'] === 'SUCCESS') {
-        const dailyAggregation   = modelDetails['dailyAggregation']
-        const anomalies          = modelDetails['anomalies']
-        const sensorContribution = modelDetails['sensorContribution']
-        const tagsList           = modelDetails['tagsList']
-        const timeseries         = modelDetails['timeseries']
-        const evaluationStart    = new Date(modelDetails['evaluationStart'])
-        const option             = useRef(undefined)
+        const dailyAggregation     = modelDetails['dailyAggregation']
+        const anomalies            = modelDetails['anomalies']
+        const sensorContribution   = modelDetails['sensorContribution']
+        const tagsList             = modelDetails['tagsList']
+        const timeseries           = modelDetails['timeseries']
+        const evaluationStart      = new Date(modelDetails['evaluationStart'])
+        const option               = useRef(undefined)
+        const { setHelpPanelOpen } = useContext(HelpPanelContext)
 
         // If no sensor contribution contribution data is found, this means 
         // that no anomalous event was found while evaluating the model. 
@@ -48,28 +53,27 @@ function DetectedEvents({ modelDetails }) {
                 5                   // showTopN
             )
 
+            const infoLink = (
+                <Link variant="info" onFollow={() => setHelpPanelOpen({
+                    status: true,
+                    page: 'offlineResults',
+                    section: 'detectedEvents'
+                })}>Info</Link>
+            )
+
             // Renders the component:
             return (
-                <Container header={<Header variant="h1">Detected events</Header>}>
+                <Container header={
+                    <Header 
+                        variant="h1"
+                        info={infoLink}
+                    >Detected events</Header>
+                }>
                     <SpaceBetween size="xl">
                         <Alert>
-                            This section shows the evaluation results of your model when applied on 
-                            historical data you selected at training time. From top to bottom, you will find:
-                            <ul>
-                                <li>The <b>events detected</b> in the evaluation date range (similar to what you can visualize from the AWS console</li>
-                                <li>A <b>slider</b> to zoom on the part of interest on the plots</li>
-                                <li>
-                                    The <b>detected events aggregated by day</b>: this plot can be more useful than the raw events 
-                                    detected as it helps filtering out short-lived events that may be considered false positives.
-                                </li>
-                                <li>
-                                    The <b>sensor contribution</b> evolution over time. When Lookout for Equipment identifies a given time range
-                                    as an anomaly, it also computes the sensor contribution to this event. Each sensor receives a level of
-                                    contribution between 0% and 100%. By default, the top 5 contributors are highlighted: use the legend on the
-                                    right to adjust this display.
-                                </li>
-                                <li>The <b>time series</b> plots of the selected sensors</li>
-                            </ul>
+                            This section shows the evaluation results of your model when applied on historical data you
+                            selected at training time. To learn more about how to interpret these plots, click on
+                            the <b>{infoLink}</b> link above.
                         </Alert>
                         <ReactEcharts 
                             option={option.current}

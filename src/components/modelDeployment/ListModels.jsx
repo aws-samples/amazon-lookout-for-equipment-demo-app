@@ -2,14 +2,17 @@
 import { useContext, useEffect, useRef, useState } from 'react'
 
 // CloudScape components:
-import Alert        from "@cloudscape-design/components/alert"
-import Box          from "@cloudscape-design/components/box"
-import Button       from "@cloudscape-design/components/button"
-import Container    from "@cloudscape-design/components/container"
-import Header       from "@cloudscape-design/components/header"
-import SpaceBetween from "@cloudscape-design/components/space-between"
-import Spinner      from '@cloudscape-design/components/spinner'
-import Table        from '@cloudscape-design/components/table'
+import Alert             from "@cloudscape-design/components/alert"
+import Box               from "@cloudscape-design/components/box"
+import Button            from "@cloudscape-design/components/button"
+import Container         from "@cloudscape-design/components/container"
+import ExpandableSection from "@cloudscape-design/components/expandable-section"
+import Header            from "@cloudscape-design/components/header"
+import Link              from "@cloudscape-design/components/link"
+import SpaceBetween      from "@cloudscape-design/components/space-between"
+import Spinner           from '@cloudscape-design/components/spinner'
+import Table             from '@cloudscape-design/components/table'
+import TextContent       from '@cloudscape-design/components/text-content'
 
 // App components:
 import DeploymentModal from './DeploymentModal'
@@ -34,6 +37,7 @@ function ListModels({ projectName }) {
     const [ counter, setCounter ] = useState(0) 
     const [ showDeleteSchedulerModal, setShowDeleteSchedulerModal ] = useState(false)
     const [ currentModelName, setCurrentModelName ] = useState("")
+    const [ showUserGuide, setShowUserGuide ] = useState(true)
     const modelDeploymentRef = useRef(null)
 
     // Loads model configuration:
@@ -139,6 +143,13 @@ function ListModels({ projectName }) {
             onDeleteInit
         )
 
+        const onlineMonitoringLink = <Link 
+        href={`/onlineMonitoring/modelName/${modelsSummary[0]['ModelName']}/ProjectName/${projectName}`}
+        onFollow={(e) => { 
+            e.preventDefault()
+            navigate(`/onlineMonitoring/modelName/${modelsSummary[0]['ModelName']}/ProjectName/${projectName}`)
+        }}>Online monitoring</Link>
+
         return (
             <Container header={<Header variant="h1">Model overview</Header>}>
                 <DeleteSchedulerModal 
@@ -148,8 +159,58 @@ function ListModels({ projectName }) {
                     currentModelName={currentModelName} />
 
                 <SpaceBetween size="xl">
+                    <Container>
+                        <SpaceBetween size="xl">
+                            { showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                                After you've trained a model you can deploy it so that it can process live data and detect
+                                anomalies in it. Use this screen to deploy model that you have previously trained within this
+                                project.
+                            </Alert> }
+
+                            <ExpandableSection variant="footer" headerText="Click here to learn more about how to prepare your live data">
+                                <TextContent>
+                                    <p>
+                                        When you deploy a model, you make it ready to receive inference data coming from live industrial systems such
+                                        as the piece of equipment or process that you are operating. With this application, you have two ways to feed
+                                        a deployed model with live data.
+                                    </p>
+
+                                    <h5>Method 1: Generate synthetic data</h5>
+                                    <p>
+                                        You can request this application to generate some synthetic data. This is suitable for a proof of concept
+                                        for which you may not already have a pipeline to process and prepare your live data. When you choose this
+                                        option, the application will use your historical data and extract up to one month of data. It will then
+                                        prepare it and push it to the inference input location so the deployed model will be able to find it:
+                                    </p>
+                                    <p style={{textAlign: "center"}}>
+                                        <img src="/scheduler-workflow-diagram-replay-data.png" width="700px" />
+                                    </p>
+
+                                    <h5>Method 2: Setup your live data pipeline</h5>
+                                    <p>
+                                        You can also leverage your own live data and setup a pipeline that will push your prepared data in the
+                                        same location mentioned above. Your deployed model will search this input location, process your input
+                                        data and deliver the results in the inference output location where it will be picked up by the online
+                                        monitoring feature of this application:
+                                    </p>
+                                    <p style={{textAlign: "center"}}>
+                                        <img src="/scheduler-workflow-diagram.png" width="1000px" />
+                                    </p>
+
+
+                                    <h5>How do I visualize the inference results?</h5>
+                                    <p>
+                                        In both cases, your model will generate inference results in Amazon S3, in the output location mentioned in the
+                                        model deployment dialog box. You can then navigate to the <b>{onlineMonitoringLink}</b> to visualize the model
+                                        live results.
+                                    </p>
+                                </TextContent>
+                            </ExpandableSection>
+                        </SpaceBetween>
+                    </Container>
+                    
                     <Box variant="p">
-                        Here is the list of all models trained for asset <b>{projectName}</b>:
+                        Here is the list of all models trained within project <b>{projectName}</b>:
                     </Box>
 
                     <Table 
@@ -170,7 +231,11 @@ function ListModels({ projectName }) {
                         ]}
                         items={tableContent}
                     />
+
+
                 </SpaceBetween>
+
+
 
                 <DeploymentModal ref={modelDeploymentRef} onDismiss={onDeployDismiss} onConfirm={() => setCounter(counter + 1)} />
             </Container>

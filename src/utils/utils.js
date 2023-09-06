@@ -485,3 +485,20 @@ export async function getAvailableDefaultModelName(gateway, uid, projectName) {
 
     return defaultModelName.slice(projectName.length + 1)
 }
+
+// ----------------------------------------------------
+// Checks if a given label group name is already in use
+// ----------------------------------------------------
+export async function checkLabelGroupNameAvailability(gateway, uid, projectName, labelGroupName) {
+    const currentLabelGroupName = `${uid}-${projectName}-${labelGroupName}`
+    const response = await gateway.lookoutEquipment.listLabelGroups(currentLabelGroupName)
+
+    let labelGroupsList = []
+    if (response['LabelGroupSummaries'].length > 0) {
+        response['LabelGroupSummaries'].forEach((labelGroup) => {
+            labelGroupsList.push(labelGroup['LabelGroupName'])
+        })
+    }
+
+    return labelGroupsList.indexOf(currentLabelGroupName) < 0
+}

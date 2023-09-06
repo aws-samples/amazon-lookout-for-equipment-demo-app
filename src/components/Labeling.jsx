@@ -1,4 +1,5 @@
 // Imports
+import { useContext } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
@@ -8,6 +9,7 @@ import LabelsManagement from './labelling/LabelsManagement'
 // Contexts:
 import { TimeSeriesProvider } from './contexts/TimeSeriesContext'
 import { ModelParametersProvider } from './contexts/ModelParametersContext'
+import HelpPanelContext from './contexts/HelpPanelContext'
 
 // CloudScape Components:
 import AppLayout     from "@cloudscape-design/components/app-layout"
@@ -20,11 +22,21 @@ import Header        from "@cloudscape-design/components/header"
 // ---------------------
 function Labeling() {
     const { projectName } = useParams()
+    const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
 
     return (
         <ModelParametersProvider>
             <AppLayout
                 contentType="default"
+
+                toolsOpen={helpPanelOpen.status}
+                onToolsChange={(e) => setHelpPanelOpen({
+                    status: e.detail.open,
+                    page: helpPanelOpen.page,
+                    section: helpPanelOpen.section
+                })}
+                tools={panelContent.current}
+
                 content={
                     <ContentLayout header={<Header variant="h1">{projectName} labeling</Header>}>
                         <Container>

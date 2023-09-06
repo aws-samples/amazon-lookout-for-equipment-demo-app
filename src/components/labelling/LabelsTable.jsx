@@ -2,9 +2,10 @@
 import { forwardRef, useImperativeHandle, useState } from 'react'
 
 // Cloudscape component
-import Box from "@cloudscape-design/components/box"
+import Alert     from "@cloudscape-design/components/alert"
+import Box       from "@cloudscape-design/components/box"
 import FormField from "@cloudscape-design/components/form-field"
-import Table from "@cloudscape-design/components/table"
+import Table     from "@cloudscape-design/components/table"
 
 // --------------------------
 // Component main entry point
@@ -12,6 +13,7 @@ import Table from "@cloudscape-design/components/table"
 const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     const [currentLabels, setCurrentLabels] = useState(props.labels)
     const x = props.x
+    const noLabelDefined = props.noLabelDefined
 
     // This function will allow the parent component (MultivariateTimeSeriesChart)
     // to trigger the update of the label table when the user brushes a new area
@@ -45,6 +47,14 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
         })
     }
 
+    let noLabelText = ""
+    if (noLabelDefined) {
+        noLabelText = (<Box textAlign="center"><Alert type="error">No labels defined</Alert></Box>)
+    }
+    else {
+        noLabelText = (<b>No labels defined</b>)
+    }
+
     // Render the component:
     return (
         <FormField stretch={true}>
@@ -60,7 +70,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 items={items}
                 empty={
                     <Box textAlign="center" color="inherit">
-                        <b>No labels defined</b>
+                        {noLabelText}
                         <Box
                             padding={{ bottom: "s" }}
                             variant="p"

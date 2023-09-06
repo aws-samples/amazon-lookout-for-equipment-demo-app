@@ -52,18 +52,15 @@ function ModelConfiguration() {
     else if (data) {
         return (
             <SpaceBetween size="xl">
-                <FormField
-                    description={`Your Lookout for Equipment model name will be built using the current project name (${datasetName.current}) and a suffix, separated by a hyphen ("-") character.`}
-                    label="Model name suffix"
-                >
-                        <Input
-                            onChange={({ detail }) => {
-                                modelName.current = detail.value
-                                setValue(value + 1)
-                            }}
-                            value={modelName.current}
-                            placeholder="Enter a model name"
-                        />
+                <FormField label="Model name">
+                    <Input
+                        onChange={({ detail }) => {
+                            modelName.current = detail.value
+                            setValue(value + 1)
+                        }}
+                        value={modelName.current}
+                        placeholder="Enter a model name"
+                    />
                 </FormField>
 
                 <FormField

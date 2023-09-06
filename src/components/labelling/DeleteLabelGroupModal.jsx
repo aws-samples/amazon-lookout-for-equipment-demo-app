@@ -59,7 +59,7 @@ function DeleteLabelGroupModal({ visible, onDiscard, onDelete, selectedLabelGrou
 
                     <Textarea
                         value={attachedModels[0]}
-                        disabled={true}
+                        readOnly={true}
                         rows={attachedModels.length > 5 ? 5 : attachedModels.length}
                     />
                 </SpaceBetween>

@@ -1,5 +1,5 @@
 // Imports
-import { useRef, useCallback, useContext, useMemo, useState, useEffect } from 'react'
+import { useRef, useCallback, useContext, useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import ReactEcharts from "echarts-for-react"
 
@@ -9,12 +9,10 @@ import DeleteLabelGroupModal from "./DeleteLabelGroupModal"
 
 // Cloudscape components:
 import Alert        from "@cloudscape-design/components/alert"
-import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
-import Form         from "@cloudscape-design/components/form"
 import FormField    from '@cloudscape-design/components/form-field'
-import Header       from "@cloudscape-design/components/header"
 import Input        from "@cloudscape-design/components/input"
+import Link         from "@cloudscape-design/components/link"
 import Select       from "@cloudscape-design/components/select"
 import SpaceBetween from "@cloudscape-design/components/space-between"
 
@@ -22,17 +20,17 @@ import SpaceBetween from "@cloudscape-design/components/space-between"
 import TimeSeriesContext      from '../contexts/TimeSeriesContext'
 import ModelParametersContext from '../contexts/ModelParametersContext'
 import ApiGatewayContext      from '../contexts/ApiGatewayContext'
+import HelpPanelContext       from '../contexts/HelpPanelContext'
 
 // Utils:
 import "../../styles/chartThemeMacarons.js"
-import { getLegendWidth } from '../../utils/utils.js'
+import { getLegendWidth, checkLabelGroupNameAvailability } from '../../utils/utils.js'
 import { buildChartOptions } from '../../utils/timeseries.js'
 import { 
     redrawBrushes,
     onBrushEndEvent,
     onClear,
     getLabelGroups,
-    // getLabels
 } from './labelingUtils.js'
 
 function LabelsManagement({ componentHeight, readOnly }) {
@@ -49,6 +47,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
     } = useContext(ModelParametersContext)
     const { data, tagsList, x, signals } = useContext(TimeSeriesContext)
     const { gateway, uid } = useContext(ApiGatewayContext)
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { projectName } = useParams()
 
     // Define component state:
@@ -58,6 +57,11 @@ function LabelsManagement({ componentHeight, readOnly }) {
     const [ groupLabelOptions, setGroupLabelOptions ]                = useState([{}])
     const [ deleteButtonDisabled, setDeleteButtonDisabled]           = useState(!selectedLabelGroupName.current ? true : false)
     const [ showDeleteLabelGroupModal, setShowDeleteLabelGroupModal] = useState(false)
+    const [ errorMessage, setErrorMessage ]                          = useState("")
+    const [ invalidName, setInvalidName ]                            = useState(false)
+    const [ invalidNameErrorMessage, setInvalidNameErrorMessage ]    = useState("")
+    const [ noLabelDefined, setNoLabelDefined ]                      = useState(false)
+    const [ showUserGuide, setShowUserGuide ]                        = useState(true)
     const [ selectedOption, setSelectedOption] = useState(
         !selectedLabelGroupName.current 
         ? {label: emptyGroupName, value: 'NewGroup'} 
@@ -104,6 +108,13 @@ function LabelsManagement({ componentHeight, readOnly }) {
             selectedOption.value !== "NewGroup"
         )
 
+        const modelTrainingLink = <Link 
+        href={`/model-training/ProjectName/${projectName}`}
+        onFollow={(e) => { 
+            e.preventDefault()
+            navigate(`/model-training/ProjectName/${projectName}`)
+        }}>Model training</Link>
+
         // --------------------------------------------------------------------------------
         // This functions collects all the labels associated with the selected label groups
         // --------------------------------------------------------------------------------
@@ -148,13 +159,64 @@ function LabelsManagement({ componentHeight, readOnly }) {
             redrawBrushes(eChartRef, labels)
         }
 
+        // -------------------------------------------------
+        // Only checks errors linked to the label group name
+        // -------------------------------------------------
+        async function checkLabelGroupNameErrors(labelGroupName) {
+            let error = true
+            let msg = ""
+        
+            // Error checking:
+            if (labelGroupName.length <= 2) {
+                msg = 'Label group name must be at least 3 characters long'
+            }
+            else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(labelGroupName)) {
+                msg = 'Label group name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
+            }
+            else if (! await checkLabelGroupNameAvailability(gateway, uid, projectName, labelGroupName)) {
+                msg = 'Label group name not available'
+            }
+            else {
+                error = false
+            }
+
+            setInvalidNameErrorMessage(msg)
+            return {error, msg}
+        }
+
+        // -------------------------------------------
+        // Error checking at label group creation time
+        // -------------------------------------------
+        async function checkLabelGroupErrors(labelGroupName) {
+            let { error, msg } = await checkLabelGroupNameErrors(labelGroupName)
+
+            if (error == false) {
+                if (labels.current.length == 0) {
+                    msg = 'You must define labels using the signal overview below'
+                    error = true
+                    setInvalidName(false)
+                    setNoLabelDefined(true)
+                }
+                else {
+                    setNoLabelDefined(false)
+                }
+            }
+            else {
+                setInvalidName(true)
+            }
+
+            setErrorMessage(msg)
+            return {error, msg}
+        }
+
         // -----------------------------------------------------------------------
         // This function is called when the user wants to create a new label group
         // -----------------------------------------------------------------------
         const createLabelGroup = async (e) => {
             e.preventDefault()
+            const { error } = await checkLabelGroupErrors(labelGroupName, projectName)
 
-            if (labels.current.length > 0) {
+            if (!error) {
                 const labelGroupRequest = {
                     LabelGroupName: uid + '-' + projectName + '-' + labelGroupName,
                     Tags: [{ 'Key': 'ProjectName', 'Value': projectName }]
@@ -181,9 +243,6 @@ function LabelsManagement({ componentHeight, readOnly }) {
                 setDeleteButtonDisabled(false)
                 selectedLabelGroupName.current = labelGroupName
                 selectedLabelGroupValue.current = uid + '-' + projectName + '-' + labelGroupName
-            }
-            else {
-                console.log('Error, no label defined')
             }
         }
 
@@ -227,12 +286,39 @@ function LabelsManagement({ componentHeight, readOnly }) {
                 />
 
                 <SpaceBetween size="xl">
+                    { errorMessage !== "" && <Alert type="error">{errorMessage}</Alert> }
+
+                    { !readOnly && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                        <p>
+                            If you don't know about any historical events of interest in your dataset, feel free to
+                            skip this step and go to <b>{modelTrainingLink}</b>.
+                        </p>
+
+                        <p>
+                            Use this page to label your time series data with past historical events. For instance,
+                            you may leverage time ranges related to past maintenance records or known failures that
+                            are not contingent to normal operating conditions of your equipment or process.
+                            Lookout for Equipment only leverages unsupervised approaches and this labeling step
+                            is <b>completely optional</b>. Most users start their experimentation with the service
+                            without defining any label. Based on the first results, they then iterate to improve
+                            the detection capabilities of their model or their forewarning time.
+                        </p>
+                    </Alert> }
+
                     {/***************************************************************
                      * This section is only displayed when the component is read only 
                      ***************************************************************/ }
                     {readOnly && <FormField 
                         label="Select a label group (optional)" 
-                        description="You can load a group of labels previously defined using the following drop down.">
+                        description="You can load a group of labels previously defined using the following drop down."
+                        info={
+                            <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                status: true,
+                                page: 'labelling',
+                                section: 'selectLabelGroupReadOnly'
+                            })}>Info</Link>
+                        }
+                    >
                         <Select
                             selectedOption={selectedOption}
                             onChange={({ detail }) => {
@@ -266,6 +352,13 @@ function LabelsManagement({ componentHeight, readOnly }) {
                             label="Select an existing label group" 
                             description="Using this drop down, you can load a group of labels previously 
                                          defined to visualize them over your time series."
+                            info={
+                                <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                    status: true,
+                                    page: 'labelling',
+                                    section: 'selectLabelGroup'
+                                })}>Info</Link>
+                            }
                             secondaryControl={
                                 <Button disabled={deleteButtonDisabled} 
                                         onClick={() => { setShowDeleteLabelGroupModal(true) }}>
@@ -287,16 +380,32 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     { selectedOption.value === "NewGroup" && !readOnly && <FormField
                         description="Give a name to your label group"
                         label="Label group name"
+                        constraintText={invalidNameErrorMessage !== "" ? invalidNameErrorMessage : ""}
+                        info={
+                            <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                status: true,
+                                page: 'labelling',
+                                section: 'labelGroupName'
+                            })}>Info</Link>
+                        }
                         secondaryControl={
                             <SpaceBetween size="s" direction="horizontal">
-                                <Button variant="primary" onClick={(e) => createLabelGroup(e)}>Create group</Button>
+                                <Button 
+                                    variant="primary" 
+                                    onClick={(e) => createLabelGroup(e)}
+                                    disabled={invalidNameErrorMessage !== ""}
+                                >Create group</Button>
                             </SpaceBetween>
                         }
                     >
                         <Input 
-                            onChange={({ detail }) => setLabelGroupName(detail.value)}
+                            onChange={({ detail }) => {
+                                checkLabelGroupNameErrors(detail.value)
+                                setLabelGroupName(detail.value)
+                            }}
                             value={labelGroupName}
                             placeholder="Enter a label group name"
+                            invalid={invalidNameErrorMessage !== ""}
                         />
                     </FormField> }
 
@@ -305,6 +414,13 @@ function LabelsManagement({ componentHeight, readOnly }) {
                         description="Use the following plot to preview the selected labels on your actual signals. Use the
                                     labels selection control (red icons) on the top right of the plot below to select time
                                     ranges that will be used as labels for your model"
+                        info={
+                            <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                status: true,
+                                page: 'labelling',
+                                section: 'signalOverview'
+                            })}>Info</Link>
+                        }
                         stretch={true}>
 
                         <ReactEcharts 
@@ -334,9 +450,16 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     <FormField
                         description="This table lists all the labels selected above"
                         label="Labels list"
+                        info={
+                            <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                status: true,
+                                page: 'labelling',
+                                section: 'labelsTable'
+                            })}>Info</Link>
+                        }
                         stretch={true}
                     >
-                        <LabelsTable ref={labelsTableRef} x={x} labels={labels.current} />
+                        <LabelsTable ref={labelsTableRef} x={x} labels={labels.current} noLabelDefined={noLabelDefined} />
                     </FormField>
                 </SpaceBetween>
             </>

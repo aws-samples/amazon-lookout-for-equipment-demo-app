@@ -95,28 +95,22 @@ function ModelOverview({ modelDetails, loading }) {
                                     <div>{<Badge color={color}>{modelDetails['status']}</Badge>}</div>
                                 </div>
 
-                                { 
-                                    (modelDetails && modelDetails['status'] !== 'FAILED') &&
+                                { (modelDetails && modelDetails['status'] !== 'FAILED') && <div>
+                                    <Box variant="awsui-key-label">Training time</Box>
                                     <div>
-                                        <Box variant="awsui-key-label">Training time</Box>
-                                        <div>
-                                            {modelDetails && modelDetails['status'] === 'SUCCESS' && modelDetails['trainingTime']}
-                                            {modelDetails && modelDetails['status'] !== 'SUCCESS' && 'n/a'}
-                                        </div>
+                                        {modelDetails && modelDetails['status'] === 'SUCCESS' && modelDetails['trainingTime']}
+                                        {modelDetails && modelDetails['status'] !== 'SUCCESS' && 'n/a'}
                                     </div>
-                                }
+                                </div> }
 
-                                {
-                                    (modelDetails && modelDetails['status'] === 'FAILED') &&
-                                    <div>
-                                        <Alert type="error">
-                                            Model training failed with the following error: 
-                                            <i>{modelDetails['failedReason']}</i> You can delete 
-                                            this model, verify your training parameters and create
-                                            a new one.
-                                        </Alert>
-                                    </div>
-                                }
+                                { (modelDetails && modelDetails['status'] === 'FAILED') && <div>
+                                    <Alert type="error">
+                                        Model training failed with the following error: 
+                                        <i>{modelDetails['failedReason']}</i> You can delete 
+                                        this model, verify your training parameters and create
+                                        a new one.
+                                    </Alert>
+                                </div> }
 
                                 <div>
                                     <Box variant="awsui-key-label">Creation date</Box>

@@ -122,7 +122,8 @@ export async function getAllProjects(gateway, uid) {
         }
     }
 
-    const response = await gateway.dynamoDbQuery(projectQuery).catch((error) => console.log(error.response))
+    const response = await gateway.dynamoDbQuery(projectQuery)
+                                  .catch((error) => console.log(error.response))
     const projects = []
     response.Items.forEach((project) => {
         projects.push(project['project']['S'])
@@ -194,6 +195,20 @@ export async function getAllSchedulers(gateway, models) {
     let allSchedulers = {}
     let response = await gateway.lookoutEquipment.listInferenceSchedulers()
     response = response['InferenceSchedulerSummaries']
+
+    // Sort the list of schedulers according to the model list:
+    response.sort((first, second) => {
+        if (first.ModelName > second.ModelName) {
+            return 1
+        }
+        else if (first.ModelName < second.ModelName) {
+            return -1
+        }
+        else {
+            return 0
+        }
+    })
+
     if (response.length > 0) {
         response.forEach((schedulerSummary) => {
             allSchedulers[schedulerSummary['ModelName']] = schedulerSummary['ModelName']

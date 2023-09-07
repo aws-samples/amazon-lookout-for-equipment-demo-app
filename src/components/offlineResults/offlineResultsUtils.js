@@ -344,10 +344,10 @@ export function buildChartOptions(
 
     let option = {
         title: [
-            { top: 0, left: 50, text: eventTitle, textStyle: { fontSize: 16, color: '#000' } },
-            { top: 140, left: 50, text: 'Detected events (aggregated by day)', textStyle: { fontSize: 16, color: '#000' } },
-            { top: 370, left: 50, text: 'Sensor contribution evolution (aggregated by day)', textStyle: { fontSize: 16, color: '#000' } },
-            { top: 600, left: 50, text: 'Sensor time series', textStyle: { fontSize: 16, color: '#000' } }
+            { top: 0, left: 50, text: eventTitle },
+            { top: 140, left: 50, text: 'Detected events (aggregated by day)' },
+            { top: 370, left: 50, text: 'Sensor contribution evolution (aggregated by day)' },
+            { top: 600, left: 50, text: 'Sensor time series' }
         ],
         grid: [
             { left: 50, right: legendWidth, top: 30, height: 30, tooltip: { show: true } },
@@ -371,11 +371,7 @@ export function buildChartOptions(
         animation: false,
         dataZoom: [{ type:'slider', start: zoomStart, end: 100, xAxisIndex: [0, 1, 2, 3], top: 85, height: 30 }],
         legend: {
-            type: 'scroll',
-            orient: 'vertical',
-            textStyle: { fontSize: 10 },
-            icon: "circle",
-            right: 40,
+            right: 10,
             top: 40,
             selector: [
                 { type: 'all', title: 'All' },
@@ -383,16 +379,7 @@ export function buildChartOptions(
             ],
             data: sortedKeys
         },
-        tooltip: {
-            show: true,
-            trigger: 'axis',
-            axisPointer: {
-                type: 'cross',
-                label: {
-                    backgroundColor: '#6a7985'
-                }
-            }
-        }
+        tooltip: { show: true, trigger: 'axis' }
     }
 
     // If we only wants to show the top N sensors:

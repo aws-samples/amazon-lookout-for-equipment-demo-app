@@ -25,19 +25,34 @@ export var colorPalette = [
     '#015b9d', '#780d35', '#176702', '#4a238b', '#983c02'
 ];
 
+export var font = { fontFamily: "Amazon Ember" }
+
 var theme = {
     color: colorPalette,
 
     title: {
         textStyle: {
             fontWeight: 'normal',
-            color: '#414D5C'
+            color: '#414D5C',
+            fontSize: 16,
+            ...font
         }
     },
 
     visualMap: {
         itemWidth: 15,
         color: ['#5ab1ef', '#e0ffff']
+    },
+
+    legend: {
+        type: 'scroll',
+        orient: 'vertical',
+        icon: 'circle',
+        textStyle: {
+            fontSize: 11,
+            ...font
+        },
+        selectorLabel: { ...font }
     },
 
     toolbox: {
@@ -63,10 +78,11 @@ var theme = {
         borderWidth: 0,
         backgroundColor: 'rgba(50,50,50,0.5)',
         textStyle: {
-            color: '#FFF'
+            color: '#FFF',
+            ...font
         },
         axisPointer: {
-            type: 'line',
+            type: 'cross',
             lineStyle: {
                 color: '#414D5C'
             },
@@ -75,6 +91,9 @@ var theme = {
             },
             shadowStyle: {
                 color: 'rgba(200,200,200,0.2)'
+            },
+            label: {
+                backgroundColor: '#6a7985'
             }
         }
     },
@@ -82,7 +101,8 @@ var theme = {
     dataZoom: {
         dataBackgroundColor: '#efefff',
         fillerColor: 'rgba(182,162,222,0.2)',
-        handleColor: '#414D5C'
+        handleColor: '#414D5C',
+        textStyle: { ...font }
     },
 
     grid: {
@@ -99,7 +119,8 @@ var theme = {
             lineStyle: {
                 color: ['#eee']
             }
-        }
+        },
+        axisLabel: {textStyle: { ...font }}
     },
 
     valueAxis: {
@@ -118,7 +139,8 @@ var theme = {
             lineStyle: {
                 color: ['#eee']
             }
-        }
+        },
+        axisLabel: {textStyle: { ...font }}
     },
 
     timeline: {

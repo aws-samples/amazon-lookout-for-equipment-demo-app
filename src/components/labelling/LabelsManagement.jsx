@@ -272,6 +272,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
             setShowDeleteLabelGroupModal(false)
         }
 
+        console.log(groupLabelOptions)
+
         // ----------------------
         // Renders the component:
         // ----------------------
@@ -348,7 +350,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     {/*******************************************************************
                      * This section is only displayed when the component is NOT read only 
                      *******************************************************************/ }
-                    { !readOnly && groupLabelOptions.length > 0 && <FormField 
+                    { !readOnly && groupLabelOptions.length > 1 && <FormField 
                             label="Select an existing label group" 
                             description="Using this drop down, you can load a group of labels previously 
                                          defined to visualize them over your time series."

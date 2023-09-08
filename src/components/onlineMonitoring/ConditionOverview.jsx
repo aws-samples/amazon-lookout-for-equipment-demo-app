@@ -10,7 +10,7 @@ import { colorChartsStatusPositive, colorChartsStatusHigh } from '@cloudscape-de
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 // Utils
-import { getAnomalies } from './schedulerUtils'
+import { getAssetCondition } from './schedulerUtils'
 
 const percentageFormatter = (value) => `${(value * 100).toFixed(0)}%`
 
@@ -26,7 +26,7 @@ function ConditionOverview({ range, modelName, projectName, size, hideTitles }) 
     const [ anomalies, setAnomalies ] = useState(undefined)
 
     useEffect(() => { 
-        getAnomalies(gateway, asset, startTime, endTime, uid + '-' + projectName)
+        getAssetCondition(gateway, asset, startTime, endTime, uid + '-' + projectName)
         .then((x) => setAnomalies(x) )
     }, [gateway, range, modelName, projectName])
 

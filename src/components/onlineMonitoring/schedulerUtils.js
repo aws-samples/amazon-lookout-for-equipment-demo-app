@@ -1,58 +1,156 @@
-// Imports:
-import { cleanList } from '../../utils/utils'
-import { getSchedulerInfo } from '../../utils/dataExtraction'
+import { cleanList, getLegendWidth, sortDictionnary } from '../../utils/utils'
+import { getSchedulerInfo, getAllTimeseriesWindow } from '../../utils/dataExtraction'
+import { buildTimeseries2 } from '../../utils/timeseries.js'
 import awsmobile from '../../aws-exports'
 
-// ---------------------------------------
-// Build a data structure that can be 
-// directly fed to the LineChart component
-// ---------------------------------------
-function buildAnomalyScoreSeries(items) {
-    let data = []
+// **************************************************************************************
+// THE FOLLOWING FUNCTIONS ARE USED TO EXTRACT ALL
+// THE NECESSARY DATA TO DISPLAY THE LIVE RESULTS 
+// **************************************************************************************
 
-    items.forEach((item) => {
-        data.push({
-            x: new Date(parseInt(item['timestamp']['N'])*1000),
-            y: parseFloat(item['anomaly_score']['N'])
-        })
-    })
+// --------------------------------------------------------------------
+// This function extracts the live results coming from a deployed model
+// --------------------------------------------------------------------
+export async function getLiveResults(gateway, uid, projectName, modelName, startTime, endTime) {
+    const modelDetails = await getModelDetails(gateway, modelName)
+    const anomalies = await getAnomalies(gateway, uid, projectName, modelName, startTime, endTime)
+    const rawAnomalies = await getRawAnomalies(gateway, uid, projectName, modelName, startTime, endTime)
+    const sensorContribution = await getSensorContribution(gateway, uid, projectName, modelName, startTime, endTime)
 
-    return data
+    const timeseries = await getAllTimeseriesWindow(
+        gateway,
+        uid + '-' + projectName,
+        startTime,
+        endTime,
+        "raw"
+    )
+
+    const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
+    let tagsList = timeseries['tagsList']
+    tagsList = cleanList(tagsToRemove, tagsList)
+
+    return {
+        modelDetails: modelDetails,
+        timeseries: timeseries['timeseries'],
+        sensorContribution: sensorContribution,
+        tagsList: tagsList,
+        anomalies: anomalies,
+        rawAnomalies: rawAnomalies
+    }
 }
 
-// ---------------------------------------------------
-// This function gets the raw anomaly scores generated
+// ----------------------------------------------
+// Get some key parameters from the current model
+// ----------------------------------------------
+async function getModelDetails(gateway, modelName) {
+    const possibleSamplingRate = {
+        'PT1S': 1, 
+        'PT5S': 5,
+        'PT10S': 10,
+        'PT15S': 15,
+        'PT30S': 30,
+        'PT1M': 60,
+        'PT5M': 300,
+        'PT10M': 600,
+        'PT15M': 900,
+        'PT30M': 1800,
+        'PT1H': 3600
+    }
+
+    const modelResponse = await gateway.lookoutEquipment.describeModel(modelName)
+
+    let response = {
+        status: modelResponse['Status'],
+        samplingRate: possibleSamplingRate[modelResponse['DataPreProcessingConfiguration']['TargetSamplingRate']]
+    }
+
+    return response
+}
+
+// ------------------------------------------------
+// This function gets the anomalous events detected
 // by a given model between a range of time
-// ---------------------------------------------------
-export async function getAnomalyScores(gateway, asset, startTime, endTime, projectName) {
-    const tableName = `l4edemoapp-${projectName}-raw-anomalies`
-    const { TableNames: listTables } = await gateway.dynamoDbListTables()
-
-    if (listTables.indexOf(tableName) >= 0) {
-        const anomalyScoreQuery = { 
-            TableName: tableName,
-            KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
-            ExpressionAttributeNames: {
-                "#model": "model",
-                "#timestamp": "timestamp"
-            },
-            ExpressionAttributeValues: {
-                ":model": {"S": asset},
-                ":startTime": {"N": startTime.toString() },
-                ":endTime": {"N": endTime.toString() }
-            }
+// ------------------------------------------------
+async function getAnomalies(gateway, uid, projectName, modelName, startTime, endTime) {
+    const anomaliesQuery = { 
+        TableName: `l4edemoapp-${uid}-${projectName}-anomalies`,
+        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
+        ExpressionAttributeNames: {
+            "#model": "model",
+            "#timestamp": "timestamp"
+        },
+        ExpressionAttributeValues: {
+             ":model": {"S": modelName},
+             ":startTime": {"N": startTime.toString() },
+             ":endTime": {"N": endTime.toString() }
         }
+    }
 
-        let anomalyScores = await gateway
-            .dynamoDb.queryAll(anomalyScoreQuery)
-            .catch((error) => { console.log(error.response) })
+    let anomalies = await gateway
+        .dynamoDb.queryAll(anomaliesQuery)
+        .catch((error) => console.log(error.response))
 
-        // If the payload is too large (> 1 MB), the API will paginate
-        // the output. Let's collect all the data we need to cover the 
-        // range requested by the user:
-        if (anomalyScores && anomalyScores.Items.length > 0) {
-            return buildAnomalyScoreSeries(anomalyScores.Items)
+    if (anomalies.Items.length > 0) { return anomalies.Items }
+
+    return undefined
+}
+
+// ------------------------------------------------
+// This function gets the raw anomaly scores output
+// by a given model between a range of time
+// ------------------------------------------------
+async function getRawAnomalies(gateway, uid, projectName, modelName, startTime, endTime) {
+    const rawAnomaliesQuery = { 
+        TableName: `l4edemoapp-${uid}-${projectName}-raw-anomalies`,
+        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
+        ExpressionAttributeNames: {
+            "#model": "model",
+            "#timestamp": "timestamp"
+        },
+        ExpressionAttributeValues: {
+             ":model": {"S": modelName},
+             ":startTime": {"N": startTime.toString() },
+             ":endTime": {"N": endTime.toString() }
         }
+    }
+
+    let anomalies = await gateway
+        .dynamoDb.queryAll(rawAnomaliesQuery)
+        .catch((error) => console.log(error.response))
+
+    if (anomalies.Items.length > 0) { return anomalies.Items }
+
+    return undefined
+}
+
+// -------------------------------------------
+// This function gets the sensor contributions 
+// given by a model between a range of time
+// -------------------------------------------
+async function getSensorContribution(gateway, uid, projectName, modelName, startTime, endTime) {
+    const sensorContributionQuery = { 
+        TableName: `l4edemoapp-${uid}-${projectName}-sensor_contribution`,
+        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
+        ExpressionAttributeNames: {
+            "#model": "model",
+            "#timestamp": "timestamp"
+        },
+        ExpressionAttributeValues: {
+             ":model": {"S": modelName},
+             ":startTime": {"N": startTime.toString() },
+             ":endTime": {"N": endTime.toString() }
+        }
+    }
+
+    let sensorContribution = await gateway
+        .dynamoDb.queryAll(sensorContributionQuery)
+        .catch((error) => console.log(error.response))
+
+    // If the payload is too large (> 1 MB), the API will paginate
+    // the output. Let's collect all the data we need to cover the 
+    // range requested by the user:
+    if (sensorContribution.Items.length > 0) {
+        return sensorContribution.Items
     }
     
     return undefined
@@ -62,7 +160,7 @@ export async function getAnomalyScores(gateway, asset, startTime, endTime, proje
 // This function gets the anomalous events detected
 // by a given model between a range of time
 // ------------------------------------------------
-export async function getAnomalies(gateway, asset, startTime, endTime, projectName) {
+export async function getAssetCondition(gateway, asset, startTime, endTime, projectName) {
     const anomaliesQuery = { 
         TableName: `l4edemoapp-${projectName}-anomalies`,
         KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
@@ -96,140 +194,287 @@ export async function getAnomalies(gateway, asset, startTime, endTime, projectNa
             
         })
 
-        return {totalTime, condition}
-    }
-
-    return undefined
-}
-
-// ---------------------------------------------------
-// This function gets the raw anomaly scores generated
-// by a given model between a range of time
-// ---------------------------------------------------
-async function getSensorContribution(gateway, asset, table, startTime, endTime) {
-    const sensorContributionQuery = { 
-        TableName: table,
-        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
-        ExpressionAttributeNames: {
-            "#model": "model",
-            "#timestamp": "timestamp"
-        },
-        ExpressionAttributeValues: {
-             ":model": {"S": asset},
-             ":startTime": {"N": startTime.toString() },
-             ":endTime": {"N": endTime.toString() }
+        return {
+            totalTime: totalTime,
+            condition: condition, 
+            anomalies: anomalies
         }
     }
 
-    let sensorContribution = await gateway
-        .dynamoDb.queryAll(sensorContributionQuery)
-        .catch((error) => console.log(error.response))
-
-    // If the payload is too large (> 1 MB), the API will paginate
-    // the output. Let's collect all the data we need to cover the 
-    // range requested by the user:
-    if (sensorContribution.Items.length > 0) {
-        return sensorContribution.Items
-    }
-    
     return undefined
 }
 
-// ---------------------------------------
-// Build a data structure that can be 
-// directly fed to the LineChart component
-// ---------------------------------------
-function buildSensorContributionSeries(x, y, tagsList) {
-    let data = {}
+// **************************************************************************************
+// THE FOLLOWING FUNCTIONS ARE USED TO BUILD THE eCHART CONFIGURATION OBJECT
+// **************************************************************************************
 
-    x.forEach((xItem, index) => {
-        tagsList.forEach((tag) => {
-            if (!data[tag]) { data[tag] = [] }
-            data[tag].push({
-                x: xItem,
-                y: y[index][tag]
-            })
-        })
-    })
+// ----------------------------------------------------------------
+// Builds the option object to build the live detected event charts
+// ----------------------------------------------------------------
+export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContribution, anomalies, rawAnomalies, samplingRate, startTime, endTime, showTopN) {
+    let series = []
+    const legendWidth = getLegendWidth(tagsList)
+    const eventTitle = "Detected events"
 
-    return data
-}
+    // Computes min and max of xAxis:
+    const xMin = new Date(anomalies[0].timestamp.N * 1000)
+    const xMax = new Date(anomalies[anomalies.length - 1].timestamp.N * 1000)
 
-// -----------------------------------------------------
-// Takes a list of items and build a time series that we
-// will be able to plot afterwhile
-// -----------------------------------------------------
-function buildTimeSeries(items, tagsList) {
-    let data = {}
+    // Prepare anomalies data:
+    const anomaliesSeries = buildAnomaliesSeries(anomalies)
+    series = [...anomaliesSeries]
 
-    items.forEach((item) => {
-        let currentItem = {}
+    // Prepare raw anomalies data:
+    const rawAnomaliesSeries = buildRawAnomaliesSeries(anomalies, rawAnomalies)
+    series = [...series, ...rawAnomaliesSeries]
 
-        tagsList.forEach((tag) => {
-            currentItem[tag] = parseFloat(item[tag]['N'])
-        })
-        
-        data[new Date(item['timestamp']['N']*1000)] = currentItem
-    })
+    // Prepare sensor contribution data:
+    let { sortedKeys, sensorContributionSeries } = buildSensorContributionSeries(
+        tagsList, 
+        samplingRate, 
+        anomalies[0].timestamp['N']*1000,
+        anomalies[anomalies.length - 1].timestamp['N']*1000, 
+        sensorContribution
+    )
+    series = [...series, ...sensorContributionSeries]
 
-    return data
-}
+    // Configuring the series for the raw time series data:
+    const signalSeries = buildSignalSeries(timeseries, tagsList)
+    series = [...series, ...signalSeries]
 
-// -------------------------------------------
-// Builds an empty record given a list of tags
-// -------------------------------------------
-function getEmptyRecord(tagsList) {
-    let emptyRecord = {}
-
-    tagsList.forEach((tag) => {
-        emptyRecord[tag] = 0.0
-    })
-
-    return emptyRecord
-}
-
-// ----------------------------
-// Get sensor contribution data
-// ----------------------------
-export async function getSensorData(gateway, asset, projectName, modelName, startTime, endTime) {
-    const possibleSamplingRate = {
-        'PT1S': 1, 
-        'PT5S': 5,
-        'PT10S': 10,
-        'PT15S': 15,
-        'PT30S': 30,
-        'PT1M': 60,
-        'PT5M': 300,
-        'PT10M': 600,
-        'PT15M': 900,
-        'PT30M': 1800,
-        'PT1H': 3600
+    // Finally build the full configuration for all the plots to be displayed:
+    let options = {
+        title: [
+            { top: 0, left: 0, text: eventTitle },
+            { top: 170, left: 0, text: 'Raw anomaly score' },
+            { top: 390, left: 0, text: 'Sensor contribution evolution' },
+            { top: 690, left: 0, text: 'Sensor time series' },
+        ],
+        grid: [
+            { left: 50, right: legendWidth, top: 30, height: 30 },
+            { left: 50, right: legendWidth, top: 210, height: 120 },
+            { left: 50, right: legendWidth, top: 430, height: 200 },
+            { left: 50, right: legendWidth, top: 730, height: 200 },
+        ],
+        xAxis: [
+            { type: 'time', gridIndex: 0, min: xMin, max: xMax },
+            { type: 'time', gridIndex: 1, min: xMin, max: xMax },
+            { type: 'time', gridIndex: 2, min: xMin, max: xMax },
+            { type: 'time', gridIndex: 3, min: xMin, max: xMax }
+        ],
+        yAxis: [
+            { show: false, gridIndex: 0, min: 0.0, max: 1.0 },
+            { show: true, gridIndex: 1, min: 0.0, max: 1.0 },
+            { show: true, gridIndex: 2, min: 0.0, max: 1.0 },
+            { show: true, gridIndex: 3 },
+        ],
+        series: series,
+        animation: false,
+        dataZoom: [{ type:'slider', start: 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 110, height: 30 }],
+        legend: {
+            right: 10,
+            top: 380,
+            selector: [
+                { type: 'all', title: 'All' },
+                { type: 'inverse', title: 'Inverse' }
+            ],
+            data: sortedKeys
+        },
+        tooltip: { show: true, trigger: 'axis' }
     }
 
-    const contributionData = await getSensorContribution(gateway, asset, `l4edemoapp-${projectName}-sensor_contribution`, startTime, endTime)
-    if (contributionData) {
-        const response = await gateway.lookoutEquipment.describeModel(modelName)
-        const samplingRate = possibleSamplingRate[response['DataPreProcessingConfiguration']['TargetSamplingRate']]
-        const tagsList = cleanList(['model', 'timestamp'], Object.keys(contributionData[0]))
-        const ts = buildTimeSeries(contributionData, tagsList)
-        const emptyRow = getEmptyRecord(tagsList)
-        const xStart = new Date(Object.keys(ts)[0])
-        const xEnd = new Date(Object.keys(ts)[Object.keys(ts).length - 1])
-        const numIndexes = parseInt((xEnd - xStart)/1000 / samplingRate)
-
-        const xDomain = Array.from(new Array(numIndexes), (x, index) => new Date(xStart.getTime() + index * samplingRate * 1000))
-        const yData = Array.from(xDomain, x => {
-            if (ts[x]) {
-                return ts[x]
+    // If we only wants to show the top N sensors:
+    if (showTopN) {
+        options['legend']['selected'] = {}
+        sortedKeys.forEach((tag, index) => {
+            if (index < showTopN) {
+                options['legend']['selected'][tag] = true
             }
-            return emptyRow
+            else {
+                options['legend']['selected'][tag] = false
+            }
         })
-
-        return buildSensorContributionSeries(xDomain, yData, tagsList)
     }
 
-    return undefined
+    return options
 }
+
+// --------------------------------------------------
+// Build the eChart series for the detected anomalies
+// --------------------------------------------------
+function buildAnomaliesSeries(anomalies) {
+    const results = buildTimeseries2(anomalies, 'anomaly', 'N')
+
+    let series = [
+        {
+            symbol: 'none',
+            data: results['data'],
+            type: 'line',
+            lineStyle: {
+                color: "#d87a80",
+                opacity: 1.0,
+                shadowColor: 'rgba(0, 0, 0, 0.2)',
+                shadowBlur: 5,
+                width: 0.5
+            },
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            areaStyle: {
+                color: '#d87a80',
+                opacity: 0.2
+            }
+        }
+    ]
+
+    return series
+}
+
+// --------------------------------------------------
+// Build the eChart series for the detected anomalies
+// --------------------------------------------------
+function buildRawAnomaliesSeries(anomalies, rawAnomalies) {
+    const anomalyScoreResults = buildTimeseries2(rawAnomalies, 'anomaly_score', 'N')
+    const anomaliesResults = buildTimeseries2(anomalies, 'anomaly', 'N')
+
+    let series = [
+        {
+            symbol: 'none',
+            data: anomaliesResults['data'],
+            type: 'line',
+            lineStyle: { width: 0.0 },
+            xAxisIndex: 1,
+            yAxisIndex: 1,
+            areaStyle: { color: '#d87a80', opacity: 0.2 }
+        },
+        {
+            symbol: 'none',
+            data: anomalyScoreResults['data'],
+            type: 'line',
+            lineStyle: {
+                color: "#d87a80",
+                opacity: 1.0,
+                shadowColor: 'rgba(0, 0, 0, 0.2)',
+                shadowBlur: 5,
+                width: 2.0
+            },
+            xAxisIndex: 1,
+            yAxisIndex: 1,
+            markLine: {
+                symbol: "none",
+                label: { show: false },
+                lineStyle: { color: "#000000", width: 2},
+                data: [{name: "threshold", yAxis: 0.5}]
+            }
+        }
+
+    ]
+
+    return series
+        // xRawAnomalies: anomalyScoreResults['data'], 
+        // yRawAnomalies: anomalyScoreResults['y'], 
+        // rawAnomaliesSeries: series
+    // }
+}
+
+// -----------------------------------------------------
+// Builds the eChart series for the sensor contributions
+// -----------------------------------------------------
+function buildSensorContributionSeries(tagsList, samplingRate, startTime, endTime, sensorContribution) {
+    let totalContribution = {}
+    let data = {}
+
+    sensorContribution.forEach((item, index) => {
+        const x = new Date(item.timestamp.N * 1000)
+
+        if (index > 1) {
+            const previousX = new Date(sensorContribution[index - 1].timestamp.N * 1000)
+            if (x - previousX > samplingRate * 1000) {
+                tagsList.forEach((tag) => {
+                    data[tag].push([x, null])
+                })
+            }
+        }
+
+        tagsList.forEach((tag) => {
+            const y = parseFloat(item[tag].N)
+            if (!data[tag]) { data[tag] = []}
+            data[tag].push([x, y])
+
+            if (!totalContribution[tag]) { totalContribution[tag] = 0.0}
+            totalContribution[tag] += y
+        })
+    })
+
+    // Sort the list of tags by decreasing total contribution level over the period:
+    let sortedKeys = sortDictionnary(totalContribution, false)
+
+    // Assemble the series object to be plotted with eChart:
+    let sensorContributionSeries = []
+    sortedKeys.forEach((tag) => {
+        sensorContributionSeries.push({
+            symbol: 'none',
+            // data: ySensorContributions[tag],
+            data: data[tag],
+            type: 'line',
+            xAxisIndex: 2,
+            yAxisIndex: 2,
+            stack: 'Total',
+            areaStyle: { opacity: 0.5 },
+            lineStyle: { width: 1.0 },
+            emphasis: { focus: 'series' },
+            name: tag,
+            tooltip: { valueFormatter: (value) => (value*100).toFixed(0) + '%' }
+        })
+    })
+
+    return {
+        totalContribution: totalContribution,
+        sortedKeys: sortedKeys,
+        sensorContributionSeries: sensorContributionSeries
+    }
+}
+
+// -------------------------------------------
+// Prepare the time series data of the signals
+// -------------------------------------------
+function buildSignalSeries(timeseries, sortedKeys) {    
+    let signalSeries = []
+    let data = {}
+
+    // Prepare the raw time series data:
+    timeseries.Items.forEach((item) => {
+        const x = new Date(item.unix_timestamp.N * 1000)
+
+        sortedKeys.forEach((tag) => {
+            const y = parseFloat(item[tag].S)
+            if (!data[tag]) { data[tag] = [] }
+            data[tag].push([x, y])
+        })
+
+    })
+
+    // Assemble eChart format series:
+    sortedKeys.forEach((tag) => {
+        signalSeries.push({
+            name: tag,
+            symbol: 'none',
+            sampling: 'lttb',
+            data: data[tag],
+            type: 'line',
+            emphasis: { focus: "series" },
+            xAxisIndex: 3,
+            yAxisIndex: 3,
+            tooltip: { valueFormatter: (value) => value.toFixed(2) },
+            lineStyle: { width: 2.0 }
+        })
+    })
+
+    return signalSeries
+}
+
+// **************************************************************************************
+// SCHEDULER INSPECTOR UTILITIES
+// **************************************************************************************
 
 // -------------------------
 // Get the scheduler details

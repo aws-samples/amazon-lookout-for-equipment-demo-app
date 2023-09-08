@@ -32,7 +32,7 @@ var theme = {
 
     title: {
         textStyle: {
-            fontWeight: 'normal',
+            fontWeight: 'bold',
             color: '#414D5C',
             fontSize: 16,
             ...font

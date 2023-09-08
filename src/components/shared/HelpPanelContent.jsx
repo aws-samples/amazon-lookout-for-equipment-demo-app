@@ -465,7 +465,7 @@ export const helpPanelContent = {
                     This section shows the evaluation results of your model when applied on historical data you selected at 
                     training time. From top to bottom, you will find:
                     <ul>
-                        <li>The <b>events detected</b> in the evaluation date range (similar to what you can visualize from the AWS console</li>
+                        <li>The <b>events detected</b> in the evaluation date range (similar to what you can visualize from the AWS console)</li>
                         <li>A <b>slider</b> to zoom on the part of interest on the plots</li>
                         <li>
                             The <b>detected events aggregated by day</b>: this plot can be more useful than the raw events 
@@ -478,6 +478,37 @@ export const helpPanelContent = {
                             right to adjust this display.
                         </li>
                         <li>The <b>time series</b> plots of the selected sensors</li>
+                    </ul>
+                </div>
+            )
+        },
+    },
+
+    // ---------------------------------------------------------------------------------------------------------------------------------
+    onlineResults: {
+        detectedEvents: {
+            header: (<div>DetectedEvents</div>),
+            footer: "",
+            body: (
+                <div>
+                    This section shows the events detected by your trained model when applied on live data. From top to
+                    bottom, you will find:
+                    <ul>
+                        <li>The <b>events detected</b> in the live date range processed by the inference scheduler</li>
+                        <li>A <b>slider</b> to zoom on the part of interest on the plots</li>
+                        <li>
+                            The raw anomaly score emitted by your model: the detected events are also overlaid on this 
+                            plot. Any time the raw anomaly score goes above 0.5, Lookout for Equipment marks the timestamp
+                            as an anomaly and computes the associated sensor contribution.
+                        </li>
+                        <li>
+                            The <b>sensor contribution</b> evolution over time. When Lookout for Equipment identifies a given time range
+                            as an anomaly, it also computes the sensor contribution to this event. Each sensor receives a level of
+                            contribution between 0% and 100%. By default, the top 5 contributors are highlighted: use the <b>legend</b> on the
+                            right to adjust this display. Sensor contributions are only computed when the raw anomaly score for a
+                            given timestamp is greater than 0.5
+                        </li>
+                        <li>The <b>time series</b> plots of the selected sensors: this will help you put the anomlies in context.</li>
                     </ul>
                 </div>
             )

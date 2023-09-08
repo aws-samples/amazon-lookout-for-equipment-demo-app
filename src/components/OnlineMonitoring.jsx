@@ -5,9 +5,10 @@ import { useParams } from 'react-router-dom'
 // App components:
 import NavigationBar        from './NavigationBar'
 import ConditionOverview    from './onlineMonitoring/ConditionOverview'
-import AnomalyScore         from './onlineMonitoring/AnomalyScore'
-import SensorContribution   from './onlineMonitoring/SensorContribution'
+// import AnomalyScore         from './onlineMonitoring/AnomalyScore'
+// import SensorContribution   from './onlineMonitoring/SensorContribution'
 import SchedulerInspector   from './onlineMonitoring/SchedulerInspector'
+import DetectedEvents       from './onlineMonitoring/DetectedEvents'
 
 // CloudScape Components:
 import AppLayout         from "@cloudscape-design/components/app-layout"
@@ -18,11 +19,13 @@ import ContentLayout     from "@cloudscape-design/components/content-layout"
 import ExpandableSection from "@cloudscape-design/components/expandable-section"
 import Grid              from "@cloudscape-design/components/grid"
 import Header            from "@cloudscape-design/components/header"
+import Link              from "@cloudscape-design/components/link"
 import SpaceBetween      from "@cloudscape-design/components/space-between"
 import Tiles             from "@cloudscape-design/components/tiles"
 
 // Context:
 import ApiGatewayContext from './contexts/ApiGatewayContext'
+import HelpPanelContext from './contexts/HelpPanelContext'
 
 // Utils:
 import { getSchedulerStatus } from "../utils/utils"
@@ -32,10 +35,14 @@ import { getSchedulerStatus } from "../utils/utils"
 // --------------------------
 function OnlineMonitoring() {
     const { modelName, projectName, initialRange } = useParams()
-    const [ range, setRange] = useState(initialRange ? initialRange : "7")
+
     const { gateway } = useContext(ApiGatewayContext)
+    const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
+
+    const [ range, setRange] = useState(initialRange ? initialRange : "7")
     const [ schedulerStatus, setSchedulerStatus ] = useState(undefined)
     const [ statusColor, setStatusColor ] = useState('grey')
+    
 
     // Get the current status of the scheduler to be displayed:
     useEffect(() => {
@@ -49,10 +56,28 @@ function OnlineMonitoring() {
         })
     }, [gateway, modelName])
 
+    // Defining the info links:
+    const detectedEventsInfoLink = (
+        <Link variant="info" onFollow={() => setHelpPanelOpen({
+            status: true,
+            page: 'onlineResults',
+            section: 'detectedEvents'
+        })}>Info</Link>
+    )
+
     // Renders the component:
     return (
         <AppLayout
             contentType="default"
+
+            toolsOpen={helpPanelOpen.status}
+            onToolsChange={(e) => setHelpPanelOpen({
+                status: e.detail.open,
+                page: helpPanelOpen.page,
+                section: helpPanelOpen.section
+            })}
+            tools={panelContent.current}
+
             content={
                 <ContentLayout header={
                     <Header>
@@ -101,42 +126,26 @@ function OnlineMonitoring() {
                             />
                         </Container>
 
-                        <Grid gridDefinition={[
-                            { colspan: {default: 6} },
-                            { colspan: {default: 6} },
-                            { colspan: {default: 12} }
-                        ]}>
-                            <Container header={<Header 
-                                variant="h2" 
-                                description="The following widget shows the time your asset or process spent in 
-                                             an anomalous state. Note that this only take into account the time 
-                                             when the inference scheduler is running."
-                            >
-                                Condition overview
-                            </Header>}>
-                                <ConditionOverview range={range} modelName={modelName} projectName={projectName} size="large" />
-                            </Container>
-
-                            <Container header={<Header 
+                        <Container header={
+                            <Header
                                 variant="h2"
-                                description="This widget plots the raw anomaly score emitted by your model. Amazon
-                                             Lookout for Equipment considers that an anomalous event occurred when
-                                             this score goes above a threshold of 0.5"
-                            >
-                                Anomaly score
-                            </Header>}>
-                                <AnomalyScore range={range} />
-                            </Container>
+                                info={detectedEventsInfoLink}>
+                                    Detected events
+                            </Header>
+                        }>
+                            <DetectedEvents range={range} infoLink={detectedEventsInfoLink} />
+                        </Container>
 
-                            <Container header={<Header 
-                                variant="h2"
-                                description="This widget plots the sensor contribution whenever the anomaly score is greater than 0.5"
-                            >
-                                Sensor contribution
-                            </Header>}>
-                                <SensorContribution range={range} />
-                            </Container>
-                        </Grid>
+                        {/* <Container header={<Header 
+                            variant="h2" 
+                            description="The following widget shows the time your asset or process spent in 
+                                            an anomalous state. Note that this only take into account the time 
+                                            when the inference scheduler is running."
+                        >
+                            Condition overview
+                        </Header>}>
+                            <ConditionOverview range={range} modelName={modelName} projectName={projectName} size="large" />
+                        </Container> */}
                     </SpaceBetween>
                 </ContentLayout>
             }

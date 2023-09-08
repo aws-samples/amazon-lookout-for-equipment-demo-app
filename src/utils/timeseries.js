@@ -20,6 +20,22 @@ export function buildTimeseries(items, field, fieldType, daily) {
     return {x, y, sum}
 }
 
+export function buildTimeseries2(items, field, fieldType) {
+    let data = []
+    let sum = 0
+    if (!fieldType) { fieldType = 'S' }
+
+    items.forEach((item) => {
+        const x = new Date(parseInt(item['timestamp']['N'])*1000)
+        const y = parseFloat(item[field][fieldType])
+
+        data.push([x, y])
+        sum += y
+    })
+
+    return {data, sum}
+}
+
 export function extractTimeseriesPart(items, field, startDate, endDate) {
     let x = []
     let y = []

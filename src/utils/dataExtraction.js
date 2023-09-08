@@ -139,14 +139,24 @@ export async function getAllTimeseries(gateway, modelName) {
 // Extract all the sensor data for a given 
 // model but within a certain time window only
 // -------------------------------------------
-export async function getAllTimeseriesWindow(gateway, modelName, startTime, endTime) {
+export async function getAllTimeseriesWindow(gateway, modelName, startTime, endTime, samplingRate) {
+    // Training data are stored at a 1 hour sampling rate whereas
+    // live inference data are stored raw (e.g. 5 minutes):
+    let currentSamplingRate = ""
+    if (!samplingRate) {
+        currentSamplingRate = "1h"
+    }
+    else {
+        currentSamplingRate = samplingRate
+    }
+
     const targetTableName = 'l4edemoapp-' + modelName
     const timeSeriesQuery = { 
         TableName: targetTableName,
         KeyConditionExpression: "#sr = :sr AND #timestamp BETWEEN :startTime AND :endTime",
         ExpressionAttributeNames: {"#sr": "sampling_rate", "#timestamp": "unix_timestamp"},
         ExpressionAttributeValues: { 
-            ":sr": {"S": "1h"}, 
+            ":sr": {"S": currentSamplingRate}, 
             ":startTime": {"N": startTime.toString()},
             ":endTime": {"N": endTime.toString()}
         }
@@ -314,7 +324,7 @@ async function processLabels(gateway, modelResponse) {
 // -------------------------------------------------------------
 // Extracts the tags list from the schema defined for this model
 // -------------------------------------------------------------
-function getTagsListFromModel(modelResponse) {
+export function getTagsListFromModel(modelResponse) {
     const schema = JSON.parse(modelResponse['Schema'])
     const tags = schema['Components'][0]['Columns']
 

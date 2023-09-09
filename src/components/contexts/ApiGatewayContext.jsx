@@ -76,7 +76,12 @@ export const ApiGatewayProvider = ({user, children}) => {
             // Models management
             // -----------------
             listModels(datasetName) {
-                return request("LookoutEquipment", "ListModels", {DatasetNameBeginsWith: datasetName})
+                if (datasetName) {
+                    return request("LookoutEquipment", "ListModels", {DatasetNameBeginsWith: datasetName})
+                }
+                else {
+                    return request("LookoutEquipment", "ListModels")
+                }
             },
             describeModel(modelName) {
                 return request("LookoutEquipment", "DescribeModel", {ModelName: modelName})

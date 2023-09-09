@@ -61,7 +61,7 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
             // we list them under a new "Offline results" section:
             const currentModels = modelsList[project]
             if (currentModels.length > 0) {
-                const offlineResultsSection = await buildOfflineResultsSection(gateway, uid, project)
+                const offlineResultsSection = await buildOfflineResultsSection(currentModels, gateway, uid, project)
                 currentItems['items'] = [...currentItems['items'], ...offlineResultsSection]
             }
             else {
@@ -104,18 +104,17 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
 // Build the offline results section where the user can visualize 
 // model evaluation results after they have been trained
 // --------------------------------------------------------------
-async function buildOfflineResultsSection(gateway, uid, project) {
+async function buildOfflineResultsSection(currentModels, gateway, uid, project) {
     let offlineResultsItems = []
+    let listModels = currentModels
 
     // Get all the models attached to this project 
     // and sort them by ascending model name:
-    const response = await gateway.lookoutEquipment.listModels(`l4e-demo-app-${uid}-${project}`)
-    let listModels = response['ModelSummaries']
     listModels.sort((first, second) => {
-        if (first.ModelName > second.ModelName) {
+        if (first.name > second.name) {
             return 1
         }
-        else if (first.ModelName < second.ModelName) {
+        else if (first.name < second.name) {
             return -1
         }
         else {
@@ -129,12 +128,12 @@ async function buildOfflineResultsSection(gateway, uid, project) {
             type: 'link', 
             text: <>
                 <Icon 
-                    name={model['Status'] === 'SUCCESS' ? 'status-positive' : 'status-in-progress'} 
-                    variant={model['Status'] === 'SUCCESS' ? 'success': 'error'} />
+                    name={model['status'] === 'SUCCESS' ? 'status-positive' : 'status-in-progress'} 
+                    variant={model['status'] === 'SUCCESS' ? 'success': 'error'} />
                 &nbsp;&nbsp;
-                {model['ModelName'].slice(project.length + 1)}
+                {model['name'].slice(project.length + 1)}
             </>,
-            href: `/offline-results/modelName/${model['ModelName']}/projectName/${project}`
+            href: `/offline-results/modelName/${model['name']}/projectName/${project}`
         })
     }
 

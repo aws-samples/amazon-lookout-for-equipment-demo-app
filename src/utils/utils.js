@@ -109,6 +109,28 @@ export const getModelList = async (gateway, currentProject) => {
     return listModelNames
 }
 
+// ----------------------------------------------------------
+// Get all the models linked to a given L4E project / dataset
+// Returns the model name and its status
+// ----------------------------------------------------------
+export const getModelListDetailed = async (gateway, currentProject) => {
+    const lookoutEquipmentProjectName = `l4e-demo-app-${currentProject}`
+
+    const modelsList = await gateway.lookoutEquipment.listModels(lookoutEquipmentProjectName)
+
+    let listModelNames = []
+    if (modelsList['ModelSummaries'] && modelsList['ModelSummaries'].length > 0) {
+        modelsList['ModelSummaries'].forEach((model) => {
+            listModelNames.push({
+                name: model['ModelName'],
+                status: model['Status']
+            })
+        })
+    }
+
+    return listModelNames
+}
+
 // ----------------------------------------------
 // Get all the projects listed under this account
 // ----------------------------------------------
@@ -132,6 +154,10 @@ export async function getAllProjects(gateway, uid) {
     return projects
 }
 
+// ------------------------------------------------
+// Get all the ingestion step function execution ID 
+// for the projects associated to the current user
+// ------------------------------------------------
 export async function getAllExecutionId(gateway, uid) {
     const projectQuery = { 
         TableName: 'l4edemoapp-projects',
@@ -154,24 +180,47 @@ export async function getAllExecutionId(gateway, uid) {
 // --------------------------------------------------
 // Get all the models for all the projects / datasets
 // --------------------------------------------------
-export async function getAllModels(gateway, projects, uid) {
-    let modelsList = {}
+export async function getAllModels(gateway, projects) {
+    let allModels = {}
+    let response = await gateway.lookoutEquipment.listModels()
+    response = response['ModelSummaries']
 
-    const promises = Array.from(projects).map(async project => {
-        const modelsList = await getModelList(gateway, uid + '-' + project)
-        return {
-            project: project,
-            models: modelsList 
+    // Sort the list of models alphabetically according to the model list:
+    response.sort((first, second) => {
+        if (first.ModelName > second.ModelName) {
+            return 1
+        }
+        else if (first.ModelName < second.ModelName) {
+            return -1
+        }
+        else {
+            return 0
         }
     })
 
-    const allModels = await Promise.all(promises)
+    if (response.length > 0) {
+        response.forEach((modelSummary) => {
+            allModels[modelSummary['ModelName']] = modelSummary
+        })
+    }
 
-    allModels.forEach((model) => {
-        modelsList[model['project']] = model['models']
-    })
+    let listModels = {}
+    for (const project of projects) {
+        listModels[project] = []
+    }
 
-    return modelsList
+    // Loops through each project to list the schedulers attached to it:
+    for (const model of Object.keys(allModels)) {
+        const currentProject = allModels[model].DatasetName.slice('l4e-demo-app'.length + 10)
+        if (projects.indexOf(currentProject) >= 0) {
+            listModels[currentProject].push({
+                name: allModels[model].ModelName,
+                status: allModels[model].Status
+            })
+        }
+    }
+
+    return listModels
 }
 
 // ----------------------------
@@ -220,9 +269,9 @@ export async function getAllSchedulers(gateway, models) {
     for (const project of Object.keys(models)) {
         if (models[project] && models[project].length > 0) {
             models[project].forEach((model) => {
-                if (allSchedulers[model]) {
+                if (allSchedulers[model.name]) {
                     if (!listSchedulers[project]) { listSchedulers[project] = [] }
-                    listSchedulers[project].push(allSchedulers[model])
+                    listSchedulers[project].push(allSchedulers[model.name])
                 }
             })
         }

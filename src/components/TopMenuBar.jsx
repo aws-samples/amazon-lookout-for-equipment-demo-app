@@ -10,6 +10,30 @@ function TopMenuBar({ user, signOut }) {
     const navigate = useNavigate()
 
     // Render the component:
+
+    let utilities = []
+
+    if (signOut) {
+        utilities = [
+            {
+                type: "menu-dropdown",
+                text: user && user.username,
+                description: user && user.attributes['email'],
+                iconName: "user-profile",
+                items: [
+                    { id: "preferences", text: "Preferences" },
+                    { id: "feedback", text: "Feedback", href: "#", external: true },
+                ]
+            },
+            {
+                type: "button",
+                text: "Sign Out",
+                onClick: () => signOut()
+            }
+        ]
+    }
+
+
     return (
         <TopNavigation
             identity={{
@@ -21,23 +45,7 @@ function TopMenuBar({ user, signOut }) {
                     alt: "Amazon Lookout for Equipment Demonstration"
                 }
             }}
-            utilities={[
-                {
-                    type: "menu-dropdown",
-                    text: user && user.username,
-                    description: user && user.attributes['email'],
-                    iconName: "user-profile",
-                    items: [
-                        { id: "preferences", text: "Preferences" },
-                        { id: "feedback", text: "Feedback", href: "#", external: true },
-                    ]
-                },
-                {
-                    type: "button",
-                    text: "Sign Out",
-                    onClick: () => signOut()
-                }
-            ]}
+            utilities={utilities}
         />
     )
 }

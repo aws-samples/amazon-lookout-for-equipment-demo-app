@@ -2,6 +2,15 @@ import { useAuthenticator, Authenticator, ThemeProvider } from '@aws-amplify/ui-
 import cloudscapeTheme from "./styles/cloudscapeTheme";
 
 import Home from './components/Home'
+import TopMenuBar from './components/TopMenuBar'
+
+// Cloudscape components:
+import AppLayout         from "@cloudscape-design/components/app-layout"
+import Container         from "@cloudscape-design/components/container"
+import ContentLayout     from "@cloudscape-design/components/content-layout"
+import Header            from "@cloudscape-design/components/header"
+import SpaceBetween      from "@cloudscape-design/components/space-between"
+import TextContent       from "@cloudscape-design/components/text-content"
 
 function App() {
   const { authStatus, user, signOut } = useAuthenticator(context => [context.authStatus])
@@ -11,7 +20,34 @@ function App() {
       {authStatus === 'configuring' && 'Loading...'}
       {authStatus !== 'authenticated' ? 
         <ThemeProvider theme={cloudscapeTheme}>
-            <Authenticator />
+            <TopMenuBar />
+
+            <AppLayout
+                navigationHide={true}
+                toolsHide={true}
+                content={
+                    <ContentLayout header={<Header variant="h1">Welcome!</Header>}>
+                        <SpaceBetween size="xl">
+                            <Container>
+                                <TextContent>
+                                    <p>
+                                        This application will help you assess quickly if your industrial data contains any
+                                        historical anomaly of interest. After you upload a dataset containing sensor measurements
+                                        from your industrial equipment or manufacturing process, you will be guided to train
+                                        an anomaly detection model. You will then be able to visualize your model results and deploy 
+                                        it, making it ready to receive your shop floor live data. This application also includes an
+                                        operational dashboard to visualize your live results.
+                                    </p>
+                                    
+                                    <h5>Use the following form to sign into the application:</h5>
+                                </TextContent>
+                            </Container>
+
+                            <Authenticator />
+                        </SpaceBetween>
+                    </ContentLayout>
+                }
+            />
         </ThemeProvider>
         : <Home user={user} signOut={signOut} />
       }

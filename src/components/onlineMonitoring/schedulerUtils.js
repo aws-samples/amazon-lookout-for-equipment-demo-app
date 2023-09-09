@@ -2,6 +2,7 @@ import { cleanList, getLegendWidth, sortDictionnary } from '../../utils/utils'
 import { getSchedulerInfo, getAllTimeseriesWindow } from '../../utils/dataExtraction'
 import { buildTimeseries2 } from '../../utils/timeseries.js'
 import awsmobile from '../../aws-exports'
+import * as echarts from 'echarts'
 
 // **************************************************************************************
 // THE FOLLOWING FUNCTIONS ARE USED TO EXTRACT ALL
@@ -334,24 +335,24 @@ function buildAnomaliesSeries(anomalies) {
 // --------------------------------------------------
 function buildRawAnomaliesSeries(anomalies, rawAnomalies) {
     const anomalyScoreResults = buildTimeseries2(rawAnomalies, 'anomaly_score', 'N')
-    const anomaliesResults = buildTimeseries2(anomalies, 'anomaly', 'N')
 
+    const gradientAlphaChannel = 0.5
     let series = [
-        {
-            symbol: 'none',
-            data: anomaliesResults['data'],
-            type: 'line',
-            lineStyle: { width: 0.0 },
-            xAxisIndex: 1,
-            yAxisIndex: 1,
-            areaStyle: { color: '#d87a80', opacity: 0.2 }
-        },
         {
             symbol: 'none',
             data: anomalyScoreResults['data'],
             type: 'line',
             lineStyle: {
-                color: "#d87a80",
+                color: {
+                    type: 'linear',
+                    x: 0, y: 0, x2: 0, y2: 1,
+                    colorStops: [
+                        { offset: 1.00, color: `rgba(103, 163, 83)` }, // Green (#67a353)
+                        { offset: 0.65, color: `rgba(103, 163, 83)` }, // Green (#67a353)
+                        { offset: 0.50, color: `rgba(224, 121, 65)` }, // Orange (#e07941)
+                        { offset: 0.00, color: `rgba(163,  41, 82)` }  // Red (#a32952)
+                    ]
+                },
                 opacity: 1.0,
                 shadowColor: 'rgba(0, 0, 0, 0.2)',
                 shadowBlur: 5,
@@ -364,16 +365,26 @@ function buildRawAnomaliesSeries(anomalies, rawAnomalies) {
                 label: { show: false },
                 lineStyle: { color: "#000000", width: 2},
                 data: [{name: "threshold", yAxis: 0.5}]
+            },
+            areaStyle: {
+                color: {
+                    type: 'linear',
+                    x: 0, y: 0, x2: 0, y2: 1,
+                    colorStops: [
+                        { offset: 1.00, color: `rgba(103, 163, 83, 0.1)` },                     // Green (#67a353)
+                        { offset: 0.50, color: `rgba(103, 163, 83, ${gradientAlphaChannel})` }, // Green (#67a353)
+                        { offset: 0.45, color: `rgba(224, 121, 65, 0.2)` },                     // Orange (#e07941)
+                        { offset: 0.20, color: `rgba(224, 121, 65, ${gradientAlphaChannel})` }, // Orange (#e07941)
+                        { offset: 0.10, color: `rgba(163,  41, 82, ${gradientAlphaChannel})` }, // Red (#a32952)
+                        { offset: 0.00, color: `rgba(163,  41, 82, ${gradientAlphaChannel})` }  // Red (#a32952)
+                    ]
+                }
             }
         }
 
     ]
 
     return series
-        // xRawAnomalies: anomalyScoreResults['data'], 
-        // yRawAnomalies: anomalyScoreResults['y'], 
-        // rawAnomaliesSeries: series
-    // }
 }
 
 // -----------------------------------------------------

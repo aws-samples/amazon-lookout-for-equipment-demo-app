@@ -1,8 +1,6 @@
 // CloudScape component:
-import Box from "@cloudscape-design/components/box"
 import Icon from "@cloudscape-design/components/icon"
 import Link from "@cloudscape-design/components/link"
-import SpaceBetween from "@cloudscape-design/components/space-between"
 
 // Contains all the help panel contents:
 export const helpPanelContent = {
@@ -499,7 +497,13 @@ export const helpPanelContent = {
                         <li>
                             The raw anomaly score emitted by your model: the detected events are also overlaid on this 
                             plot. Any time the raw anomaly score goes above 0.5, Lookout for Equipment marks the timestamp
-                            as an anomaly and computes the associated sensor contribution.
+                            as an anomaly and computes the associated sensor contribution. This plot is color coded to help
+                            you visualize the severity of a given anomaly range:
+                            <ul>
+                                <li><b><span style={{color: "#67a353"}}>Green</span></b> when the anomaly score is &lt; 0.5</li>
+                                <li><b><span style={{color: "#e07941"}}>Orange</span></b> when 0.5 &lt; anomaly score &lt; 0.9 </li>
+                                <li><b><span style={{color: "#a32952"}}>Red</span></b> when the anomaly score is &gt; 0.9</li>
+                            </ul>
                         </li>
                         <li>
                             The <b>sensor contribution</b> evolution over time. When Lookout for Equipment identifies a given time range

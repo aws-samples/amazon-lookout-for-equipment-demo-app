@@ -272,8 +272,6 @@ function LabelsManagement({ componentHeight, readOnly }) {
             setShowDeleteLabelGroupModal(false)
         }
 
-        console.log(groupLabelOptions)
-
         // ----------------------
         // Renders the component:
         // ----------------------

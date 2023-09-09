@@ -30,7 +30,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     let items = []
     if (currentLabels && currentLabels.length > 0) {
         currentLabels.forEach((label) => {
-            const duration = new Date(x[label['end']]) - new Date(x[label['start']])
+            const duration = new Date(x[label['end'] - 1]) - new Date(x[label['start']])
             const durationDays = parseInt(duration / 1000 / 86400)
             const daysUnit = durationDays > 1 ? 's' : ''
             const durationTime = new Date(duration).toISOString().substring(11, 19)
@@ -38,7 +38,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
             // Creates the new label entry:
             items.push({
                 startDate: x[label['start']],
-                endDate: x[label['end']],
+                endDate: x[label['end'] - 1],
                 duration: `${durationDays} day${daysUnit} ${durationTime}`,
                 faultCode: "Fault code",
                 notes: "Notes",

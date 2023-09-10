@@ -302,7 +302,7 @@ export function getIndex(x, value) {
 // ------------------------------------------------------------
 // This function checks whether or not a given project is ready
 // ------------------------------------------------------------
-export async function checkProjectAvailability(gateway, projectName) {
+export async function checkProjectAvailability(gateway, projectName, projectsDetails) {
     let availability = false
     const targetTableName = `l4edemoapp-${projectName}`
     const lookoutEquipmentProjectName = `l4e-demo-app-${projectName}`
@@ -322,9 +322,7 @@ export async function checkProjectAvailability(gateway, projectName) {
         // then, the dataset is created but the data ingestion is 
         // not done:
         if (tableStatus === 'ACTIVE') {
-            const response = await gateway.lookoutEquipment.listDatasets()
-
-            response['DatasetSummaries'].forEach((dataset) => {
+            projectsDetails.forEach((dataset) => {
                 if (dataset['DatasetName'] === lookoutEquipmentProjectName && dataset['Status'] === 'ACTIVE') {
                     availability = true
                 }

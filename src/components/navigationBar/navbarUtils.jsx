@@ -15,6 +15,7 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
 
     // Extracts all the projects, models and schedulers visible from this account:
     const projects = await getAllProjects(gateway, uid)
+    const projectsDetails = await gateway.lookoutEquipment.listDatasets()
     const modelsList = await getAllModels(gateway, projects, uid)
     const schedulersList = await getAllSchedulers(gateway, modelsList)
 
@@ -24,7 +25,7 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
         // data is imported into DynamoDB and when the ingestion into the 
         // Lookout for Equipment project is done (meaning the Lookout for Equipment
         // is not only Created but Active):
-        const projectAvailable = await checkProjectAvailability(gateway, uid + '-' + project)
+        const projectAvailable = await checkProjectAvailability(gateway, uid + '-' + project, projectsDetails['DatasetSummaries'])
 
         // Adapt the icon color to the context:
         let iconType = 'normal'

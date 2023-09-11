@@ -16,8 +16,6 @@ import Spinner          from "@cloudscape-design/components/spinner"
 import HelpPanelContext from '../contexts/HelpPanelContext'
 
 function DetectedEvents({ range, infoLink, liveResults }) {
-    const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
-
     const endTime = parseInt(Date.now() / 1000)
     const startTime = parseInt((endTime - range * 86400))
 

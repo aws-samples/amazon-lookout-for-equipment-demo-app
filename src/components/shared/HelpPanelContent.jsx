@@ -485,7 +485,7 @@ export const helpPanelContent = {
     // ---------------------------------------------------------------------------------------------------------------------------------
     onlineResults: {
         detectedEvents: {
-            header: (<div>DetectedEvents</div>),
+            header: (<div>Detected Events</div>),
             footer: "",
             body: (
                 <div>
@@ -517,6 +517,35 @@ export const helpPanelContent = {
                 </div>
             )
         },
+        signalDeepDive: {
+            header: (<div>Signal deep dive</div>),
+            footer: "",
+            body: (
+                <div>
+                    On this section, you will be able to dive deeper into each individual signals used to train the 
+                    current model. For each signal you will be able to visualize:
+
+                    <ul>
+                        <li>The data used at <b>training time</b> as a time series (in blue)</li>
+                        <li>
+                            In the middle, the green line represents the <b>live data</b> collected and sent to the model 
+                            to detect if some anomalies are present. The red dots matchs the timestamps at which <b>anomalies</b>
+                            were detected by the model. Lastly, the orange plot shows the evolution of the <b>contribution</b>
+                            for this specific signal.
+                        </li>
+                        <li>
+                            The third plot is a histogram plot showing the distributions of the <b>training data</b> (in blue),
+                            of the <b>live data</b> (in green) and of values taken by this specific signal on a timestamp marked as an
+                            <b>anomaly</b> (in red).
+                        </li>
+                    </ul>
+
+                    These plots will help you get a better understanding of the underlying reasons that Lookout for Equipment have
+                    to call out a set of anomalies. It will also help you pinpoint the signal behaviors that may be linked to 
+                    a given anomalous events and accelerate remediation or prevention of a future failure.
+                </div>
+            )
+        }
     }
 }
 

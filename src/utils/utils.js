@@ -32,6 +32,13 @@ export function sortDictionnary(dict, ascending) {
     return keys
 }
 
+// -------------------------------------------------------
+// Return number of matches found when filtering as a text
+// -------------------------------------------------------
+export function getMatchesCountText(count) {
+    return count === 1 ? '1 match' : `${count} matches`
+}
+
 // ---------------------------------------------
 // Get width in pixels given a list of tag names
 // ---------------------------------------------

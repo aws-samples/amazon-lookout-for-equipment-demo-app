@@ -5,10 +5,9 @@ import { useParams } from 'react-router-dom'
 // App components:
 import NavigationBar        from './NavigationBar'
 import ConditionOverview    from './onlineMonitoring/ConditionOverview'
-// import AnomalyScore         from './onlineMonitoring/AnomalyScore'
-// import SensorContribution   from './onlineMonitoring/SensorContribution'
 import SchedulerInspector   from './onlineMonitoring/SchedulerInspector'
 import DetectedEvents       from './onlineMonitoring/DetectedEvents'
+import SignalHistograms     from './onlineMonitoring/SignalHistograms'
 
 // CloudScape Components:
 import AppLayout         from "@cloudscape-design/components/app-layout"
@@ -17,10 +16,10 @@ import Box               from "@cloudscape-design/components/box"
 import Container         from "@cloudscape-design/components/container"
 import ContentLayout     from "@cloudscape-design/components/content-layout"
 import ExpandableSection from "@cloudscape-design/components/expandable-section"
-import Grid              from "@cloudscape-design/components/grid"
 import Header            from "@cloudscape-design/components/header"
 import Link              from "@cloudscape-design/components/link"
 import SpaceBetween      from "@cloudscape-design/components/space-between"
+import Tabs              from "@cloudscape-design/components/tabs"
 import Tiles             from "@cloudscape-design/components/tiles"
 
 // Context:
@@ -29,6 +28,7 @@ import HelpPanelContext from './contexts/HelpPanelContext'
 
 // Utils:
 import { getSchedulerStatus } from "../utils/utils"
+import { getLiveResults } from './onlineMonitoring/schedulerUtils'
 
 // --------------------------
 // Component main entry point
@@ -36,14 +36,14 @@ import { getSchedulerStatus } from "../utils/utils"
 function OnlineMonitoring() {
     const { modelName, projectName, initialRange } = useParams()
 
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
 
     const [ range, setRange] = useState(initialRange ? initialRange : "7")
     const [ schedulerStatus, setSchedulerStatus ] = useState(undefined)
     const [ statusColor, setStatusColor ] = useState('grey')
+    const [ liveResults, setLiveResults ] = useState(undefined)
     
-
     // Get the current status of the scheduler to be displayed:
     useEffect(() => {
         getSchedulerStatus(gateway, modelName)
@@ -55,6 +55,16 @@ function OnlineMonitoring() {
             }
         })
     }, [gateway, modelName])
+
+    // Then extract the live results of the current model:
+    const endTime = parseInt(Date.now() / 1000)
+    const startTime = parseInt((endTime - range * 86400))
+    useEffect(() => {
+        getLiveResults(gateway, uid, projectName, modelName, startTime, endTime)
+        .then((x) => { 
+            setLiveResults(x)
+        })
+    }, [gateway, modelName, projectName, range])
 
     // Defining the info links:
     const detectedEventsInfoLink = (
@@ -126,26 +136,43 @@ function OnlineMonitoring() {
                             />
                         </Container>
 
-                        <Container header={
-                            <Header
-                                variant="h2"
-                                info={detectedEventsInfoLink}>
-                                    Detected events
-                            </Header>
-                        }>
-                            <DetectedEvents range={range} infoLink={detectedEventsInfoLink} />
-                        </Container>
-
-                        {/* <Container header={<Header 
-                            variant="h2" 
-                            description="The following widget shows the time your asset or process spent in 
-                                            an anomalous state. Note that this only take into account the time 
-                                            when the inference scheduler is running."
-                        >
-                            Condition overview
-                        </Header>}>
-                            <ConditionOverview range={range} modelName={modelName} projectName={projectName} size="large" />
-                        </Container> */}
+                        <Tabs
+                            tabs={[
+                                {
+                                    label: "Condition overview",
+                                    id: "conditionOverview",
+                                    content: <Container header={<Header 
+                                        variant="h2" 
+                                        description="The following widget shows the time your asset or process spent in 
+                                                     an anomalous state. Note that this only take into account the time 
+                                                     when the inference scheduler is running."
+                                    >
+                                        Condition overview
+                                    </Header>}>
+                                        <ConditionOverview range={range} modelName={modelName} projectName={projectName} size="large" />
+                                    </Container>
+                                },
+                                {
+                                    label: "Detected events",
+                                    id: "detectedEvents",
+                                    content:
+                                        <Container header={
+                                            <Header
+                                                variant="h2"
+                                                info={detectedEventsInfoLink}>
+                                                    Detected events
+                                            </Header>
+                                        }>
+                                            <DetectedEvents range={range} infoLink={detectedEventsInfoLink} liveResults={liveResults} />
+                                        </Container>
+                                },
+                                {
+                                    label: "Signal deep dive",
+                                    id: "signalDeepDive",
+                                    content: <SignalHistograms range={range} liveResults={liveResults} />
+                                }
+                            ]}
+                        />
                     </SpaceBetween>
                 </ContentLayout>
             }

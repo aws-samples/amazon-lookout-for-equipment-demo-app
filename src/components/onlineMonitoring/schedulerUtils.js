@@ -1,12 +1,12 @@
 import { cleanList, getLegendWidth, sortDictionnary } from '../../utils/utils'
 import { getSchedulerInfo, getAllTimeseriesWindow } from '../../utils/dataExtraction'
 import { buildTimeseries2 } from '../../utils/timeseries.js'
+import { histogram } from 'echarts-stat'
 import awsmobile from '../../aws-exports'
-import * as echarts from 'echarts'
 
 // **************************************************************************************
-// THE FOLLOWING FUNCTIONS ARE USED TO EXTRACT ALL
-// THE NECESSARY DATA TO DISPLAY THE LIVE RESULTS 
+// THE FOLLOWING FUNCTIONS ARE USED TO EXTRACT ALL THE
+// NECESSARY DATA TO DISPLAY THE DETECTED EVENTS RESULTS 
 // **************************************************************************************
 
 // --------------------------------------------------------------------
@@ -206,7 +206,8 @@ export async function getAssetCondition(gateway, asset, startTime, endTime, proj
 }
 
 // **************************************************************************************
-// THE FOLLOWING FUNCTIONS ARE USED TO BUILD THE eCHART CONFIGURATION OBJECT
+// THE FOLLOWING FUNCTIONS ARE USED TO BUILD THE eCHART 
+// CONFIGURATION OBJECTS FOR THE DIFFERENT PLOTS
 // **************************************************************************************
 
 // ----------------------------------------------------------------
@@ -424,7 +425,6 @@ function buildSensorContributionSeries(tagsList, samplingRate, startTime, endTim
     sortedKeys.forEach((tag) => {
         sensorContributionSeries.push({
             symbol: 'none',
-            // data: ySensorContributions[tag],
             data: data[tag],
             type: 'line',
             xAxisIndex: 2,
@@ -481,6 +481,292 @@ function buildSignalSeries(timeseries, sortedKeys) {
     })
 
     return signalSeries
+}
+
+// **************************************************************************************
+// THE FOLLOWING FUNCTIONS ARE USED TO EXTRACT ALL THE
+// NECESSARY DATA TO DISPLAY THE DETAILED SIGNALS OVERVIEW
+// **************************************************************************************
+
+// ------------------------------------------------------------------
+// Builds the eChart options object to plot the signal behavior chart
+// ------------------------------------------------------------------
+export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferenceTimeseries, anomalies, sensorContribution, samplingRate) {
+    let options = {}
+    let yMin = undefined
+    let yMax = undefined
+    const xAnomalies = getAnomaliesXCoordinates(anomalies)
+
+    // We want to build a chart options for each individual tag:
+    tagsList.forEach((tag) => {
+        const {trainingSeries, trainingYMin, trainingYMax} = getTagTrainingTimeseries(tag, trainingTimeseries.timeseries)
+        const {inferenceSeries, inferenceYMin, inferenceYMax} = getTagInferenceTimeseries(tag, inferenceTimeseries, xAnomalies, sensorContribution, samplingRate)
+        const histogramsSeries = getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
+
+        inferenceYMin < trainingYMin ? yMin = inferenceYMin : yMin = trainingYMin
+        inferenceYMax > trainingYMax ? yMax = inferenceYMax : yMax = trainingYMax
+
+        options[tag] = {}
+        options[tag]['trainingTimeSeries'] = {
+            title: [{top: 0, text: 'Training data timeseries'}],
+            grid: [{top: 40, left: 50, height: 200}],
+            xAxis: [{type: 'time'}],
+            yAxis: [{show: true, min: yMin, max: yMax}],
+            series: [trainingSeries],
+            animation: false,
+            tooltip: {show: true, trigger: 'axis'}
+        }
+
+        options[tag]['inferenceTimeSeries'] = {
+            title: [{top: 0, text: 'Live data timeseries'}],
+            grid: [{top: 40, left: 50, height: 200}],
+            xAxis: {type: 'time'},
+            yAxis: [
+                {show: true, min: yMin, max: yMax},
+                {
+                    min: 0.0, max: 1.0,
+                    axisLabel: { formatter: (value) => { return (value*100).toFixed(0) + '%' }},
+                    splitLine: { show: false },
+                    splitArea: { show: false }
+                }
+            ],
+            series: inferenceSeries,
+            animation: false,
+            tooltip: {show: true, trigger: 'axis'},
+            legend: {
+                show: true,
+                bottom: -5, left: 0,
+                orient: 'horizontal',
+                data: ['Time series', 'Anomalies', 'Contribution (%)']
+            },
+        },
+
+        options[tag]['histograms'] = {
+            title: {top: 0, text: 'Signal value distributions'},
+            grid: {top: 40, left: 50, height: 200},
+            xAxis: {scale: true},
+            yAxis: {},
+            series: histogramsSeries,
+            animation: false,
+            tooltip: {show: true, trigger: 'axis'}
+        }
+    })
+
+    return options
+}
+
+// --------------------------------------------------
+// Get the x-coordinates for all the anomalies: will
+// be used to distinguish between datapoints that are
+// anomalous and the others
+// --------------------------------------------------
+function getAnomaliesXCoordinates(anomalies) {
+    let xAnomalies = []
+
+    anomalies.forEach((item) => {
+        if (parseInt(item.anomaly.N) == 1) {
+            xAnomalies.push(parseInt(item.timestamp.N))
+        }
+    })
+
+    return xAnomalies
+}
+
+// ------------------------------------------------
+// Plot configuration for the inference time series
+// ------------------------------------------------
+function getTagInferenceTimeseries(tag, timeseries, xAnomalies, sensorContribution, samplingRate) {
+    let data = []
+    let dataAnomalies = []
+    let dataContribution = []
+    let yMin = undefined
+    let yMax = undefined
+
+    // Prepare the raw time series data:
+    timeseries.Items.forEach((item) => {
+        const x = new Date(item.unix_timestamp.N * 1000)
+        const y = parseFloat(item[tag].S)
+        data.push([x, y])
+
+        if (xAnomalies.indexOf(parseInt(item.unix_timestamp.N)) > 0) {
+            dataAnomalies.push([x, y])
+        }
+
+        if (!yMin) { yMin = y }
+        if (!yMax) { yMax = y }
+        if (y < yMin) { yMin = y }
+        if (y > yMax) { yMax = y }
+    })
+
+    // Prepare the sensor contribution as a time series:
+    sensorContribution.forEach((item, index) => {
+        const x = new Date(item.timestamp.N * 1000)
+        const y = parseFloat(item[tag].N)
+
+        if (index > 1) {
+            const previousX = new Date(sensorContribution[index - 1].timestamp.N * 1000)
+            if (x - previousX > samplingRate * 1000) {
+                dataContribution.push([x, null])
+            }
+        }
+
+        dataContribution.push([x, y])
+    })
+
+    const series = {
+        name: 'Time series',
+        symbol: 'none',
+        sampling: 'lttb',
+        data: data,
+        type: 'line',
+        tooltip: { valueFormatter: (value) => value.toFixed(2) },
+        lineStyle: { color: '#67a353', width: 2.0 },
+        itemStyle: { color: '#67a353' },
+        yAxisIndex: 0
+    }
+
+    const anomaliesSeries = {
+        name: 'Anomalies',
+        symbol: 'circle',
+        symbolSize: 3.0,
+        sampling: 'lttb',
+        data: dataAnomalies,
+        type: 'line',
+        tooltip: { valueFormatter: (value) => value.toFixed(2) },
+        lineStyle: { width: 0.0 },
+        itemStyle: { color: '#a32952', opacity: 0.5 },
+        yAxisIndex: 0
+    }
+
+    const contributionSeries = {
+        name: 'Contribution (%)',
+        symbol: 'none',
+        sampling: 'lttb',
+        data: dataContribution,
+        type: 'line',
+        color: '#e07941',
+        tooltip: { valueFormatter: (value) => (value*100).toFixed(0) + '%' },
+        areaStyle: { opacity: 0.2 },
+        lineStyle: { width: 0.5 },
+        yAxisIndex: 1
+    }
+
+    return {
+        inferenceYMin: (yMin * 0.95).toFixed(2),
+        inferenceYMax: (yMax * 1.05).toFixed(2),
+        inferenceSeries: [series, anomaliesSeries, contributionSeries]
+    }
+}
+
+// -----------------------------------------------
+// Plot configuration for the training time series
+// -----------------------------------------------
+function getTagTrainingTimeseries(tag, timeseries) {
+    let data = []
+    let yMin = undefined
+    let yMax = undefined
+
+    // Prepare the raw time series data:
+    timeseries.Items.forEach((item) => {
+        const x = new Date(item.unix_timestamp.N * 1000)
+        const y = parseFloat(item[tag].S)
+        data.push([x, y])
+
+        if (!yMin) { yMin = y }
+        if (!yMax) { yMax = y }
+        if (y < yMin) { yMin = y }
+        if (y > yMax) { yMax = y }
+    })
+
+    const series = {
+        name: tag,
+        symbol: 'none',
+        sampling: 'lttb',
+        data: data,
+        type: 'line',
+        emphasis: { focus: "series" },
+        tooltip: { valueFormatter: (value) => value.toFixed(2) },
+        lineStyle: { width: 2.0 }
+    }
+
+    return {
+        trainingSeries: series,
+        trainingYMin: (yMin * 0.95).toFixed(2),
+        trainingYMax: (yMax * 1.05).toFixed(2)
+    }
+}
+
+// -------------------------------------
+// Plot configuration for the histograms
+// -------------------------------------
+function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies) {
+    let trainingData = []
+    let inferenceData = []
+    let abnormalData = []
+
+    trainingTimeseries.timeseries.Items.forEach((item) => {
+        trainingData.push(parseFloat(item[tag].S))
+    })
+
+    inferenceTimeseries.Items.forEach((item) => {
+        const x = parseInt(item.unix_timestamp.N)
+        const y = parseFloat(item[tag].S)
+
+        inferenceData.push(y)
+        if (xAnomalies.indexOf(x)) { abnormalData.push(y) }
+    })
+
+    let series = [
+        {
+            name: 'Training data distribution',
+            type: 'bar',
+            barWidth: 8,
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            itemStyle: { color: '#529ccb', opacity: 0.5 },
+            data: histogram(trainingData).data,
+        },
+        {
+            name: 'Inference data distribution',
+            type: 'bar',
+            barWidth: 8,
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            itemStyle: { color: '#67a353', opacity: 0.7 },
+            data: histogram(inferenceData).data,
+        },
+        {
+            name: 'Abnormal data distribution',
+            type: 'bar',
+            barWidth: 8,
+            xAxisIndex: 0,
+            yAxisIndex: 0,
+            itemStyle: { color: '#a32952', opacity: 0.5 },
+            data: histogram(abnormalData).data,
+        },
+    ]
+
+    return series
+}
+
+// ------------------------------------------------------
+// Sort the signal list by decreasing signal contribution
+// ------------------------------------------------------
+export function getSortedKeys(tagsList, sensorContribution) {
+    let totalContribution = {}
+
+    sensorContribution.forEach((item) => {
+        tagsList.forEach((tag) => {
+            const y = parseFloat(item[tag].N)
+
+            if (!totalContribution[tag]) { totalContribution[tag] = 0.0}
+            totalContribution[tag] += y
+        })
+    })
+
+    let sortedKeys = sortDictionnary(totalContribution, false)
+
+    return sortedKeys
 }
 
 // **************************************************************************************

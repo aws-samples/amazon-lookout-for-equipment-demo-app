@@ -1,12 +1,11 @@
 // Imports:
-import { useState, useEffect, useContext } from 'react'
-import { useParams } from 'react-router-dom'
+import { useContext } from 'react'
 import ReactEcharts from "echarts-for-react"
 import "../../styles/chartThemeMacarons.js"
 
 
 // Utils:
-import { getLiveResults, buildLiveDetectedEventsOptions } from './schedulerUtils'
+import { buildLiveDetectedEventsOptions } from './schedulerUtils'
 
 // CloudScape Components:
 import Alert            from "@cloudscape-design/components/alert"
@@ -14,24 +13,13 @@ import SpaceBetween     from "@cloudscape-design/components/space-between"
 import Spinner          from "@cloudscape-design/components/spinner"
 
 // Contexts:
-import ApiGatewayContext from '../contexts/ApiGatewayContext'
 import HelpPanelContext from '../contexts/HelpPanelContext'
 
-function DetectedEvents({ range, infoLink }) {
-    const [ liveResults, setLiveResults ] = useState(undefined)
-    const { gateway, uid } = useContext(ApiGatewayContext)
+function DetectedEvents({ range, infoLink, liveResults }) {
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
-    const { modelName, projectName } = useParams()
 
     const endTime = parseInt(Date.now() / 1000)
     const startTime = parseInt((endTime - range * 86400))
-
-    useEffect(() => {
-        getLiveResults(gateway, uid, projectName, modelName, startTime, endTime)
-        .then((x) => { 
-            setLiveResults(x)
-        })
-    }, [gateway, modelName, projectName, range])
 
     if (liveResults && liveResults['modelDetails']['status'] === 'SUCCESS') {
         const timeseries = liveResults['timeseries']

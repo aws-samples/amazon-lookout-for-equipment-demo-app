@@ -15,13 +15,14 @@ import HelpPanelContext from '../contexts/HelpPanelContext'
 
 // Utils:
 import { buildChartOptions } from './offlineResultsUtils'
+import { cleanList } from '../../utils/utils'
 
 function DetectedEvents({ modelDetails }) {
     if (modelDetails && modelDetails['status'] === 'SUCCESS') {
         const dailyAggregation     = modelDetails['dailyAggregation']
         const anomalies            = modelDetails['anomalies']
         const sensorContribution   = modelDetails['sensorContribution']
-        const tagsList             = modelDetails['tagsList']
+        let tagsList               = modelDetails['tagsList']
         const timeseries           = modelDetails['timeseries']
         const evaluationStart      = new Date(modelDetails['evaluationStart'])
         const option               = useRef(undefined)
@@ -38,18 +39,21 @@ function DetectedEvents({ modelDetails }) {
             )
         }
 
+        const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
+        tagsList = cleanList(tagsToRemove, tagsList)
+
         // Otherwise, we show several widgets to help the 
         // users process the Lookout for Equipment results:
         if (sensorContribution) {
             // Build the eChart options:
             option.current = buildChartOptions(
                 tagsList,
-                sensorContribution,
-                timeseries,
+                sensorContribution.Items,
+                timeseries.Items,
                 evaluationStart,
                 modelDetails,
-                dailyAggregation,
-                anomalies,
+                dailyAggregation.Items,
+                anomalies.Items,
                 5                   // showTopN
             )
 

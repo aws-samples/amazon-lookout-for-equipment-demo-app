@@ -92,7 +92,9 @@ export function getHumanReadableSize(filesize) {
 export function cleanList(itemsToRemove, targetList) {
     itemsToRemove.forEach((item) => {
         const index = targetList.indexOf(item)
-        targetList.splice(index, 1)
+        if (index >= 0) {
+            targetList.splice(index, 1)
+        }
     })
 
     return targetList

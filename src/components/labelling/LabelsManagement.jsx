@@ -45,7 +45,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
         selectedLabelGroupName, 
         selectedLabelGroupValue 
     } = useContext(ModelParametersContext)
-    const { data, tagsList, x, signals } = useContext(TimeSeriesContext)
+    const { data, tagsList, x, signals, timeseriesData } = useContext(TimeSeriesContext)
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { projectName } = useParams()
@@ -94,8 +94,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
     else if (data) {
         const option = buildChartOptions(
             tagsList, 
-            signals, 
-            x,                          // xTickLabels
+            timeseriesData, 
             0,                          // initialZoomStart
             100,                        // initialZoomEnd
             true,                       // showLegend, 
@@ -140,8 +139,11 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     let currentRanges = []
                     response['LabelSummaries'].forEach((label) => {
                         currentRanges.push({
-                            start: Math.floor((label['StartTime'] - startTime)/totalRange * x.length), 
-                            end: Math.floor((label['EndTime'] - startTime)/totalRange * x.length)
+                            // start: Math.floor((label['StartTime'] - startTime)/totalRange * x.length), 
+                            // end: Math.floor((label['EndTime'] - startTime)/totalRange * x.length)
+
+                            start: new Date(label['StartTime'] * 1000),
+                            end: new Date(label['EndTime'] * 1000)
                         })
                     })
 
@@ -459,7 +461,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                         }
                         stretch={true}
                     >
-                        <LabelsTable ref={labelsTableRef} x={x} labels={labels.current} noLabelDefined={noLabelDefined} />
+                        <LabelsTable ref={labelsTableRef} labels={labels.current} noLabelDefined={noLabelDefined} />
                     </FormField>
                 </SpaceBetween>
             </>

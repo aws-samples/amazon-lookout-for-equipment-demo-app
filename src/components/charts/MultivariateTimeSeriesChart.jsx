@@ -27,7 +27,7 @@ import "../../styles/chartThemeMacarons.js"
 // Component entry point
 // ---------------------
 function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight, enableBrush }) {
-    const { data, tagsList, x, signals } = useContext(TimeSeriesContext)
+    const { data, tagsList, x, signals, timeseriesData } = useContext(TimeSeriesContext)
     const { trainingRange, evaluationRange, numTrainingDays, numEvaluationDays, labels, totalLabelDuration } = useContext(ModelParametersContext)
     
     const initialZoomStart = useRef(0)
@@ -92,8 +92,7 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
 
         const option = buildChartOptions(
             tagsList, 
-            signals, 
-            x, 
+            timeseriesData,
             initialZoomStart.current, 
             initialZoomEnd.current, 
             showLegend, 

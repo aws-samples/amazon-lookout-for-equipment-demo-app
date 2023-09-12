@@ -12,7 +12,6 @@ import Table     from "@cloudscape-design/components/table"
 // --------------------------
 const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     const [currentLabels, setCurrentLabels] = useState(props.labels)
-    const x = props.x
     const noLabelDefined = props.noLabelDefined
 
     // This function will allow the parent component (MultivariateTimeSeriesChart)
@@ -30,15 +29,15 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     let items = []
     if (currentLabels && currentLabels.length > 0) {
         currentLabels.forEach((label) => {
-            const duration = new Date(x[label['end'] - 1]) - new Date(x[label['start']])
+            const duration = new Date(label['end']) - new Date(label['start'])
             const durationDays = parseInt(duration / 1000 / 86400)
             const daysUnit = durationDays > 1 ? 's' : ''
             const durationTime = new Date(duration).toISOString().substring(11, 19)
 
             // Creates the new label entry:
             items.push({
-                startDate: x[label['start']],
-                endDate: x[label['end'] - 1],
+                startDate: label['start'].toISOString().substring(0, 19).replace('T', ' '),
+                endDate: label['end'].toISOString().substring(0, 19).replace('T', ' '),
                 duration: `${durationDays} day${daysUnit} ${durationTime}`,
                 faultCode: "Fault code",
                 notes: "Notes",

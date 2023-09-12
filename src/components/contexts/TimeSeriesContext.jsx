@@ -104,6 +104,22 @@ export const TimeSeriesProvider = ({children, projectName}) => {
         return y_signals
     }
 
+    function getData(tagsList) {
+        let timeseriesData = {}
+
+        data.timeseries.Items.forEach((item) => {
+            const x = new Date(item['timestamp']['S'])
+
+            tagsList.forEach((tag) => {
+                const y = parseFloat(item[tag]['S'])
+                if (!timeseriesData[tag]) { timeseriesData[tag] = [] }
+                timeseriesData[tag].push([x, y])
+            })
+        })
+
+        return timeseriesData
+    }
+
     // ---------------------------
     // Context provider definition
     // ---------------------------
@@ -112,14 +128,20 @@ export const TimeSeriesProvider = ({children, projectName}) => {
 
     if (status === 'success') {
         const tagsList = getTagsList()
+        const xSignals = getTimestamps(tagsList[0])
+        const ySignals = getSignalData(tagsList)
+        const timeseriesData = getData(tagsList)
+
+        // console.log(xSignals, ySignals)
 
         return (
             <TimeSeriesContext.Provider value={{
                 data: data,
                 tagsList: tagsList,
-                x: getTimestamps(tagsList[0]),
-                signals: getSignalData(tagsList),
-                queryStatus: 'success'
+                x: xSignals,
+                signals: ySignals,
+                queryStatus: 'success',
+                timeseriesData: timeseriesData
             }}>
                 {children}
             </TimeSeriesContext.Provider>

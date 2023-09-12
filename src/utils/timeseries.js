@@ -95,8 +95,7 @@ export function getEvaluationStartIndex(items, dateStart) {
 
 export function buildChartOptions(
     tagsList, 
-    signals, 
-    xTickLabels, 
+    timeseriesData,
     initialZoomStart, 
     initialZoomEnd, 
     showLegend, 
@@ -109,12 +108,13 @@ export function buildChartOptions(
     frozenMarkers
 ) {
     const series = []
+
     tagsList.forEach((tag) => {
         series.push({
             name: tag,
             symbol: 'none',
             sampling: 'lttb',
-            data: signals[tag],
+            data: timeseriesData[tag],
             type: 'line',
             emphasis: {
                 disabled: false,
@@ -147,7 +147,7 @@ export function buildChartOptions(
     }
 
     let option = {
-        xAxis: { type: 'category', data: xTickLabels },
+        xAxis: { type: 'time' },
         yAxis: { type: 'value' },
         series: series,
         animation: false,

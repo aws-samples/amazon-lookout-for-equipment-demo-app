@@ -95,10 +95,10 @@ export function buildChartOptions(
             { left: 50, right: legendWidth, top: 655, height: 150 }
         ],
         xAxis: [
-            { type: 'time', gridIndex: 0, min: xMin, max: xMax },
-            { type: 'time', gridIndex: 1, min: xMin, max: xMax },
-            { type: 'time', gridIndex: 2, min: xMin, max: xMax },
-            { type: 'time', gridIndex: 3, min: xMin, max: xMax },
+            { type: 'time', gridIndex: 0, min: xMin, max: xMax, minorTick: { show: true } },
+            { type: 'time', gridIndex: 1, min: xMin, max: xMax, minorTick: { show: true } },
+            { type: 'time', gridIndex: 2, min: xMin, max: xMax, minorTick: { show: true } },
+            { type: 'time', gridIndex: 3, min: xMin, max: xMax, minorTick: { show: true } },
         ],
         yAxis: [
             { show: false, gridIndex: 0, min: 0.0, max: 1.0 },

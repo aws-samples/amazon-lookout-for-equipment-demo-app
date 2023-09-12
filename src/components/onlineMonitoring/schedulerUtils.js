@@ -259,10 +259,10 @@ export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContr
             { left: 50, right: legendWidth, top: 730, height: 200 },
         ],
         xAxis: [
-            { type: 'time', gridIndex: 0, min: xMin, max: xMax },
-            { type: 'time', gridIndex: 1, min: xMin, max: xMax },
-            { type: 'time', gridIndex: 2, min: xMin, max: xMax },
-            { type: 'time', gridIndex: 3, min: xMin, max: xMax }
+            { type: 'time', gridIndex: 0, min: xMin, max: xMax, minorTick: { show: true } },
+            { type: 'time', gridIndex: 1, min: xMin, max: xMax, minorTick: { show: true } },
+            { type: 'time', gridIndex: 2, min: xMin, max: xMax, minorTick: { show: true } },
+            { type: 'time', gridIndex: 3, min: xMin, max: xMax, minorTick: { show: true } }
         ],
         yAxis: [
             { show: false, gridIndex: 0, min: 0.0, max: 1.0 },
@@ -510,7 +510,7 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
         options[tag]['trainingTimeSeries'] = {
             title: [{top: 0, text: 'Training data timeseries'}],
             grid: [{top: 40, left: 50, height: 200}],
-            xAxis: [{type: 'time'}],
+            xAxis: [{type: 'time', minorTick: { show: true }}],
             yAxis: [{show: true, min: yMin, max: yMax}],
             series: [trainingSeries],
             animation: false,
@@ -520,7 +520,7 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
         options[tag]['inferenceTimeSeries'] = {
             title: [{top: 0, text: 'Live data timeseries'}],
             grid: [{top: 40, left: 50, height: 200}],
-            xAxis: {type: 'time'},
+            xAxis: {type: 'time', minorTick: { show: true }},
             yAxis: [
                 {show: true, min: yMin, max: yMax},
                 {

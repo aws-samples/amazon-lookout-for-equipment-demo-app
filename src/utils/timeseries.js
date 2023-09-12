@@ -147,7 +147,7 @@ export function buildChartOptions(
     }
 
     let option = {
-        xAxis: { type: 'time' },
+        xAxis: { type: 'time', minorTick: { show: true } },
         yAxis: { type: 'value' },
         series: series,
         animation: false,

@@ -6,13 +6,15 @@ import { useParams } from 'react-router-dom'
 import NavigationBar from './NavigationBar'
 import ModelOverview from './offlineResults/ModelOverview'
 import DetectedEvents from './offlineResults/DetectedEvents'
+import SignalHistograms from './offlineResults/SignalHistograms'
 import { getModelDetails } from '../utils/dataExtraction'
 
 // CloudScape Components:
-import AppLayout from "@cloudscape-design/components/app-layout"
-import ContentLayout from "@cloudscape-design/components/content-layout"
-import Header from "@cloudscape-design/components/header"
-import SpaceBetween from "@cloudscape-design/components/space-between"
+import AppLayout        from "@cloudscape-design/components/app-layout"
+import ContentLayout    from "@cloudscape-design/components/content-layout"
+import Header           from "@cloudscape-design/components/header"
+import SpaceBetween     from "@cloudscape-design/components/space-between"
+import Tabs             from "@cloudscape-design/components/tabs"
 
 // Contexts:
 import ApiGatewayContext from './contexts/ApiGatewayContext'
@@ -50,7 +52,20 @@ function OfflineResults() {
                 <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
                     <SpaceBetween size='xl'>
                         <ModelOverview modelDetails={modelDetails} loading={loading} />
-                        {!loading && modelDetails && <DetectedEvents modelDetails={modelDetails} loading={loading} />}
+                        {!loading && modelDetails && <Tabs
+                            tabs={[
+                                {
+                                    label: "Detected events",
+                                    id: "detectedEvents",
+                                    content: <DetectedEvents modelDetails={modelDetails} loading={loading} />
+                                },
+                                {
+                                    label: "Signal deep dive",
+                                    id: "signalDeepDive",
+                                    content: <SignalHistograms modelDetails={modelDetails} />
+                                }
+                            ]} />
+                        }
                     </SpaceBetween>
                 </ContentLayout>
             }

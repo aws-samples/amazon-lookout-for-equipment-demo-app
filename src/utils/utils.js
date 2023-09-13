@@ -1,6 +1,29 @@
 // Imports
 import * as awsui from '@cloudscape-design/design-tokens/index.js'
 
+// --------------------------------------
+// Search in which bin a given date falls
+// --------------------------------------
+export function binarySearchBins(bins, date) {
+    let low = 0
+    let high = bins.length - 1
+    
+    while (low <= high) {
+        const mid = Math.floor((low + high) / 2)
+        const bin = bins[mid];
+
+        if (date >= bin.start && date <= bin.end) {
+            return mid
+        } else if (date < bin.start) {
+            high = mid - 1
+        } else {
+            low = mid + 1
+        }
+    }
+  
+    return -1
+}
+
 // -----------------------------------------
 // Function to sort a Javascript dictionnary
 // Schwartzian transform, making use of the 

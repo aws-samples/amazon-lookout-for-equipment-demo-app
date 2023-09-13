@@ -261,7 +261,8 @@ export async function getModelDetails(gateway, modelName, projectName, uid) {
         response['dailyAggregation'] = modelEvaluationInfos['dailyAggregation'],
         response['sensorContribution'] = modelEvaluationInfos['sensorContribution'],
         response['tagsList'] = getTagsListFromModel(modelResponse),
-        response['timeseries'] = timeseries.timeseries    
+        response['timeseries'] = timeseries.timeseries
+        response['events'] = modelEvaluationInfos['events']
     }
 
     if (modelResponse['Status'] === 'FAILED') {
@@ -344,6 +345,7 @@ async function getModelEvaluationInfos(gateway, modelName, assetName, endTime, u
     const anomalies = await getAnomalies(gateway, modelName, endTime, assetName, uid)
     const dailyAggregation = await getDailyAggregation(gateway, modelName, endTime, assetName, uid)
     const sensorContribution = await getSensorContribution(gateway, modelName, assetName, endTime, uid)
+    const events = await getEvents(gateway, modelName)
 
     let tagsList = undefined
     if (sensorContribution && sensorContribution.Items.length > 0) {
@@ -352,10 +354,26 @@ async function getModelEvaluationInfos(gateway, modelName, assetName, endTime, u
 
     return {
         anomalies: anomalies,
+        events: events,
         dailyAggregation: dailyAggregation,
         sensorContribution: sensorContribution,
         tagsList: tagsList
     }
+}
+
+async function getEvents(gateway, modelName) {
+    let response = await gateway.lookoutEquipment.describeModel(modelName)
+    response = JSON.parse(response['ModelMetrics'])['predicted_ranges']
+    let events = []
+
+    response.forEach((event) => {
+        events.push({
+            start: new Date(event['start']),
+            end: new Date(event['end'])
+        })
+    })
+
+    return events
 }
 
 // -----------------------------------------------------------

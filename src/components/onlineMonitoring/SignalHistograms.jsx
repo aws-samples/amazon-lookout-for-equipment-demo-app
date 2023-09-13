@@ -30,8 +30,6 @@ async function getTrainingTimeseries(gateway, projectName, modelName) {
     return timeseries
 }
 
-export default SignalHistograms
-
 // --------------------------
 // Component main entry point
 // --------------------------
@@ -57,3 +55,4 @@ function SignalHistograms({ liveResults }) {
     }
 }
 
+export default SignalHistograms

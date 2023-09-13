@@ -3,6 +3,9 @@ import { useContext } from 'react'
 import ReactEcharts from "echarts-for-react"
 import "../../styles/chartThemeMacarons.js"
 
+// App components:
+import EmptyState from '../shared/EmptyState'
+
 // Cloudscape components:
 import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
@@ -20,25 +23,6 @@ import { buildSignalBehaviorOptions } from './schedulerUtils.js'
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
-
-// -------------------------------------------------------
-// Component to show when the filter ends up with 0 result
-// -------------------------------------------------------
-function EmptyState({ title, subtitle, action }) {
-    return (
-        <Box textAlign="center" color="inherit">
-            <Box variant="strong" textAlign="center" color="inherit">
-                {title}
-            </Box>
-
-            <Box variant="p" padding={{ bottom: 's' }} color="inherit">
-                {subtitle}
-            </Box>
-
-            {action}
-        </Box>
-    )
-}
 
 // -----------------------------------------------------------------
 // Component used to display the signal details in a Cards component

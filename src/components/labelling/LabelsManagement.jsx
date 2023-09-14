@@ -230,13 +230,16 @@ function LabelsManagement({ componentHeight, readOnly }) {
                 labels.current.forEach(async (label) => {
                     const labelRequest = {
                         LabelGroupName: uid + '-' + projectName + '-' + labelGroupName,
-                        StartTime: new Date(x[label['start']]).getTime() / 1000,
-                        EndTime: new Date(x[label['end']]).getTime() / 1000,
+                        StartTime: new Date(label['start']).getTime() / 1000,
+                        EndTime: new Date(label['end']).getTime() / 1000,
                         Rating: 'ANOMALY'
                     }
 
                     await gateway.lookoutEquipment.createLabel(labelRequest)
                         .catch((error) => { console.log(error.response) })
+
+                    // Wait to prevent label creation throttling:
+                    await new Promise(r => setTimeout(r, 400))
                 })
 
                 const labelGroupOptions = await getLabelGroups(gateway, uid, projectName)

@@ -212,7 +212,7 @@ export async function getAllExecutionId(gateway, uid) {
 // --------------------------------------------------
 // Get all the models for all the projects / datasets
 // --------------------------------------------------
-export async function getAllModels(gateway, projects) {
+export async function getAllModels(gateway, projects, uid) {
     let allModels = {}
     let response = await gateway.lookoutEquipment.listModels()
     response = response['ModelSummaries']
@@ -241,10 +241,11 @@ export async function getAllModels(gateway, projects) {
         listModels[project] = []
     }
 
-    // Loops through each project to list the schedulers attached to it:
+    // Loops through each project to list the models attached to it:
     for (const model of Object.keys(allModels)) {
         const currentProject = allModels[model].DatasetName.slice('l4e-demo-app'.length + 10)
-        if (projects.indexOf(currentProject) >= 0) {
+        const currentUid = allModels[model].DatasetName.slice('l4e-demo-app'.length + 1, 'l4e-demo-app'.length + 9)
+        if (projects.indexOf(currentProject) >= 0 && uid === currentUid) {
             listModels[currentProject].push({
                 name: allModels[model].ModelName,
                 status: allModels[model].Status

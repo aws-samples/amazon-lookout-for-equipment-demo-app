@@ -46,7 +46,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
         selectedLabelGroupValue 
     } = useContext(ModelParametersContext)
     const { data, tagsList, x, signals, timeseriesData } = useContext(TimeSeriesContext)
-    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { gateway, uid, showHelp } = useContext(ApiGatewayContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { projectName } = useParams()
 
@@ -293,7 +293,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                 <SpaceBetween size="xl">
                     { errorMessage !== "" && <Alert type="error">{errorMessage}</Alert> }
 
-                    { !readOnly && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                    { !readOnly && showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                         <p>
                             If you don't know about any historical events of interest in your dataset, feel free to
                             skip this step and go to <b>{modelTrainingLink}</b>.

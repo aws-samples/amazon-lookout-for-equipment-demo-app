@@ -41,7 +41,7 @@ const samplingRateTable = {
 function DefaultModelConfig() {
     const { modelName, defaultModelConfig } = useContext(ModelParametersContext)
     const { data, tagsList } = useContext(TimeSeriesContext)
-    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { gateway, uid, showHelp } = useContext(ApiGatewayContext)
     const { projectName } = useParams()
     const errorMessage = useRef("")
     const modelSummaryRef = useRef(null)
@@ -131,7 +131,7 @@ function DefaultModelConfig() {
         // Renders the component:
         return (
             <SpaceBetween size="l">
-                { showUserGuide && <Container><Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                { showHelp.current && showUserGuide && <Container><Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                     <p>
                         Now that your data is ingested, you can train an anomaly detection model using 
                         this page. After training, a model can be deployed to receive fresh data and 

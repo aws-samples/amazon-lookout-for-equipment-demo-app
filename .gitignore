@@ -27,6 +27,7 @@ dist-ssr
 *.sw?
 
 src/utils/ECharts.jsx
+Feedback.jsx
 
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend

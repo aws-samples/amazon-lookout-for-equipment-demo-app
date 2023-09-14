@@ -19,6 +19,7 @@ import DeleteProjectModal from './DeleteProjectModal'
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
+import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 // Utils:
 import { SamplingRate } from './projectDashboardUtils'
@@ -31,6 +32,7 @@ function DatasetSummary({ modelDetails }) {
     const [ showUserGuide, setShowUserGuide ] = useState(true)
     const { projectName } = useParams()
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
+    const { showHelp } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
 
     // Links to other pages of the app:
@@ -58,7 +60,7 @@ function DatasetSummary({ modelDetails }) {
     // Render the component:
     return (
         <SpaceBetween size="l">
-            { showUserGuide && <Container>
+            { showHelp.current && showUserGuide && <Container>
                 <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                     <p>
                         You can use this screen to verify that your dataset was correctly ingested and that 

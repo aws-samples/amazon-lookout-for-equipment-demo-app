@@ -30,7 +30,7 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
     const [ items, setItems ] = useState(undefined)
     const [ cols, setCols ] = useState(undefined)
     const [ showUserGuide, setShowUserGuide ] = useState(true)
-    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { gateway, uid, showHelp } = useContext(ApiGatewayContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
 
     useEffect(() => {
@@ -58,7 +58,7 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
                                    >Signal grading</Header>}>
                     
                     <SpaceBetween size="xl">
-                        { showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                        { showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                             <p>
                                 Once your data is ingested, Amazon Lookout for Equipment will perform a <b>grading</b> of
                                 your individual sensor data with regards to their capability to be good quality signals

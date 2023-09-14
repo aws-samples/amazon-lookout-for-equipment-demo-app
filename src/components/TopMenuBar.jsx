@@ -1,5 +1,18 @@
+// Imports:
+import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom"
+
+// CloudScape components:
+import Box           from "@cloudscape-design/components/box"
+import Button        from "@cloudscape-design/components/button"
+import Checkbox      from "@cloudscape-design/components/checkbox"
+import FormField     from "@cloudscape-design/components/form-field"
+import Modal         from "@cloudscape-design/components/modal"
+import SpaceBetween  from "@cloudscape-design/components/space-between"
 import TopNavigation from "@cloudscape-design/components/top-navigation"
+
+// Context:
+import ApiGatewayContext from './contexts/ApiGatewayContext'
 
 // =====================================================================
 // Component main entry point. This component manages the top menu bar 
@@ -7,12 +20,10 @@ import TopNavigation from "@cloudscape-design/components/top-navigation"
 // to sign out and provides features linked to the current user profile:
 // =====================================================================
 function TopMenuBar({ user, signOut }) {
+    const [ showSettingsModal, setShowSettingsModal ] = useState(false)
     const navigate = useNavigate()
-
-    // Render the component:
-
+    
     let utilities = []
-
     if (signOut) {
         utilities = [
             {
@@ -21,9 +32,13 @@ function TopMenuBar({ user, signOut }) {
                 description: user && user.attributes['email'],
                 iconName: "user-profile",
                 items: [
-                    { id: "preferences", text: "Preferences" },
-                    { id: "feedback", text: "Feedback", href: "#", external: true },
+                    { id: "feedback", text: "Feedback", href: "mailto:michoara@amazon.fr?subject=Lookout%20for%20Equipment%20Demo%20App%20Feedback", external: true },
                 ]
+            },
+            {
+                type: "button",
+                iconName: "settings",
+                onClick: () => setShowSettingsModal(true)
             },
             {
                 type: "button",
@@ -31,23 +46,136 @@ function TopMenuBar({ user, signOut }) {
                 onClick: () => signOut()
             }
         ]
+
+        // Render the component:
+        return (
+            <>
+                <Settings visible={showSettingsModal} onDiscard={() => setShowSettingsModal(false)} />
+                <TopNavigation
+                    identity={{
+                        title: "Amazon Lookout for Equipment Demonstration",
+                        href: "#",
+                        onFollow: () => navigate('/'),
+                        logo: {
+                            src: "/lookout-equipment-icon-32.png",
+                            alt: "Amazon Lookout for Equipment Demonstration"
+                        }
+                    }}
+                    utilities={utilities}
+                />
+            </>
+        )
+    }
+}
+
+// --------------------------------------------
+// Components used to configure the application
+// --------------------------------------------
+function Settings({ visible, onDiscard }) {
+    const { gateway, uid, showHelp } = useContext(ApiGatewayContext)
+    const [ checked, setChecked ] = useState(showHelp.current)
+    
+    useEffect(() => {
+        getUserSettings(gateway, uid, showHelp)
+        .then((x) => setChecked(x === 'true'))
+    }, [gateway, uid])
+
+    // Save current settings:
+    async function onSaveSettings(e) {
+        e.preventDefault()
+
+        await gateway.dynamoDb.putItem(
+            'l4edemoapp-users', 
+            {
+                'user_id': {'S': uid},
+                'show_help': {'S': showHelp.current.toString()}
+            }
+        ).catch((error) => console.log(error.response))
+        
+        onDiscard()
     }
 
-
+    // Renders the modal window for the settings components:
     return (
-        <TopNavigation
-            identity={{
-                title: "Amazon Lookout for Equipment Demonstration",
-                href: "#",
-                onFollow: () => navigate('/'),
-                logo: {
-                    src: "/lookout-equipment-icon-32.png",
-                    alt: "Amazon Lookout for Equipment Demonstration"
-                }
-            }}
-            utilities={utilities}
-        />
+        <Modal 
+            visible={visible} 
+            onDismiss={onDiscard} 
+            header="Application settings"
+            footer={
+                <Box float="right">
+                    <SpaceBetween direction="horizontal" size="xs">
+                        <Button variant="link" onClick={onDiscard}>
+                            Cancel
+                        </Button>
+                        <Button variant="primary" onClick={(e) => onSaveSettings(e)}>
+                            Save
+                        </Button>
+                    </SpaceBetween>
+                </Box>
+              }
+        >
+            <FormField 
+                label="Show user guide"
+                description={`This application includes some user guides scattered through the different 
+                              pages. They will guide you as you get familiar with the application. Once
+                              you feel comfortable with the navigation, feel free to hide these and 
+                              reclaim some screen real estate`}
+            >
+                <Checkbox
+                    onChange={({ detail }) => {
+                        showHelp.current = detail.checked
+                        setChecked(detail.checked)
+                    }}
+                    checked={checked}
+                >
+                    Show help
+                </Checkbox>
+            </FormField>
+        </Modal>
     )
+}
+
+// ------------------------------------
+// Collects user settings from DynamoDB
+// ------------------------------------
+async function getUserSettings(gateway, uid, showHelp) {
+    const userQuery = { 
+        TableName: 'l4edemoapp-users',
+        KeyConditionExpression: "#user = :user",
+        ExpressionAttributeNames: {"#user": "user_id"},
+        ExpressionAttributeValues: { 
+            ":user": {"S": uid}, 
+        }
+    }
+
+    const response = await gateway
+                     .dynamoDbQuery(userQuery)
+                     .catch((error) => console.log(error.response))
+
+    if (response.Items.length == 0) {
+        await createUser(gateway, uid, showHelp)
+    }
+    else {
+        showHelp.current = (response.Items[0].show_help.S === true)
+    }
+
+    return showHelp.current === 'true'
+}
+
+// -------------------------------------------------
+// A user connects for the first time to the app: we 
+// create his/her record in the users DynamoDB table
+// -------------------------------------------------
+async function createUser(gateway, uid, showHelp) {
+    await gateway.dynamoDb.putItem(
+        'l4edemoapp-users', 
+        {
+            'user_id': {'S': uid},
+            'show_help': {'S': 'true'}
+        }
+    ).catch((error) => console.log(error.response))
+
+    showHelp.current = true
 }
 
 export default TopMenuBar

@@ -1,5 +1,5 @@
 // Imports:
-import { createContext, useState } from 'react'
+import { createContext, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import request from "../../utils/request";
 
@@ -13,6 +13,7 @@ export const ApiGatewayProvider = ({user, children}) => {
     }
 
     const [ navbarCounter, setNavbarCounter ] = useState(0)
+    const showHelp = useRef(true)
 
     // Define all the API request we need for this app:
     const gateway = {
@@ -197,6 +198,9 @@ export const ApiGatewayProvider = ({user, children}) => {
             deleteItem(tableName, key) {
                 return request("DynamoDB", "DeleteItem", { TableName: tableName, Key: key })
             },
+            putItem(tableName, item) {
+                return request("DynamoDB", "PutItem", { TableName: tableName, Item: item })
+            },
             async queryAll(query) {
                 let response = undefined
                 let overall_response = {Items: []}
@@ -223,7 +227,14 @@ export const ApiGatewayProvider = ({user, children}) => {
     }
 
     return (
-        <ApiGatewayContext.Provider value={{ gateway, uid, navbarCounter, setNavbarCounter }}>
+        <ApiGatewayContext.Provider value={{ 
+            gateway, 
+            uid, 
+            navbarCounter, 
+            showHelp,
+            
+            setNavbarCounter
+        }}>
             {children}
         </ApiGatewayContext.Provider>
     )

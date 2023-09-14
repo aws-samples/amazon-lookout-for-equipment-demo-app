@@ -18,11 +18,6 @@ import Welcome              from './Welcome'
 import { ApiGatewayProvider } from './contexts/ApiGatewayContext'
 import { HelpPanelProvider } from './contexts/HelpPanelContext'
 
-////////////////////////////
-// ADD A BREADCRUMB
-// Give a name to the App (like QnABot)
-////////////////////////////
-
 const queryClient = new QueryClient()
 
 function Home({ user, signOut }) {
@@ -32,8 +27,14 @@ function Home({ user, signOut }) {
                 <HelpPanelProvider>
                     <TopMenuBar user={user} signOut={signOut} />
                     <Routes>
-                        <Route path="/" element={<Welcome />} />
-                        <Route path="/create-project" element={<CreateProject />} />
+                        <Route 
+                            path="/" 
+                            element={<Welcome />} 
+                        />
+                        <Route 
+                            path="/create-project" 
+                            element={<CreateProject />} 
+                        />
                         <Route 
                             path="/project-dashboard/projectName/:projectName"
                             element={<ProjectDashboard />} 

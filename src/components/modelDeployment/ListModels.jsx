@@ -29,7 +29,7 @@ import { buildModelTableContent, getSchedulerData } from './deploymentUtils'
 // Component main entry point
 // --------------------------
 function ListModels({ projectName }) {
-    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
+    const { gateway, uid, navbarCounter, setNavbarCounter, showHelp } = useContext(ApiGatewayContext)
     const { stateMachinesList, setStateMachinesList } = useContext(ModelDeploymentContext)
     const [ isLoading, setIsLoading ] = useState(true)
     const [ sfnStatus, setSfnStatus ] = useState({})
@@ -161,7 +161,7 @@ function ListModels({ projectName }) {
                 <SpaceBetween size="xl">
                     <Container>
                         <SpaceBetween size="xl">
-                            { showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                            { showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                                 After you've trained a model you can deploy it so that it can process live data and detect
                                 anomalies in it. Use this screen to deploy model that you have previously trained within this
                                 project.

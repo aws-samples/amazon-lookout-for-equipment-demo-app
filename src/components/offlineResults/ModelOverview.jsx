@@ -20,6 +20,7 @@ import Table                from '@cloudscape-design/components/table'
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
+import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 // --------------------------
 // Component main entry point
@@ -28,6 +29,7 @@ function ModelOverview({ modelDetails, loading }) {
     const [ showDeleteModelModal, setShowDeleteModelModal ] = useState(false)
     const [ showUserGuide, setShowUserGuide ] = useState(true)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
+    const { showHelp } = useContext(ApiGatewayContext)
 
     // Define the badge color for the training status:
     let color = 'gray'
@@ -91,7 +93,7 @@ function ModelOverview({ modelDetails, loading }) {
                     </Header>
                 }>
                     <SpaceBetween size="xl">
-                        { showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                        { showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                             Once a model is trained you can use the <b>Model overview</b> section to visualize the parameters 
                             used for training. At training time, you can optionnally specify an evaluation range that Lookout
                             for Equipment will use to help you assess if your model was able to capture any event of interest 

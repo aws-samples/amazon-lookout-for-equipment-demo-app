@@ -12,6 +12,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between"
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
+import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 // Utils:
 import { buildChartOptions } from './offlineResultsUtils'
@@ -27,6 +28,7 @@ function DetectedEvents({ modelDetails }) {
         const evaluationStart      = new Date(modelDetails['evaluationStart'])
         const option               = useRef(undefined)
         const { setHelpPanelOpen } = useContext(HelpPanelContext)
+        const { showHelp }         = useContext(ApiGatewayContext)
 
         // If no sensor contribution contribution data is found, this means 
         // that no anomalous event was found while evaluating the model. 
@@ -74,11 +76,12 @@ function DetectedEvents({ modelDetails }) {
                     >Detected events</Header>
                 }>
                     <SpaceBetween size="xl">
-                        <Alert>
+                        { showHelp.current && <Alert>
                             This section shows the evaluation results of your model when applied on historical data you
                             selected at training time. To learn more about how to interpret these plots, click on
                             the <b>{infoLink}</b> link above.
-                        </Alert>
+                        </Alert> }
+
                         <ReactEcharts 
                             option={option.current}
                             notMerge={true}

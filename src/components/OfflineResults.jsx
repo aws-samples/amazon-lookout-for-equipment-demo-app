@@ -52,7 +52,8 @@ function OfflineResults() {
                 <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
                     <SpaceBetween size='xl'>
                         <ModelOverview modelDetails={modelDetails} loading={loading} />
-                        {!loading && modelDetails && <Tabs
+
+                        {!loading && modelDetails['status'] === 'SUCCESS' && <Tabs
                             tabs={[
                                 {
                                     label: "Detected events",

@@ -1,5 +1,5 @@
 import { buildTimeseries2 } from '../../utils/timeseries.js'
-import { sortDictionnary, getLegendWidth } from '../../utils/utils.js'
+import { sortDictionnary, getLegendWidth, cleanList } from '../../utils/utils.js'
 
 function getMarkAreaSeries(axis, evaluationStart) {
     const markAreaSeries = {
@@ -60,8 +60,11 @@ export function buildChartOptions(
     series = [...series, ...sensorContributionSeries, getMarkAreaSeries(2, evaluationStart)]
 
     // Configuring the series for the raw time series data:
-    const { signalSeries, yMin, yMax } = buildSignalSeries(timeseries, sortedTags)
+    const { signalSeries, yMin, yMax, unusedTags } = buildSignalSeries(timeseries, sortedTags)
     series = [...series, ...signalSeries, getMarkAreaSeries(3, evaluationStart)]
+    if (unusedTags.length > 0) {
+        sortedTags = [...sortedTags, ...unusedTags]
+    }
 
     // Add an off condition signal to the time series plot 
     // if this feature was used to train this model:
@@ -104,13 +107,14 @@ export function buildChartOptions(
             { show: false, gridIndex: 0, min: 0.0, max: 1.0 },
             { type: 'value', show: true, gridIndex: 1 },
             { type: 'value', show: true, gridIndex: 2, min: 0.0, max: 1.0 },
-            { type: 'value', show: true, gridIndex: 3, min: yMin.toFixed(0), max: yMax.toFixed(0) },
+            { type: 'value', show: true, gridIndex: 3 /*, min: yMin.toFixed(0), max: yMax.toFixed(0) */},
         ],
         series: series,
         animation: false,
         dataZoom: [{ type:'slider', start: /* zoomStart */ 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 100, height: 30 }],
         legend: [
             {
+                type: 'scroll',
                 right: 10,
                 top: 370,
                 selector: [
@@ -168,8 +172,9 @@ function buildOffConditionSeries(offConditionDefinition, series, yMin, yMax) {
     offConditionTimeseries.forEach((item) => {
         const x = item[0]
         const y = item[1]
+        
         if (offConditionCriteria === "<") {
-            if (item[1] <= offConditionValue) {
+            if (y <= offConditionValue) {
                 offConditionData.push([x, yMax * 1])
             }
             else {
@@ -177,7 +182,7 @@ function buildOffConditionSeries(offConditionDefinition, series, yMin, yMax) {
             }
         }
         else {
-            if (item[1] >= offConditionValue) {
+            if (y >= offConditionValue) {
                 offConditionData.push([x, yMax * 1])
             }
             else {
@@ -302,7 +307,11 @@ function buildSignalSeries(timeseries, sortedTags) {
     let overallYMin = undefined
     let overallYMax = undefined
 
-    sortedTags.forEach((tag, index) => {
+    let unusedTags = Object.keys(timeseries[0])
+    const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp', ...sortedTags]
+    unusedTags = cleanList(tagsToRemove, unusedTags)
+
+    sortedTags.forEach((tag) => {
         const results = buildTimeseries2(timeseries, tag, 'S', 'unix_timestamp')
 
         signalSeries.push({
@@ -324,10 +333,34 @@ function buildSignalSeries(timeseries, sortedTags) {
         if (results['yMax'] > overallYMax) { overallYMax = results['yMax'] }
     })
 
+    unusedTags.forEach((tag, index) => {
+        const results = buildTimeseries2(timeseries, tag, 'S', 'unix_timestamp')
+        unusedTags[index] = `(${tag})`
+
+        signalSeries.push({
+            name: `(${tag})`,
+            symbol: 'none',
+            sampling: 'lttb',
+            data: results['data'],
+            type: 'line',
+            emphasis: { focus: "series" },
+            xAxisIndex: 3,
+            yAxisIndex: 3,
+            tooltip: { valueFormatter: (value) => value.toFixed(2) },
+            lineStyle: { width: 2.0 }
+        })
+
+        if (!overallYMin) { overallYMin = results['yMin'] }
+        if (!overallYMax) { overallYMax = results['yMax'] }
+        if (results['yMin'] < overallYMin) { overallYMin = results['yMin'] }
+        if (results['yMax'] > overallYMax) { overallYMax = results['yMax'] }
+    })
+
     return { 
         signalSeries: signalSeries,
         yMin: overallYMin,
-        yMax: overallYMax
+        yMax: overallYMax,
+        unusedTags: unusedTags
     }
 }
 

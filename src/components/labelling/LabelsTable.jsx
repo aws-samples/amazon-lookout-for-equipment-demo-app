@@ -36,8 +36,8 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
 
             // Creates the new label entry:
             items.push({
-                startDate: label['start'].toISOString().substring(0, 19).replace('T', ' '),
-                endDate: label['end'].toISOString().substring(0, 19).replace('T', ' '),
+                startDate: new Date(label['start']).toISOString().substring(0, 19).replace('T', ' '),
+                endDate: new Date(label['end']).toISOString().substring(0, 19).replace('T', ' '),
                 duration: `${durationDays} day${daysUnit} ${durationTime}`,
                 faultCode: "Fault code",
                 notes: "Notes",

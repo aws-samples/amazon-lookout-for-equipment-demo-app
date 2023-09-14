@@ -63,8 +63,8 @@ function ReviewModelConfiguration() {
 
         let listLabels = []
         labels.current.forEach((label) => {
-            const start = x[label.start].replace('\n', ' ')
-            const end = x[label.end].replace('\n', ' ')
+            const start = new Date(label.start).toISOString().replace('T', ' ').substring(0,19)
+            const end = new Date(label.end).toISOString().replace('T', ' ').substring(0,19)
             listLabels.push(`From ${start} to ${end}`)
         })
         listLabels = listLabels.join('\n')

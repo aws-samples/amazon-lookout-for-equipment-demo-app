@@ -81,11 +81,22 @@ function OnlineMonitoring() {
             contentType="default"
 
             toolsOpen={helpPanelOpen.status}
-            onToolsChange={(e) => setHelpPanelOpen({
-                status: e.detail.open,
-                page: helpPanelOpen.page,
-                section: helpPanelOpen.section
-            })}
+            onToolsChange={(e) => {
+                if (!helpPanelOpen.page) {
+                    setHelpPanelOpen({
+                        status: true,
+                        page: 'onlineResults',
+                        section: 'general'
+                    })
+                }
+                else {
+                    setHelpPanelOpen({
+                        status: e.detail.open,
+                        page: helpPanelOpen.page,
+                        section: helpPanelOpen.section
+                    })
+                }
+            }}
             tools={panelContent.current}
 
             content={

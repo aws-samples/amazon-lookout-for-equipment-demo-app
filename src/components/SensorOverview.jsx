@@ -35,11 +35,22 @@ function SensorOverview() {
             contentType="default"
             maxContentWidth={Number.MAX_VALUE}
             toolsOpen={helpPanelOpen.status}
-            onToolsChange={(e) => setHelpPanelOpen({
-                status: e.detail.open,
-                page: helpPanelOpen.page,
-                section: helpPanelOpen.section
-            })}
+            onToolsChange={(e) => {
+                if (!helpPanelOpen.page) {
+                    setHelpPanelOpen({
+                        status: true,
+                        page: 'sensorOverview',
+                        section: 'general'
+                    })
+                }
+                else {
+                    setHelpPanelOpen({
+                        status: e.detail.open,
+                        page: helpPanelOpen.page,
+                        section: helpPanelOpen.section
+                    })
+                }
+            }}
             tools={panelContent.current}
             content={
                 <ContentLayout header={<Header variant="h1">{projectName} sensor overview</Header>}>

@@ -30,11 +30,22 @@ function Labeling() {
                 contentType="default"
 
                 toolsOpen={helpPanelOpen.status}
-                onToolsChange={(e) => setHelpPanelOpen({
-                    status: e.detail.open,
-                    page: helpPanelOpen.page,
-                    section: helpPanelOpen.section
-                })}
+                onToolsChange={(e) => {
+                    if (!helpPanelOpen.page) {
+                        setHelpPanelOpen({
+                            status: true,
+                            page: 'labelling',
+                            section: 'general'
+                        })
+                    }
+                    else {
+                        setHelpPanelOpen({
+                            status: e.detail.open,
+                            page: helpPanelOpen.page,
+                            section: helpPanelOpen.section
+                        })
+                    }
+                }}
                 tools={panelContent.current}
 
                 content={

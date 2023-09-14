@@ -108,11 +108,11 @@ function LabelsManagement({ componentHeight, readOnly }) {
         )
 
         const modelTrainingLink = <Link 
-        href={`/model-training/ProjectName/${projectName}`}
-        onFollow={(e) => { 
-            e.preventDefault()
-            navigate(`/model-training/ProjectName/${projectName}`)
-        }}>Model training</Link>
+            href={`/model-training/ProjectName/${projectName}`}
+            onFollow={(e) => { 
+                e.preventDefault()
+                navigate(`/model-training/ProjectName/${projectName}`)
+            }}>Model training</Link>
 
         // --------------------------------------------------------------------------------
         // This functions collects all the labels associated with the selected label groups

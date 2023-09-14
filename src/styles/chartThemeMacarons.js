@@ -102,6 +102,7 @@ var theme = {
         dataBackgroundColor: '#efefff',
         fillerColor: 'rgba(182,162,222,0.2)',
         handleColor: '#414D5C',
+        brushSelect: false,
         textStyle: { ...font }
     },
 

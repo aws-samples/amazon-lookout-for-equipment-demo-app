@@ -132,7 +132,9 @@ export function buildChartOptions(
     const datazoomOption = { 
         start: initialZoomStart, 
         end: initialZoomEnd, 
-        top: top, 
+        top: top,
+        left: 60,
+        right: legendWidth,
         xAxisIndex: 0,
         type: 'slider'
     }
@@ -175,7 +177,7 @@ export function buildChartOptions(
             ],
             data: tagsList
         }
-        option['grid'] = { top: 55 + top, left: 50, bottom: 30, right: legendWidth }
+        option['grid'] = { top: 55 + top, left: 60, bottom: 30, right: legendWidth }
         option['toolbox'] = {
             right: legendWidth,
             top: 0

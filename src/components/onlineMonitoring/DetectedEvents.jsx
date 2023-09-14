@@ -50,7 +50,7 @@ function DetectedEvents({ range, infoLink, liveResults }) {
                     option={options}
                     notMerge={true}
                     theme="macarons"
-                    style={{height: 970, width: "100%"}}
+                    style={{height: 900, width: "100%"}}
                 />
             </SpaceBetween>
         )

@@ -245,18 +245,19 @@ export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContr
     series = [...series, ...signalSeries]
 
     // Finally build the full configuration for all the plots to be displayed:
+    const gridLeft = 60
     let options = {
         title: [
             { top: 0, left: 0, text: eventTitle },
-            { top: 170, left: 0, text: 'Raw anomaly score' },
-            { top: 390, left: 0, text: 'Sensor contribution evolution' },
-            { top: 690, left: 0, text: 'Sensor time series' },
+            { top: 150, left: 0, text: 'Raw anomaly score' },
+            { top: 350, left: 0, text: 'Sensor contribution evolution' },
+            { top: 630, left: 0, text: 'Sensor time series' },
         ],
         grid: [
-            { left: 50, right: legendWidth, top: 30, height: 30 },
-            { left: 50, right: legendWidth, top: 210, height: 120 },
-            { left: 50, right: legendWidth, top: 430, height: 200 },
-            { left: 50, right: legendWidth, top: 730, height: 200 },
+            { left: gridLeft, right: legendWidth, top: 30, height: 30 },
+            { left: gridLeft, right: legendWidth, top: 190, height: 120 },
+            { left: gridLeft, right: legendWidth, top: 390, height: 200 },
+            { left: gridLeft, right: legendWidth, top: 680, height: 200 },
         ],
         xAxis: [
             { type: 'time', gridIndex: 0, min: xMin, max: xMax, minorTick: { show: true } },
@@ -272,7 +273,7 @@ export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContr
         ],
         series: series,
         animation: false,
-        dataZoom: [{ type:'slider', start: 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 110, height: 30 }],
+        dataZoom: [{ type:'slider', start: 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 90, height: 30, left: gridLeft }],
         legend: {
             right: 10,
             top: 380,

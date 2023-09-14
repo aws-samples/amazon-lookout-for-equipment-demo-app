@@ -103,7 +103,10 @@ var theme = {
         fillerColor: 'rgba(182,162,222,0.2)',
         handleColor: '#414D5C',
         brushSelect: false,
-        textStyle: { ...font }
+        labelFormatter: function (value, valueStr) {
+            return new Date(value).toISOString().replace('T', '\n').substring(0,19)
+        },
+        textStyle: { ...font, fontSize: 9 }
     },
 
     grid: {

@@ -25,6 +25,7 @@ import Tiles             from "@cloudscape-design/components/tiles"
 // Context:
 import ApiGatewayContext from './contexts/ApiGatewayContext'
 import HelpPanelContext from './contexts/HelpPanelContext'
+import { OnlineMonitoringProvider } from './contexts/OnlineMonitoringContext'
 
 // Utils:
 import { getSchedulerStatus } from "../utils/utils"
@@ -147,43 +148,45 @@ function OnlineMonitoring() {
                             />
                         </Container>
 
-                        <Tabs
-                            tabs={[
-                                {
-                                    label: "Condition overview",
-                                    id: "conditionOverview",
-                                    content: <Container header={<Header 
-                                        variant="h2" 
-                                        description="The following widget shows the time your asset or process spent in 
-                                                     an anomalous state. Note that this only take into account the time 
-                                                     when the inference scheduler is running."
-                                    >
-                                        Condition overview
-                                    </Header>}>
-                                        <ConditionOverview range={range} modelName={modelName} projectName={projectName} size="large" />
-                                    </Container>
-                                },
-                                {
-                                    label: "Detected events",
-                                    id: "detectedEvents",
-                                    content:
-                                        <Container header={
-                                            <Header
-                                                variant="h2"
-                                                info={detectedEventsInfoLink}>
-                                                    Detected events
-                                            </Header>
-                                        }>
-                                            <DetectedEvents range={range} infoLink={detectedEventsInfoLink} liveResults={liveResults} />
+                        <OnlineMonitoringProvider range={range}>
+                            <Tabs
+                                tabs={[
+                                    {
+                                        label: "Condition overview",
+                                        id: "conditionOverview",
+                                        content: <Container header={<Header 
+                                            variant="h2" 
+                                            description="The following widget shows the time your asset or process spent in 
+                                                        an anomalous state. Note that this only take into account the time 
+                                                        when the inference scheduler is running."
+                                        >
+                                            Condition overview
+                                        </Header>}>
+                                            <ConditionOverview range={range} modelName={modelName} projectName={projectName} size="large" />
                                         </Container>
-                                },
-                                {
-                                    label: "Signal deep dive",
-                                    id: "signalDeepDive",
-                                    content: <SignalHistograms range={range} liveResults={liveResults} />
-                                }
-                            ]}
-                        />
+                                    },
+                                    {
+                                        label: "Detected events",
+                                        id: "detectedEvents",
+                                        content:
+                                            <Container header={
+                                                <Header
+                                                    variant="h2"
+                                                    info={detectedEventsInfoLink}>
+                                                        Detected events
+                                                </Header>
+                                            }>
+                                                <DetectedEvents infoLink={detectedEventsInfoLink} />
+                                            </Container>
+                                    },
+                                    {
+                                        label: "Signal deep dive",
+                                        id: "signalDeepDive",
+                                        content: <SignalHistograms />
+                                    }
+                                ]}
+                            />
+                        </OnlineMonitoringProvider>
                     </SpaceBetween>
                 </ContentLayout>
             }

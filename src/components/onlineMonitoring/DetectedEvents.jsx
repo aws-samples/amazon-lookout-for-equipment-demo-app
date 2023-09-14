@@ -14,10 +14,10 @@ import Spinner          from "@cloudscape-design/components/spinner"
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
+import OnlineMonitoringContext from '../contexts/OnlineMonitoringContext'
 
-function DetectedEvents({ range, infoLink, liveResults }) {
-    const endTime = parseInt(Date.now() / 1000)
-    const startTime = parseInt((endTime - range * 86400))
+function DetectedEvents({ infoLink }) {
+    const { liveResults, startTime, endTime } = useContext(OnlineMonitoringContext)
 
     if (liveResults && liveResults['modelDetails']['status'] === 'SUCCESS') {
         const timeseries = liveResults['timeseries']

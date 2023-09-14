@@ -7,7 +7,6 @@ import "../../styles/chartThemeMacarons.js"
 import EmptyState from '../shared/EmptyState'
 
 // Cloudscape components:
-import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
 import Cards        from "@cloudscape-design/components/cards"
 import Grid         from "@cloudscape-design/components/grid"

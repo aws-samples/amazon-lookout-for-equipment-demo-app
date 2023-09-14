@@ -4,7 +4,7 @@ import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom"
 
 // Utils:
-import { checkProjectNameValidity } from './createProject/createProjectUtils.js'
+import { checkProjectNameValidity, checkAssetDescriptionValidity } from './createProject/createProjectUtils.js'
 import { 
     getHumanReadableSize, 
     checkProjectNameAvailability, 
@@ -51,6 +51,8 @@ function CreateProject() {
     const [ errorMessage, setErrorMessage ]             = useState(undefined)
     const [ showFlashbar, setShowFlashbar ]             = useState(false)
     const [ projectNameError, setProjectNameError ]     = useState("")
+    const [ assetError, setAssetError ]                 = useState("")
+    const [ assetDescription, setAssetDescription ]     = useState("")
 
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
@@ -85,7 +87,7 @@ function CreateProject() {
                 { 
                     contentType: file.type,
                     level: "private",
-                    tagging: `L4EDemoAppUser=${uid}`,
+                    tagging: `L4EDemoAppUser=${uid}&AssetDescription=${assetDescription}`,
                     progressCallback
                 }
             )
@@ -116,6 +118,9 @@ function CreateProject() {
         }
         else if (! await checkProjectNameAvailability(projectName, gateway, uid)) {
             currentError = 'Project name not available'
+        }
+        else if (checkAssetDescriptionValidity(assetDescription, setAssetError)) {
+            currentError = 'Asset / process description is invalid'
         }
 
         if (currentError === "") {
@@ -174,7 +179,7 @@ function CreateProject() {
                                         }
                                     }
                                 >Cancel</Button>
-                                <Button variant="primary" disabled={uploadInProgress || projectNameError !== ""}>Create project</Button>
+                                <Button variant="primary" disabled={uploadInProgress || projectNameError !== "" || assetError !== ""}>Create project</Button>
                             </SpaceBetween>
                             }
                         >
@@ -192,8 +197,9 @@ function CreateProject() {
                                             </Box>
                                             <Input
                                                 onChange={({detail}) => {
-                                                    checkProjectNameValidity(detail.value, setProjectNameError, gateway, uid)
+                                                    const checkError = checkProjectNameValidity(detail.value, setProjectNameError, gateway, uid)
                                                     setProjectName(detail.value)
+                                                    if (!checkError) { setErrorMessage("") }
                                                 }}
                                                 autoFocus={true}
                                                 value={projectName}
@@ -201,6 +207,28 @@ function CreateProject() {
                                                 placeholder="Enter a project name"
                                             />
                                         </SpaceBetween>
+                                    </FormField>
+
+                                    <FormField 
+                                        label="Asset or process description"
+                                        constraintText={assetError !== "" ? assetError : ""}
+                                    >
+                                        <SpaceBetween size="xs">
+                                            <Box>
+                                                What type of asset will you monitor within this project? This can be a piece of equipment,
+                                                a production line, a manufacturing process, a shop floor area...
+                                            </Box>
+                                            <Input
+                                                onChange={({detail}) => {
+                                                    checkAssetDescriptionValidity(detail.value, setAssetError)
+                                                    setAssetDescription(detail.value)
+                                                }}
+                                                value={assetDescription}
+                                                invalid={assetError !== ""}
+                                                placeholder="Enter a description for the process or asset you want to monitor"
+                                            />
+                                        </SpaceBetween>
+
                                     </FormField>
 
                                     <FormField

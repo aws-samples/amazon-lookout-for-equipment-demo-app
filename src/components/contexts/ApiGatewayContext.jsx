@@ -132,12 +132,20 @@ export const ApiGatewayProvider = ({user, children}) => {
             createLabelGroup(labelGroupParameters) {
                 let requestArg = labelGroupParameters
                 requestArg['ClientToken'] = uuidv4()
+                requestArg['Tags'] = [
+                    {"Key": "Source", "Value": "L4EDemoApp"},
+                    {"Key": "AppVersion", "Value": "1.0.0"}
+                ]
 
                 return request("LookoutEquipment", "CreateLabelGroup", requestArg)
             },
             createLabel(labelParameters) {
                 let requestArg = labelParameters
                 requestArg['ClientToken'] = uuidv4()
+                requestArg['Tags'] = [
+                    {"Key": "Source", "Value": "L4EDemoApp"},
+                    {"Key": "AppVersion", "Value": "1.0.0"}
+                ]
 
                 return request("LookoutEquipment", "CreateLabel", requestArg)
             },

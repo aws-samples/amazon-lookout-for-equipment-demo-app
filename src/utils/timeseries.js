@@ -116,6 +116,7 @@ export function buildChartOptions(
             sampling: 'lttb',
             data: timeseriesData[tag],
             type: 'line',
+            xAxisIndex: 0,
             emphasis: {
                 disabled: false,
                 focus: "self"
@@ -132,6 +133,7 @@ export function buildChartOptions(
         start: initialZoomStart, 
         end: initialZoomEnd, 
         top: top, 
+        xAxisIndex: 0,
         type: 'slider'
     }
 
@@ -195,7 +197,7 @@ export function buildChartOptions(
     if (enableBrush && !readOnly) {
         option['brush'] = {
             toolbox: ['lineX', 'keep', 'clear'],
-            xAxisIndex: 0,
+            xAxisIndex: 'all',
             brushMode: 'multiple',
             brushStyle: {
                 color: 'rgba(151, 181, 82, 0.2)',
@@ -208,7 +210,7 @@ export function buildChartOptions(
             option['toolbox']['show'] = false
         }
         else {
-            option['brush']['transformable'] = true
+            option['brush']['transformable'] = false
             option['toolbox']['show'] = true
         }
     }

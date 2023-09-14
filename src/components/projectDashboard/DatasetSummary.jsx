@@ -135,6 +135,10 @@ function DatasetSummary({ modelDetails }) {
                                 <b>{modelDetails && modelDetails.endDate}</b>
                             </div>
                         </div>
+                        <div>
+                            <Box variant="awsui-key-label">Asset / process description</Box>
+                            <div>{modelDetails && modelDetails.assetDescription}</div>
+                        </div>
                     </SpaceBetween>
 
                     <SpaceBetween size="l">

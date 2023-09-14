@@ -26,6 +26,8 @@ dist-ssr
 *.sln
 *.sw?
 
+src/utils/ECharts.jsx
+
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend
 amplify/.config/local-*

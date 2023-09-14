@@ -42,7 +42,7 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                     )
                     .catch(() => { fetchError = true })
 
-                const rowCounts = await getRowsNumber(gateway, uid, projectName)
+                const { rowCounts, assetDescription } = await getProjectInfos(gateway, uid, projectName)
 
                 if (!fetchError) {
                     return {
@@ -50,6 +50,7 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                             contentHead: contentHead,
                             contentTail: contentTail,
                             rowCounts: rowCounts,
+                            assetDescription: assetDescription,
                             startDate: contentHead.Items[0]['timestamp']['S'],
                             endDate: contentTail.Items[contentTail.Items.length - 1]['timestamp']['S'],
                             firstRow: contentHead.Items[0],
@@ -94,7 +95,7 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
 // --------------------------------------
 // Get the rows number of a given project
 // --------------------------------------
-async function getRowsNumber(gateway, uid, projectName) {
+async function getProjectInfos(gateway, uid, projectName) {
     const projectQuery = { 
         TableName: 'l4edemoapp-projects',
         KeyConditionExpression: "#user = :user AND #project = :project",
@@ -107,7 +108,12 @@ async function getRowsNumber(gateway, uid, projectName) {
 
     const response = await gateway.dynamoDbQuery(projectQuery).catch((error) => console.log(error.response))
 
-    return response.Items[0]['numRows']['N']
+    return {
+        rowCounts: response.Items[0]['numRows']['N'],
+        assetDescription: response.Items[0]['assetDescription'] ? response.Items[0]['assetDescription']['S'] : "n/a"
+    }
+    
+    
 }
 
 // --------------------------------------------------------------

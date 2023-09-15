@@ -23,6 +23,7 @@ import ModelDeploymentContext from "../contexts/ModelDeploymentContext"
 
 // App components:
 import StartDateSelection from './StartDateSelection'
+import appConfig from '../../demoAppConfig.json'
 
 // ---------------------
 // Component entry point
@@ -65,7 +66,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     // ------------------------------------------------------
     const onDeployConfirm = async () => {
         // Configure the state machine to be launched:
-        const sfnArn = 'arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-deploy-model'
+        const sfnArn = appConfig.deployModelArn
         const inputPayload = { 
             modelName: modelName, 
             projectName: uid + '-' + projectName,

@@ -1,7 +1,7 @@
 import { Amplify, API } from "aws-amplify"
 import { retryWrapper } from "./index"
+import appConfig from '../demoAppConfig.json'
 
-const region = "eu-west-1"
 const target_list = {
 	"LookoutEquipment": "AWSLookoutEquipmentFrontendService",
 	"DynamoDB": "DynamoDB_20120810",
@@ -10,37 +10,32 @@ const target_list = {
 
 Amplify.configure({
 	Auth: {
-		identityPoolId: "eu-west-1:580d8750-fca6-49d2-ada6-2afdc9075bd7",
-		region: region,
+		identityPoolId: `${appConfig.region}:${appConfig.identityPoolId}`,
+		region: `${appConfig.region}`,
 		mandatorySignIn: true,
-		userPoolId: "eu-west-1_s93PCdhWT",
-		userPoolWebClientId: "3dblqgvrm6midi34iq6oabjv9l",
+		userPoolId: `${appConfig.userPoolId}`,
+		userPoolWebClientId: `${appConfig.userPoolWebClientId}`,
 	},
 	API: {
 		endpoints: [
 			{
 				name: "LookoutEquipmentApi",
-				endpoint: `https://lookoutequipment.${region}.amazonaws.com/`,
-				region: region,
+				endpoint: `https://lookoutequipment.${appConfig.region}.amazonaws.com/`,
+				region: `${appConfig.region}`,
 				service: "lookoutequipment",
 			},
 			{
 				name: "DynamoDBApi",
-				endpoint: `https://dynamodb.${region}.amazonaws.com/`,
-				region: region,
+				endpoint: `https://dynamodb.${appConfig.region}.amazonaws.com/`,
+				region: `${appConfig.region}`,
 				service: "dynamodb",
 			},
             {
                 name: "StepFunctionsApi",
-                endpoint: `https://states.${region}.amazonaws.com/`,
-                region: region,
+                endpoint: `https://states.${appConfig.region}.amazonaws.com/`,
+                region: `${appConfig.region}`,
                 service: "states"
             }
-			// {
-			// 	name: "L4EDemoAppBackendApi",
-			// 	endpoint: `https://kfzzjcmj0a.execute-api.${region}.amazonaws.com/dev/`,
-			// 	region: region
-			// },
 		],
 	},
 })

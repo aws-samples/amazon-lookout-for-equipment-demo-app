@@ -1,27 +1,6 @@
 import { buildTimeseries2 } from '../../utils/timeseries.js'
 import { sortDictionnary, getLegendWidth, cleanList } from '../../utils/utils.js'
 
-function getMarkAreaSeries(axis, evaluationStart) {
-    const markAreaSeries = {
-        name: 'Training range',
-        symbol: 'none',
-        data: [],
-        type: 'line',
-        color: 'rgb(151, 181, 82, 0.1)',
-        xAxisIndex: axis,
-        yAxisIndex: axis,
-        markArea: {
-            itemStyle: { color: 'rgb(151, 181, 82, 0.1)' },
-            data: [[
-                { name: 'Training range', xAxis: 0 },
-                { xAxis: evaluationStart }
-            ]]
-        },
-    }
-
-    return markAreaSeries
-}
-
 // -----------------------------------------------------------------------
 // Builds the eChart options variable to plot the detected events overview
 // -----------------------------------------------------------------------
@@ -44,7 +23,7 @@ export function buildChartOptions(
     // Prepare anomalies data:
     let eventTitle = 'Detected events'
     const anomaliesSeries = buildAnomaliesSeries(anomalies)
-    let series = [anomaliesSeries, getMarkAreaSeries(0, evaluationStart)]
+    let series = [anomaliesSeries, getTrainingMarkAreaSeries(0, evaluationStart)]
 
     // Adding a series for labels if they were configured for this model:
     if (modelDetails['labels']) {
@@ -53,15 +32,15 @@ export function buildChartOptions(
     }
 
     // Prepare daily aggregation data:
-    series = [...series, buildDailyAggregationSeries(dailyAggregation), getMarkAreaSeries(1, evaluationStart)]
+    series = [...series, buildDailyAggregationSeries(dailyAggregation), getTrainingMarkAreaSeries(1, evaluationStart)]
 
     // Prepare sensor contribution data:
     let { sensorContributionSeries, sortedTags } = buildSensorContributionSeries(sensorContribution, tagsList)
-    series = [...series, ...sensorContributionSeries, getMarkAreaSeries(2, evaluationStart)]
+    series = [...series, ...sensorContributionSeries, getTrainingMarkAreaSeries(2, evaluationStart)]
 
     // Configuring the series for the raw time series data:
     const { signalSeries, yMin, yMax, unusedTags } = buildSignalSeries(timeseries, sortedTags)
-    series = [...series, ...signalSeries, getMarkAreaSeries(3, evaluationStart)]
+    series = [...series, ...signalSeries, getTrainingMarkAreaSeries(3, evaluationStart)]
     if (unusedTags.length > 0) {
         sortedTags = [...sortedTags, ...unusedTags]
     }
@@ -69,19 +48,10 @@ export function buildChartOptions(
     // Add an off condition signal to the time series plot 
     // if this feature was used to train this model:
     if (modelDetails['offCondition']) {
-        series.push(buildOffConditionSeries(modelDetails['offCondition'], signalSeries, yMin, yMax))
-
-        sortedTags = [{
-            name: 'Off condition', 
-            icon: 'circle', 
-            itemStyle: {
-                color: 'rgb(192, 80, 80, 0.2)', 
-                borderColor: 'rgb(192, 80, 80)', 
-                borderWidth: 1.0
-            }
-        }, ...sortedTags]
-
-        if (showTopN) { showTopN += 1 }
+        const offTimeRanges = buildOffTimeRanges(signalSeries, modelDetails['offCondition'])
+        for (let i=0; i<=3; i++) {
+            series.push(getOfftimeMarkAreaSeries(i, offTimeRanges))
+        }
     }
 
     let options = {
@@ -113,6 +83,8 @@ export function buildChartOptions(
         animation: false,
         dataZoom: [{ type:'slider', start: /* zoomStart */ 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 100, height: 30 }],
         legend: [
+            // Signal time series legend, located on the bottom. Command
+            // both the signal time series and the signal contribution:
             {
                 type: 'scroll',
                 right: 10,
@@ -123,10 +95,32 @@ export function buildChartOptions(
                 ],
                 data: sortedTags
             },
+
+            // Top legend positioned next to the detected events:
             {
                 right: 10,
                 top: 0,
-                data: ['Training range', 'Detected events', 'Labels', 'Detected events (daily)']
+                data: [
+                    {
+                        name: 'Training range',
+                        itemStyle: {
+                            color: 'rgb(151, 181, 82, 0.2)', 
+                            borderColor: 'rgb(151, 181, 82)', 
+                            borderWidth: 1.0
+                        }
+                    },
+                    {
+                        name: 'Off condition',
+                        itemStyle: {
+                            color: 'rgb(192, 80, 80, 0.2)', 
+                            borderColor: 'rgb(192, 80, 80)', 
+                            borderWidth: 1.0
+                        }
+                    }, 
+                    'Detected events', 
+                    'Labels', 
+                    'Detected events (daily)'
+                ]
             }
         ],
         tooltip: { show: true, trigger: 'axis' }
@@ -148,12 +142,52 @@ export function buildChartOptions(
     return options
 }
 
-// -----------------------------------------------------------
-// Builds the eChart series for the off time condition: this
-// will be displayed as an additional signal in the timeseries
-// list
-// -----------------------------------------------------------
-function buildOffConditionSeries(offConditionDefinition, series, yMin, yMax) {
+// ---------------------------------------------------------------------
+// Build a fake signal to help visualize the training / evaluation range
+// ---------------------------------------------------------------------
+function getTrainingMarkAreaSeries(axis, evaluationStart) {
+    const markAreaSeries = {
+        name: 'Training range',
+        symbol: 'none',
+        data: [],
+        type: 'line',
+        color: 'rgb(151, 181, 82, 0.1)',
+        xAxisIndex: axis,
+        yAxisIndex: axis,
+        markArea: {
+            itemStyle: { color: 'rgb(151, 181, 82, 0.1)' },
+            data: [[
+                { name: 'Training range', xAxis: 0 },
+                { xAxis: evaluationStart }
+            ]]
+        },
+    }
+
+    return markAreaSeries
+}
+
+// ------------------------------------------------------------
+// Checks if a given value is part of the off time range or not
+// ------------------------------------------------------------
+function offtime(valueToCheck, offConditionCriteria, offConditionValue) {
+    if (offConditionCriteria === "<") {
+        if (valueToCheck <= offConditionValue) {
+            return true
+        }
+    }
+    else {
+        if (valueToCheck >= offConditionValue) {
+            return true
+        }
+    }
+
+    return false
+}
+
+// ---------------------------------------------------------------------------
+// Builds the off time ranges based on whether the off condition is met or not
+// ---------------------------------------------------------------------------
+function buildOffTimeRanges(series, offConditionDefinition) {
     // Get off condition parameters:
     const offConditionSignal = offConditionDefinition['signal']
     const offConditionCriteria = offConditionDefinition['criteria']
@@ -168,45 +202,57 @@ function buildOffConditionSeries(offConditionDefinition, series, yMin, yMax) {
     })
 
     // Buils the offtime condition data:
-    let offConditionData = []
+    let isOff = false
+    let previousIsOff = false
+    let offCoord = []
+    let xStart = undefined
+    let xEnd = undefined
     offConditionTimeseries.forEach((item) => {
         const x = item[0]
         const y = item[1]
-        
-        if (offConditionCriteria === "<") {
-            if (y <= offConditionValue) {
-                offConditionData.push([x, yMax * 1])
-            }
-            else {
-                offConditionData.push([x, yMin])
-            }
+
+        isOff = offtime(y, offConditionCriteria, offConditionValue)
+        if (isOff && isOff !== previousIsOff) {
+            xStart = x
+            xEnd = undefined
         }
-        else {
-            if (y >= offConditionValue) {
-                offConditionData.push([x, yMax * 1])
-            }
-            else {
-                offConditionData.push([x, yMin])
-            }
+        else if (!isOff && isOff !== previousIsOff) {
+            xEnd = x
+            offCoord.push([{xAxis: xStart}, {xAxis: xEnd}])
         }
+
+        previousIsOff = isOff
     })
 
-    // Assembles and returns an eChart config for this series:
-    return {
-        name: "Off condition",
-        symbol: 'none',
-        sampling: 'lttb',
-        data: offConditionData,
-        type: 'line',
-        emphasis: { disabled: true },
-        xAxisIndex: 3,
-        yAxisIndex: 3,
-        lineStyle: { width: 0, color: 'rgb(192, 80, 80)' },
-        areaStyle: {
-            opacity: 0.1,
-            color: 'rgb(192, 80, 80)'
-        }
+    if (xStart && !xEnd) {
+        xEnd = offConditionTimeseries[offConditionTimeseries.length - 1][0]
+        offCoord.push([{xAxis: xStart}, {xAxis: xEnd}])
     }
+
+    return offCoord
+}
+
+// -----------------------------------------------------------
+// Builds the eChart series for the off time condition: this
+// will be displayed as an additional signal in all the charts
+// -----------------------------------------------------------
+function getOfftimeMarkAreaSeries(axis, offTimeRanges) {
+    const markAreaSeries = {
+        name: 'Off condition',
+        symbol: 'none',
+        data: [],
+        type: 'line',
+        color: 'rgb(192, 80, 80, 0.1)',
+        xAxisIndex: axis,
+        yAxisIndex: axis,
+        markArea: {
+            itemStyle: { color: 'rgb(192, 80, 80, 0.1)' },
+            data: offTimeRanges,
+            lineStyle: { width: 0 },
+        },
+    }
+
+    return markAreaSeries
 }
 
 // --------------------------------------------------

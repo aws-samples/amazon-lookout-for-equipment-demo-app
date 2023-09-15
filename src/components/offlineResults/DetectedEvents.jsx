@@ -13,12 +13,17 @@ import SpaceBetween from "@cloudscape-design/components/space-between"
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
+import OfflineResultsContext from '../contexts/OfflineResultsContext'
 
 // Utils:
 import { buildChartOptions } from './offlineResultsUtils'
 import { cleanList } from '../../utils/utils'
 
-function DetectedEvents({ modelDetails }) {
+function DetectedEvents() {
+    const { modelDetails }     = useContext(OfflineResultsContext)
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
+    const { showHelp }         = useContext(ApiGatewayContext)
+
     if (modelDetails && modelDetails['status'] === 'SUCCESS') {
         const dailyAggregation     = modelDetails['dailyAggregation']
         const anomalies            = modelDetails['anomalies']
@@ -27,8 +32,6 @@ function DetectedEvents({ modelDetails }) {
         const timeseries           = modelDetails['timeseries']
         const evaluationStart      = new Date(modelDetails['evaluationStart'])
         const option               = useRef(undefined)
-        const { setHelpPanelOpen } = useContext(HelpPanelContext)
-        const { showHelp }         = useContext(ApiGatewayContext)
 
         // If no sensor contribution contribution data is found, this means 
         // that no anomalous event was found while evaluating the model. 

@@ -1,5 +1,5 @@
 // Imports:
-import { useState, useEffect, useContext } from 'react'
+import { useContext } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
@@ -7,7 +7,6 @@ import NavigationBar from './NavigationBar'
 import ModelOverview from './offlineResults/ModelOverview'
 import DetectedEvents from './offlineResults/DetectedEvents'
 import SignalHistograms from './offlineResults/SignalHistograms'
-import { getModelDetails } from '../utils/dataExtraction'
 
 // CloudScape Components:
 import AppLayout        from "@cloudscape-design/components/app-layout"
@@ -17,24 +16,12 @@ import SpaceBetween     from "@cloudscape-design/components/space-between"
 import Tabs             from "@cloudscape-design/components/tabs"
 
 // Contexts:
-import ApiGatewayContext from './contexts/ApiGatewayContext'
 import HelpPanelContext from './contexts/HelpPanelContext'
+import { OfflineResultsProvider } from './contexts/OfflineResultsContext'
 
 function OfflineResults() {
-    const [ modelDetails, setModelDetails ] = useState(undefined)
-    const [ loading, setLoading ] = useState(true)
-    const { gateway, uid } = useContext(ApiGatewayContext)
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
     const { modelName, projectName } = useParams()
-    
-    useEffect(() => {
-        setLoading(true)
-        getModelDetails(gateway, modelName, projectName, uid)
-        .then((x) => { 
-            setModelDetails(x)
-            setLoading(false)
-        })
-    }, [gateway, modelName, projectName])
 
     return (
         <AppLayout
@@ -61,24 +48,26 @@ function OfflineResults() {
 
             content={
                 <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
-                    <SpaceBetween size='xl'>
-                        <ModelOverview modelDetails={modelDetails} loading={loading} />
+                    <OfflineResultsProvider>
+                        <SpaceBetween size='xl'>
+                            <ModelOverview />
 
-                        {!loading && modelDetails['status'] === 'SUCCESS' && <Tabs
-                            tabs={[
-                                {
-                                    label: "Detected events",
-                                    id: "detectedEvents",
-                                    content: <DetectedEvents modelDetails={modelDetails} loading={loading} />
-                                },
-                                {
-                                    label: "Signal deep dive",
-                                    id: "signalDeepDive",
-                                    content: <SignalHistograms modelDetails={modelDetails} />
-                                }
-                            ]} />
-                        }
-                    </SpaceBetween>
+                            <Tabs
+                                tabs={[
+                                    {
+                                        label: "Detected events",
+                                        id: "detectedEvents",
+                                        content: <DetectedEvents />
+                                    },
+                                    {
+                                        label: "Signal deep dive",
+                                        id: "signalDeepDive",
+                                        content: <SignalHistograms />
+                                    }
+                                ]} 
+                            />
+                        </SpaceBetween>
+                    </OfflineResultsProvider>
                 </ContentLayout>
             }
             navigation={

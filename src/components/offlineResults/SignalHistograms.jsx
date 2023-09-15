@@ -1,4 +1,5 @@
 // Imports:
+import { useContext } from 'react'
 import ReactEcharts from "echarts-for-react"
 import "../../styles/chartThemeMacarons.js"
 import { histogram } from 'echarts-stat'
@@ -20,18 +21,31 @@ import TextFilter   from "@cloudscape-design/components/text-filter"
 // Utils
 import { useCollection } from '@cloudscape-design/collection-hooks'
 import { getMatchesCountText, cleanList, binarySearchBins } from '../../utils/utils'
-// import { buildSignalBehaviorOptions } from './schedulerUtils.js'
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
+import OfflineResultsContext from '../contexts/OfflineResultsContext'
 
-function SignalHistograms({ modelDetails }) {
-    // Cleaning tags list up:
-    let tagsList = modelDetails['tagsList']
-    const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
-    tagsList = cleanList(tagsToRemove, tagsList)
-    
-    const signalOptions = buildSignalBehaviorOptions(modelDetails, tagsList)
+function SignalHistograms() {
+    const { 
+        modelDetails, 
+        tagsList, 
+        trainingTimeseries,
+        evaluationTimeseries, 
+        anomaliesTimeseries,
+        sensorContributionTimeseries,
+        histogramData
+    } = useContext(OfflineResultsContext)
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
+
+    const signalOptions = buildSignalBehaviorOptions(
+        tagsList, 
+        trainingTimeseries,
+        evaluationTimeseries,
+        anomaliesTimeseries,
+        sensorContributionTimeseries,
+        histogramData
+    )
 
     let cardItems = []
     tagsList.forEach((tag) => {
@@ -64,17 +78,17 @@ function SignalHistograms({ modelDetails }) {
                 {...collectionProps}
     
                 cardsPerRow={[{ cards: 1 }]}
-                // header={
-                //     <Header
-                //         variant="h2"
-                //         info={<Link variant="info" onFollow={() => setHelpPanelOpen({
-                //             status: true,
-                //             page: 'onlineResults',
-                //             section: 'signalDeepDive'
-                //         })}>Info</Link>}>
-                //             Signal behavior deep dive
-                //     </Header>
-                // }
+                header={
+                    <Header
+                        variant="h2"
+                        info={<Link variant="info" onFollow={() => setHelpPanelOpen({
+                            status: true,
+                            page: 'offlineResults',
+                            section: 'signalDeepDive'
+                        })}>Info</Link>}>
+                            Signal behavior deep dive
+                    </Header>
+                }
                 cardDefinition={{
                     header: e => e.name,
                     sections: [
@@ -127,24 +141,21 @@ export default SignalHistograms
 // ------------------------------------------------------------------
 // Builds the eChart options object to plot the signal behavior chart
 // ------------------------------------------------------------------
-function buildSignalBehaviorOptions(modelDetails, tagsList) {
-    let options = {}
-
-    const trainingStart = new Date(modelDetails['trainingStart'])
-    const trainingEnd = new Date(modelDetails['trainingEnd'])
-    const evaluationStart = new Date(modelDetails['evaluationStart'])
-    const evaluationEnd = new Date(modelDetails['evaluationEnd'])
-    const sensorContribution = modelDetails['sensorContribution']
-    const samplingRate = modelDetails['samplingRate']
-    const events = modelDetails['events']
-
+function buildSignalBehaviorOptions(tagsList, 
+                                    trainingTimeseries, 
+                                    evaluationTimeseries, 
+                                    anomaliesTimeseries, 
+                                    sensorContributionTimeseries, 
+                                    histogramData
+) {
     // We want to build a chart options for each individual tag:
-    tagsList.forEach((tag, index) => {
+    let options = {}
+    tagsList.forEach((tag) => {
         // Configures the time series:
-        const trainingSeries = getTagTimeseries(tag, modelDetails.timeseries, trainingStart, trainingEnd)
-        const { evaluationSeries, anomaliesSeries } = getEvaluationTimeseries(tag, modelDetails.timeseries, evaluationStart, evaluationEnd, events)
-        const sensorContributionSeries = getSensorContributionSeries(tag, sensorContribution, samplingRate)
-        const histogramsSeries = getHistograms(tag, modelDetails.timeseries, trainingStart, trainingEnd, evaluationStart, evaluationEnd, events)
+        const trainingSeries = getTrainingSeries(tag, trainingTimeseries)
+        const { evaluationSeries, anomaliesSeries } = getEvaluationSeries(tag, evaluationTimeseries, anomaliesTimeseries)
+        const sensorContributionSeries = getSensorContributionSeries(tag, sensorContributionTimeseries)
+        const histogramsSeries = getHistogramSeries(tag, histogramData)
         
         evaluationSeries['lineStyle'] = { color: '#67a353', width: 2.0 }
         evaluationSeries['color'] = '#67a353'
@@ -196,26 +207,15 @@ function buildSignalBehaviorOptions(modelDetails, tagsList) {
     return options
 }
 
-// --------------------------------------------------------------
-// Plot configuration for the training and evaluation time series
-// --------------------------------------------------------------
-function getTagTimeseries(tag, timeseries, start, end) {
-    let data = []
-
-    // Prepare the raw time series data:
-    timeseries.Items.forEach((item) => {
-        const x = new Date(item.unix_timestamp.N * 1000)
-        if (x >= start && x <= end) {
-            const y = parseFloat(item[tag].S)
-            data.push([x, y])
-        }
-    })
-
+// -----------------------------------------------
+// Plot configuration for the training time series
+// -----------------------------------------------
+function getTrainingSeries(tag, timeseries) {
     const series = {
         name: tag,
         symbol: 'none',
         sampling: 'lttb',
-        data: data,
+        data: timeseries[tag],
         type: 'line',
         emphasis: { disabled: true },
         tooltip: { valueFormatter: (value) => value.toFixed(2) },
@@ -228,28 +228,12 @@ function getTagTimeseries(tag, timeseries, start, end) {
 // --------------------------------------------------------------
 // Plot configuration for the training and evaluation time series
 // --------------------------------------------------------------
-function getEvaluationTimeseries(tag, timeseries, start, end, events) {
-    let data = []
-    let dataAnomalies = []
-
-    // Prepare the raw time series data:
-    timeseries.Items.forEach((item) => {
-        const x = new Date(item.unix_timestamp.N * 1000)
-        if (x >= start && x <= end) {
-            const y = parseFloat(item[tag].S)
-            data.push([x, y])
-
-            if (binarySearchBins(events, x) >= 0) {
-                dataAnomalies.push([x, y])
-            }
-        }
-    })
-
+function getEvaluationSeries(tag, evaluationTimeseries, anomaliesTimeseries) {
     const evaluationSeries = {
         name: tag,
         symbol: 'none',
         sampling: 'lttb',
-        data: data,
+        data: evaluationTimeseries[tag],
         type: 'line',
         emphasis: { disabled: true },
         tooltip: { valueFormatter: (value) => value.toFixed(2) },
@@ -261,7 +245,7 @@ function getEvaluationTimeseries(tag, timeseries, start, end, events) {
         symbol: 'circle',
         symbolSize: 3.0,
         sampling: 'lttb',
-        data: dataAnomalies,
+        data: anomaliesTimeseries[tag],
         type: 'line',
         emphasis: { disabled: true },
         tooltip: { valueFormatter: (value) => value.toFixed(2) },
@@ -274,22 +258,12 @@ function getEvaluationTimeseries(tag, timeseries, start, end, events) {
 // ----------------------------------------------------------
 // Plot configuration for the sensor contribution time series
 // ----------------------------------------------------------
-function getSensorContributionSeries(tag, sensorContribution) {
-    let dataContribution = []
-
-    // Prepare the sensor contribution as a time series:
-    sensorContribution.Items.forEach((item, index) => {
-        const x = new Date(item.timestamp.N * 1000)
-        const y = parseFloat(item[tag].S)
-
-        dataContribution.push([x, y])
-    })
-
+function getSensorContributionSeries(tag, sensorContributionTimeseries) {
     const contributionSeries = {
         name: 'Contribution (%)',
         symbol: 'none',
         sampling: 'lttb',
-        data: dataContribution,
+        data: sensorContributionTimeseries[tag],
         type: 'line',
         color: '#e07941',
         tooltip: { valueFormatter: (value) => (value*100).toFixed(0) + '%' },
@@ -304,30 +278,7 @@ function getSensorContributionSeries(tag, sensorContribution) {
 // -------------------------------------
 // Plot configuration for the histograms
 // -------------------------------------
-function getHistograms(tag, timeseries, trainingStart, trainingEnd, evaluationStart, evaluationEnd, events) {
-    let trainingData = []
-    let evaluationData = []
-    let abnormalData = []
-
-    timeseries.Items.forEach((item) => {
-        const x = new Date(item.unix_timestamp.N * 1000)
-        const y = parseFloat(item[tag].S)
-
-        if (x >= trainingStart && x <= trainingEnd) {
-            trainingData.push(y)
-        }
-        if (x >= evaluationStart && x <= evaluationEnd) {
-            evaluationData.push(y)
-        }
-
-        // Search if the the current data point falls
-        // within one of the detected event range:
-        const isAnomaly = binarySearchBins(events, x)
-        if (isAnomaly >= 0) {
-            abnormalData.push(y)
-        }
-    })
-
+function getHistogramSeries(tag, histogramData) {
     let series = [
         {
             name: 'Training range',
@@ -336,7 +287,7 @@ function getHistograms(tag, timeseries, trainingStart, trainingEnd, evaluationSt
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#529ccb', opacity: 0.5 },
-            data: histogram(trainingData).data,
+            data: histogram(histogramData.training[tag]).data,
         },
         {
             name: 'Evaluation range',
@@ -345,7 +296,7 @@ function getHistograms(tag, timeseries, trainingStart, trainingEnd, evaluationSt
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#67a353', opacity: 0.7 },
-            data: histogram(evaluationData).data,
+            data: histogram(histogramData.evaluation[tag]).data,
         },
         {
             name: 'Anomalies',
@@ -354,7 +305,7 @@ function getHistograms(tag, timeseries, trainingStart, trainingEnd, evaluationSt
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#a32952', opacity: 0.5 },
-            data: histogram(abnormalData).data,
+            data: histogram(histogramData.anomalies[tag]).data,
         },
     ]
 

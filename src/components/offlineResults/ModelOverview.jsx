@@ -21,11 +21,14 @@ import Table                from '@cloudscape-design/components/table'
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
+import OfflineResultsContext from '../contexts/OfflineResultsContext'
 
 // --------------------------
 // Component main entry point
 // --------------------------
-function ModelOverview({ modelDetails, loading }) {
+function ModelOverview() {
+    const { modelDetails, loading } = useContext(OfflineResultsContext)
+
     const [ showDeleteModelModal, setShowDeleteModelModal ] = useState(false)
     const [ showUserGuide, setShowUserGuide ] = useState(true)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)

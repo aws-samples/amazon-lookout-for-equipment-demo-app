@@ -7,15 +7,12 @@ import { getSignalDetails } from '../../utils/dataExtraction'
 export function buildChartOptions(items, sensorName, zoomStart, zoomEnd) {
     // Building the data to feed the time series: x will contain the 
     // x-axis tick labels and y the values taken by the signal over time:
-    let x = []
-    let y = []
+    let data = []
     items.forEach((item) => {
         if (item[sensorName]) {
-            let current_date = new Date(item['timestamp']['S']).getTime()
-            current_date = current_date - new Date().getTimezoneOffset()*30*1000
-            current_date = new Date(current_date).toISOString().substring(0, 19).replace('T', '\n');
-            x.push(current_date)
-            y.push(parseFloat(item[sensorName]['S']))
+            const x = new Date(item['timestamp']['S'])
+            const y = parseFloat(item[sensorName]['S'])
+            data.push([x, y])
         }
     })
 
@@ -24,7 +21,7 @@ export function buildChartOptions(items, sensorName, zoomStart, zoomEnd) {
         name: sensorName,
         symbol: 'none',
         sampling: 'lttb',
-        data: y,
+        data: data,
         type: 'line',
         color: 'rgb(141, 152, 179)',
         emphasis: { disabled: true }
@@ -32,12 +29,12 @@ export function buildChartOptions(items, sensorName, zoomStart, zoomEnd) {
 
     // echart options:
     const chartOptions = {
-        xAxis: { type: 'category', data: x },
+        xAxis: { type: 'time' },
         yAxis: { type: 'value' },
         series: series,
         animation: false,
         dataZoom: [{ start: zoomStart, end: zoomEnd, type: 'slider'}],
-        grid: {top: 35, bottom: 90, left: 50, right: 10},
+        grid: {top: 35, bottom: 90, left: 60, right: 10},
         brush: {
             toolbox: ['lineX', 'clear'],
             xAxisIndex: 0,

@@ -17,6 +17,7 @@ import Link                 from "@cloudscape-design/components/link"
 import SpaceBetween         from "@cloudscape-design/components/space-between"
 import Spinner              from '@cloudscape-design/components/spinner'
 import Table                from '@cloudscape-design/components/table'
+import TextContent          from '@cloudscape-design/components/text-content'
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
@@ -167,14 +168,19 @@ function ModelOverview() {
 
                         {/* Only shows this section if some labels were defined for this model  */}
                         {!modelDetails['labels'] ? '' : <ExpandableSection headerText="Defined labels"><SpaceBetween size="xxs">
-                            <Alert>
+                            {showHelp.current && <Alert>
                                 Some labels were defined to train this model: this labeled data indicates periods 
                                 when your equipment or process did not function propertly. When training a model
                                 with labels, Lookout for Equipment will discard these time ranges to increase its
                                 capability to model only the normal operating states of your equipment or process.
                                 It will then use these sames ranges to rank the different models trained and identify
                                 the best performing one.
-                            </Alert>
+                            </Alert> }
+
+                            <TextContent><p>
+                                The following labels were defined in the <b>{modelDetails['labelGroupName']}</b> label group:
+                            </p></TextContent>
+
                             <Table 
                                 variant="embedded"
                                 contentDensity="compact"

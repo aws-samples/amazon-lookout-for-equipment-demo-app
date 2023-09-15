@@ -196,7 +196,8 @@ export async function getModelDetails(gateway, modelName, projectName, uid) {
 
     let offCondition = processOffResponse(modelResponse)
     if (offCondition) { offCondition['component'] = projectName }
-    let labels = await processLabels(gateway, modelResponse)
+    let {labelGroupName, labels} = await processLabels(gateway, modelResponse)
+    labelGroupName = labelGroupName.slice(projectName.length + 1 + uid.length + 1)
 
     const possibleSamplingRate = {
         'PT1S': '1 second', 
@@ -244,6 +245,7 @@ export async function getModelDetails(gateway, modelName, projectName, uid) {
         evaluationEnd: new Date(modelResponse['EvaluationDataEndTime']*1000).toISOString().replace('T', ' ').substring(0,19),
         samplingRate: samplingRate,
         offCondition: offCondition,
+        labelGroupName: labelGroupName,
         labels: labels
     }
 
@@ -302,9 +304,10 @@ function processOffResponse(modelResponse) {
 
 async function processLabels(gateway, modelResponse) {
     let labels = undefined
+    let labelGroupName = ""
 
     if (modelResponse['LabelsInputConfiguration']) {
-        const labelGroupName = modelResponse['LabelsInputConfiguration']['LabelGroupName']
+        labelGroupName = modelResponse['LabelsInputConfiguration']['LabelGroupName']
 
         const response = await gateway.lookoutEquipment.listLabels(labelGroupName)
         
@@ -319,7 +322,7 @@ async function processLabels(gateway, modelResponse) {
         }
     }
 
-    return labels
+    return {labelGroupName, labels}
 }
 
 // -------------------------------------------------------------

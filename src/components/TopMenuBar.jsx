@@ -32,7 +32,7 @@ function TopMenuBar({ user, signOut }) {
                 description: user && user.attributes['email'],
                 iconName: "user-profile",
                 items: [
-                    { id: "feedback", text: "Feedback", href: "mailto:michoara@amazon.fr?subject=Lookout%20for%20Equipment%20Demo%20App%20Feedback", external: true },
+                    { id: "feedback", text: "Feedback", href: "mailto:aws-custfeedback-l4edemoapp@amazon.fr?subject=Lookout%20for%20Equipment%20Demo%20App%20Feedback", external: true },
                 ]
             },
             {

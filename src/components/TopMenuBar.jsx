@@ -72,12 +72,12 @@ function TopMenuBar({ user, signOut }) {
 // Components used to configure the application
 // --------------------------------------------
 function Settings({ visible, onDiscard }) {
-    const { gateway, uid, showHelp } = useContext(ApiGatewayContext)
+    const { gateway, uid, showHelp, isAdmin } = useContext(ApiGatewayContext)
     const [ checked, setChecked ] = useState(showHelp.current)
     
     useEffect(() => {
-        getUserSettings(gateway, uid, showHelp)
-        .then((x) => setChecked(x === 'true'))
+        getUserSettings(gateway, uid, showHelp, isAdmin)
+        .then((x) => setChecked(x.showHelp) )
     }, [gateway, uid])
 
     // Save current settings:
@@ -88,7 +88,8 @@ function Settings({ visible, onDiscard }) {
             'l4edemoapp-users', 
             {
                 'user_id': {'S': uid},
-                'show_help': {'S': showHelp.current.toString()}
+                'show_help': {'BOOL': showHelp.current},
+                'is_admin': {'BOOL': isAdmin.current}
             }
         ).catch((error) => console.log(error.response))
         
@@ -138,7 +139,7 @@ function Settings({ visible, onDiscard }) {
 // ------------------------------------
 // Collects user settings from DynamoDB
 // ------------------------------------
-async function getUserSettings(gateway, uid, showHelp) {
+async function getUserSettings(gateway, uid, showHelp, isAdmin) {
     const userQuery = { 
         TableName: 'l4edemoapp-users',
         KeyConditionExpression: "#user = :user",
@@ -154,12 +155,17 @@ async function getUserSettings(gateway, uid, showHelp) {
 
     if (response.Items.length == 0) {
         await createUser(gateway, uid, showHelp)
+        isAdmin.current = false
     }
     else {
-        showHelp.current = (response.Items[0].show_help.S === true)
+        showHelp.current = response.Items[0].show_help.BOOL
+        isAdmin.current = response.Items[0].is_admin.BOOL
     }
 
-    return showHelp.current === 'true'
+    return {
+        showHelp: showHelp.current,
+        isAdmin: isAdmin.current
+    }
 }
 
 // -------------------------------------------------
@@ -171,7 +177,8 @@ async function createUser(gateway, uid, showHelp) {
         'l4edemoapp-users', 
         {
             'user_id': {'S': uid},
-            'show_help': {'S': 'true'}
+            'show_help': {'BOOL': true},
+            'is_admin': {'BOOL': false}
         }
     ).catch((error) => console.log(error.response))
 

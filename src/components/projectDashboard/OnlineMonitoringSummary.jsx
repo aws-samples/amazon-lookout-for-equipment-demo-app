@@ -58,8 +58,7 @@ function OnlineMonitoringSummary({ projectName }) {
                         range={range} 
                         modelName={model}
                         projectName={projectName}
-                        size="large" 
-                        hideTitles={true} 
+                        height={200}
                     />
                 </SpaceBetween>
             })
@@ -82,7 +81,7 @@ function OnlineMonitoringSummary({ projectName }) {
                             onChange={({ detail }) => setRange(detail.value)}
                             value={range}
                             items={[
-                                { value: "1", label: "Today" },
+                                { value: "1", label: "Last 24 hours" },
                                 { value: "7", label: "Last 7 days" },
                                 { value: "30", label: "Last 30 days" }
                             ]}

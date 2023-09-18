@@ -40,7 +40,7 @@ function OnlineMonitoring() {
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
 
-    const [ range, setRange] = useState(initialRange ? initialRange : "7")
+    const [ range, setRange] = useState(initialRange ? initialRange : "30")
     const [ schedulerStatus, setSchedulerStatus ] = useState(undefined)
     const [ statusColor, setStatusColor ] = useState('grey')
     const [ liveResults, setLiveResults ] = useState(undefined)
@@ -141,7 +141,7 @@ function OnlineMonitoring() {
                                 onChange={({ detail }) => setRange(detail.value)}
                                 value={range}
                                 items={[
-                                    { value: "1", label: "Today" },
+                                    { value: "1", label: "Last 24 hours" },
                                     { value: "7", label: "Last 7 days" },
                                     { value: "30", label: "Last 30 days" }
                                 ]}
@@ -162,7 +162,7 @@ function OnlineMonitoring() {
                                         >
                                             Condition overview
                                         </Header>}>
-                                            <ConditionOverview range={range} modelName={modelName} projectName={projectName} size="large" />
+                                            <ConditionOverview range={range} modelName={modelName} projectName={projectName} height={300} />
                                         </Container>
                                     },
                                     {

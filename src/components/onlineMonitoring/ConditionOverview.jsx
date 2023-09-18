@@ -1,10 +1,8 @@
 // Imports:
 import { useContext, useEffect, useState } from 'react'
-
-// CloudScape Components:
-import Box       from "@cloudscape-design/components/box"
-import PieChart from "@cloudscape-design/components/pie-chart"
-import { colorChartsStatusPositive, colorChartsStatusHigh } from '@cloudscape-design/design-tokens'
+import ReactEcharts from "echarts-for-react"
+import "../../styles/chartThemeMacarons.js"
+import { colorPalette } from "../../styles/chartThemeMacarons.js"
 
 // Contexts:
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
@@ -17,20 +15,85 @@ const percentageFormatter = (value) => `${(value * 100).toFixed(0)}%`
 // --------------------------
 // Component main entry point
 // --------------------------
-function ConditionOverview({ range, modelName, projectName, size, hideTitles }) {
+function ConditionOverview({ range, modelName, projectName, height }) {
     const asset = modelName
     const { gateway, uid } = useContext(ApiGatewayContext)
     const endTime = Date.now()
-    const startTime = parseInt((endTime - range * 86400 * 1000) / 1000)
-
+    const startTime = endTime - range * 86400 * 1000
     const [ anomalies, setAnomalies ] = useState(undefined)
 
     useEffect(() => { 
-        getAssetCondition(gateway, asset, startTime, endTime, uid + '-' + projectName)
+        getAssetCondition(gateway, asset, parseInt(startTime / 1000), parseInt(endTime / 1000), uid + '-' + projectName)
         .then((x) => setAnomalies(x) )
     }, [gateway, range, modelName, projectName])
 
-    // Renders the component:
+    if (anomalies && anomalies['totalTime'] > 0) {
+
+        // Build the eChart configuration for this component:
+        const { totalTime, normalTime, abnormalTime } = buildConditionOverviewData(anomalies)
+        const chartOptions = buildConditionOverviewChart(modelName.slice(projectName.length + 1), totalTime, normalTime, abnormalTime, height)
+
+        // Renders the component:
+        return (
+            <ReactEcharts 
+                option={chartOptions}
+                notMerge={true}
+                theme="macarons"
+                style={{height: height, width: "100%"}}
+            />
+        )
+    }
+}
+
+function buildConditionOverviewChart(modelName, totalTime, normalTime, abnormalTime, height) {
+    let data = [
+        {
+            value: normalTime, 
+            name: "Normal", 
+            itemStyle: { color: colorPalette[2] },
+            label: { show: normalTime > 0, fontSize: 16  }
+        },
+        {
+            value: abnormalTime, 
+            name: "Abnormal", 
+            itemStyle: { color: colorPalette[1] },
+            label: { show: abnormalTime > 0, fontSize: 16 }
+        },
+
+        // Stop the chart from rendering this piece to define a half-donut:
+        {
+            value: totalTime,
+            itemStyle: { color: 'none' },
+            label: { show: false }
+        }
+    ]
+
+    const options = {
+        title: [
+            { text: modelName, top: height - 60, left: "50%", textStyle: {fontSize: 24}, textAlign: 'center' },
+            {
+                text: `Healthy condition: ${percentageFormatter(normalTime / totalTime)}`,
+                top: height - 30,
+                left: "50%",
+                textStyle: {fontSize: 16, color: '#999'},
+                textAlign: 'center'
+            }
+        ],
+        // backgroundColor: '#EEE',
+        series: [{
+            top: 30, bottom: -height,
+            name: 'Condition overview',
+            type: 'pie',
+            radius: ['70%', '100%'],
+            startAngle: 180,
+            data : data
+        }]
+    }
+
+    return options
+}
+
+function buildConditionOverviewData(anomalies) {
     let totalTime = 1.0
     let normalTime = 1.0
     let abnormalTime = 0.0
@@ -41,25 +104,11 @@ function ConditionOverview({ range, modelName, projectName, size, hideTitles }) 
         abnormalTime = anomalies['condition']['1']
     }
 
-    return (
-        <PieChart 
-            hideFilter={true}
-            hideLegend={true}
-            hideTitles={hideTitles ? hideTitles : false}
-            size={size ? size : 'large'}
-            innerMetricDescription="health"
-            innerMetricValue={percentageFormatter(normalTime / totalTime)}
-            variant="donut"
-            data={[
-                { title: 'Normal', value: normalTime, color: colorChartsStatusPositive },
-                { title: 'Abnormal', value: abnormalTime, color: colorChartsStatusHigh },
-            ]}
-            detailPopoverContent={(data, sum) => [
-                { key: 'Anomalies count', value: data.value },
-                { key: 'Percentage', value: percentageFormatter(data.value / sum) }
-                ]}
-        />
-    )
+    return {
+        totalTime: totalTime,
+        normalTime: normalTime,
+        abnormalTime: abnormalTime
+    }
 }
 
 export default ConditionOverview

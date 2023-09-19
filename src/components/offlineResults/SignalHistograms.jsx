@@ -266,6 +266,7 @@ function getSensorContributionSeries(tag, sensorContributionTimeseries) {
         data: sensorContributionTimeseries[tag],
         type: 'line',
         color: '#e07941',
+        step: true,
         tooltip: { valueFormatter: (value) => (value*100).toFixed(0) + '%' },
         areaStyle: { opacity: 0.2 },
         lineStyle: { width: 0.5 },

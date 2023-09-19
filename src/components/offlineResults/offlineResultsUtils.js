@@ -299,7 +299,6 @@ function buildDailyAggregationSeries(dailyAggregation) {
         type: 'bar',
         yAxisIndex: 1,
         xAxisIndex: 1,
-        // markArea: markArea,
         itemStyle: {
             color: "#2ec7c9",
             shadowColor: 'rgba(0, 0, 0, 0.2)',
@@ -334,6 +333,7 @@ function buildSensorContributionSeries(sensorContribution, tagsList) {
             xAxisIndex: 2,
             yAxisIndex: 2,
             stack: 'Total',
+            step: true,
             areaStyle: { opacity: 0.5 },
             lineStyle: { width: 1.0 },
             emphasis: { focus: 'series' },

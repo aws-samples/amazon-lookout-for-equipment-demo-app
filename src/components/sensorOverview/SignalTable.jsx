@@ -1,6 +1,10 @@
+// Imports
+import { useState } from 'react'
+
 // Cloudscape components:
 import Button       from '@cloudscape-design/components/button'
 import Box          from '@cloudscape-design/components/box'
+import CollectionPreferences from "@cloudscape-design/components/collection-preferences"
 import Pagination   from '@cloudscape-design/components/pagination'
 import Table        from '@cloudscape-design/components/table'
 import TextFilter   from '@cloudscape-design/components/text-filter'
@@ -38,6 +42,25 @@ function getMatchesCountText(count) {
 // Component main entry point
 // --------------------------
 function SignalTable({ cols, allItems, selectedItems, changeSelectedItems }) {
+    const [ preferences, setPreferences ] = useState({
+        pageSize: 10,
+        contentDensity: 'compact',
+        stripedRows: true,
+        contentDisplay: [
+            { id: "SensorName", visible: true },
+            { id: "DataStartTime", visible: false },
+            { id: "DataEndTime", visible: false },
+            { id: "Categorical", visible: true },
+            { id: "LargeGaps", visible: true },
+            { id: "Monotonic", visible: true },
+            { id: "MultipleModes", visible: true },
+            { id: "DuplicateTimestamps", visible: false },
+            { id: "InvalidDateEntries", visible: false },
+            { id: "InvalidValues", visible: false },
+            { id: "MissingValues", visible: false }
+        ]
+    })
+
     // Add sorting, filtering and pagination to the table:
     const { items, actions, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
         allItems,
@@ -50,7 +73,7 @@ function SignalTable({ cols, allItems, selectedItems, changeSelectedItems }) {
                     />
                 ),
             },
-            pagination: { pageSize: 18 },
+            pagination: { pageSize: preferences.pageSize },
             sorting: {},
         }
     )
@@ -62,8 +85,6 @@ function SignalTable({ cols, allItems, selectedItems, changeSelectedItems }) {
             columnDefinitions={cols}
             items={items}
             loadingText="Loading resources"
-            stripedRows={true}
-            contentDensity='compact'
             sortingDisabled={false}
             variant="embedded"
             selectionType="single"
@@ -76,6 +97,44 @@ function SignalTable({ cols, allItems, selectedItems, changeSelectedItems }) {
                 <TextFilter
                   {...filterProps}
                   countText={getMatchesCountText(filteredItemsCount)}
+                />
+            }
+
+            columnDisplay={preferences.contentDisplay}
+            contentDensity={preferences.contentDensity}
+            stripedRows={preferences.stripedRows}
+            preferences={
+                <CollectionPreferences
+                    title="Preferences"
+                    confirmLabel="Confirm"
+                    onConfirm={({ detail }) => setPreferences(detail)}
+                    preferences={preferences}
+                    cancelLabel="Cancel"
+                    pageSizePreference={{
+                        title: "Page size",
+                        options: [
+                            { value: 10, label: "10 sensors" },
+                            { value: 20, label: "20 sensors" },
+                            { value: 50, label: "50 sensors" }
+                        ]
+                    }}
+                    stripedRowsPreference={{'label': 'Striped rows', 'description': 'Select to add alternating shaded rows'}}
+                    contentDensityPreference={{'label': 'Compact mode', 'description': 'Select to display content in a denser, more compact mode'}}
+                    contentDisplayPreference={{
+                        options: [
+                            { id: "SensorName", label: "Sensor", alwaysVisible: true },
+                            { id: "DataStartTime", label: "Start time" },
+                            { id: "DataEndTime", label: "End time" },
+                            { id: "Categorical", label: "Categorical?" },
+                            { id: "LargeGaps", label: "Large gaps?" },
+                            { id: "Monotonic", label: "Monotonic?" },
+                            { id: "MultipleModes", label: "Multiple modes?" },
+                            { id: "DuplicateTimestamps", label: "Duplicates" },
+                            { id: "InvalidDateEntries", label: "Invalid timestamps" },
+                            { id: "InvalidValues", label: "Invalid values" },
+                            { id: "MissingValues", label: "Missing values" },
+                        ]
+                    }}
                 />
             }
         />

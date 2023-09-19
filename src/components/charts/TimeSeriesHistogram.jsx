@@ -29,7 +29,9 @@ function TimeSeriesHistograms({
         let selectedValues = []
         data.timeseries.Items.forEach((item, index) => {
             if (item[sensorName]) {
-                if (ranges && ranges[0] && index >= ranges[0]["start"] && index <= ranges[0]["end"]) {
+                const x = parseInt(item.unix_timestamp.N) * 1000
+
+                if (ranges && ranges[0] && x >= ranges[0]["start"] && x <= ranges[0]["end"]) {
                     selectedValues.push(parseFloat(item[sensorName]['S']))
                 }
                 else {

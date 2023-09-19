@@ -2,12 +2,12 @@
 import { useState } from 'react'
 
 // Cloudscape components:
-import Button       from '@cloudscape-design/components/button'
-import Box          from '@cloudscape-design/components/box'
+import Button                from '@cloudscape-design/components/button'
+import Box                   from '@cloudscape-design/components/box'
 import CollectionPreferences from "@cloudscape-design/components/collection-preferences"
-import Pagination   from '@cloudscape-design/components/pagination'
-import Table        from '@cloudscape-design/components/table'
-import TextFilter   from '@cloudscape-design/components/text-filter'
+import Pagination            from '@cloudscape-design/components/pagination'
+import Table                 from '@cloudscape-design/components/table'
+import TextFilter            from '@cloudscape-design/components/text-filter'
 
 // Utils
 import { useCollection } from '@cloudscape-design/collection-hooks'

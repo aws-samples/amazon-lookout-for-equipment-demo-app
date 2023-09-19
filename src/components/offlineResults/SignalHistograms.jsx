@@ -2,13 +2,11 @@
 import { useContext } from 'react'
 import ReactEcharts from "echarts-for-react"
 import "../../styles/chartThemeMacarons.js"
-import { histogram } from 'echarts-stat'
 
 // App components:
 import EmptyState from '../shared/EmptyState'
 
 // Cloudscape components:
-import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
 import Cards        from "@cloudscape-design/components/cards"
 import Grid         from "@cloudscape-design/components/grid"
@@ -20,7 +18,7 @@ import TextFilter   from "@cloudscape-design/components/text-filter"
 
 // Utils
 import { useCollection } from '@cloudscape-design/collection-hooks'
-import { getMatchesCountText, cleanList, binarySearchBins } from '../../utils/utils'
+import { getMatchesCountText, normalizedHistogram } from '../../utils/utils'
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
@@ -191,7 +189,7 @@ function buildSignalBehaviorOptions(tagsList,
             title: {top: 0, text: 'Signal value distributions'},
             grid: {top: 40, left: 50, height: 200},
             xAxis: {scale: true},
-            yAxis: {},
+            yAxis: {axisLabel: { show: false }},
             series: histogramsSeries,
             animation: false,
             tooltip: {show: true, trigger: 'axis'},
@@ -288,7 +286,7 @@ function getHistogramSeries(tag, histogramData) {
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#529ccb', opacity: 0.5 },
-            data: histogram(histogramData.training[tag]).data,
+            data: normalizedHistogram(histogramData.training[tag]).data,
         },
         {
             name: 'Evaluation range',
@@ -297,7 +295,7 @@ function getHistogramSeries(tag, histogramData) {
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#67a353', opacity: 0.7 },
-            data: histogram(histogramData.evaluation[tag]).data,
+            data: normalizedHistogram(histogramData.evaluation[tag]).data,
         },
         {
             name: 'Anomalies',
@@ -306,7 +304,7 @@ function getHistogramSeries(tag, histogramData) {
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#a32952', opacity: 0.5 },
-            data: histogram(histogramData.anomalies[tag]).data,
+            data: normalizedHistogram(histogramData.anomalies[tag]).data,
         },
     ]
 

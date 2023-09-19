@@ -1,7 +1,7 @@
 // Imports:
 import ReactEcharts from "echarts-for-react"
-import { histogram } from 'echarts-stat'
 import Spinner from "@cloudscape-design/components/spinner"
+import { normalizedHistogram } from '../../utils/utils'
 
 // ---------------------
 // Component entry point
@@ -41,7 +41,7 @@ function TimeSeriesHistograms({
         })
 
         // First histograms, the normal values outside of the user selection:
-        const bins = histogram(values)
+        const bins = normalizedHistogram(values)
         let series = [{
             name: selectedTitle ? selectedTitle : 'Values distribution',
             type: 'bar',
@@ -51,7 +51,7 @@ function TimeSeriesHistograms({
 
         // Second histogram if we have a selection:
         if (selectedValues.length > 0) {
-            const selectedBins = histogram(selectedValues)
+            const selectedBins = normalizedHistogram(selectedValues)
             series.push({
                 name: unselectedTitle ? unselectedTitle : 'Selected values distribution',
                 type: 'bar',
@@ -68,8 +68,8 @@ function TimeSeriesHistograms({
                 textStyle: { fontSize: 16, fontWeight: 'bold', color: '#000' }
             },
             color: colors ? colors : ['rgb(0, 183, 0, 0.5)', 'rgb(183, 0, 0, 0.5)'],
-            xAxis: { scale: true },
-            yAxis: {},
+            xAxis: {scale: true},
+            yAxis: {axisLabel: { show: false }},
             grid: {top: 30, bottom: 25, left: 50, right: 10},
             series: series
         }

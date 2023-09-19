@@ -1,5 +1,6 @@
 // Imports
 import * as awsui from '@cloudscape-design/design-tokens/index.js'
+import { histogram } from 'echarts-stat'
 
 // --------------------------------------
 // Search in which bin a given date falls
@@ -22,6 +23,20 @@ export function binarySearchBins(bins, date) {
     }
   
     return -1
+}
+
+// -------------------------------
+// Computes a normalized histogram
+// -------------------------------
+export function normalizedHistogram(values) {
+    const numValues = values.length
+    let bins = histogram(values)
+
+    bins.data.forEach((bin, index) => {
+        bins.data[index][1] = bins.data[index][1] / numValues
+    })
+
+    return bins
 }
 
 // -----------------------------------------

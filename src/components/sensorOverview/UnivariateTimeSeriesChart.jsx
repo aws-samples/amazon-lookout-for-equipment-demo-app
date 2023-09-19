@@ -143,7 +143,7 @@ function UnivariateTimeSeriesChart({ sensorName }) {
                         sensorName={sensorName}
                         hideAnimation={true}
                         hideTitle={true}
-                        height={280}
+                        height={200}
                         width="100%"
                         colors={['rgb(82, 156, 203, 0.5)', 'rgb(151, 181, 82, 0.5)']}
                     />

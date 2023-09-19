@@ -1,7 +1,6 @@
-import { cleanList, getLegendWidth, sortDictionnary } from '../../utils/utils'
+import { cleanList, getLegendWidth, sortDictionnary, normalizedHistogram } from '../../utils/utils'
 import { getSchedulerInfo, getAllTimeseriesWindow } from '../../utils/dataExtraction'
 import { buildTimeseries2 } from '../../utils/timeseries.js'
-import { histogram } from 'echarts-stat'
 import awsmobile from '../../aws-exports'
 
 // **************************************************************************************
@@ -547,7 +546,7 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
             title: {top: 0, text: 'Signal value distributions'},
             grid: {top: 40, left: 50, height: 200},
             xAxis: {scale: true},
-            yAxis: {},
+            yAxis: {axisLabel: { show: false }},
             series: histogramsSeries,
             animation: false,
             tooltip: {show: true, trigger: 'axis'}
@@ -727,7 +726,7 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#529ccb', opacity: 0.5 },
-            data: histogram(trainingData).data,
+            data: normalizedHistogram(trainingData).data,
         },
         {
             name: 'Inference data distribution',
@@ -736,7 +735,7 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#67a353', opacity: 0.7 },
-            data: histogram(inferenceData).data,
+            data: normalizedHistogram(inferenceData).data,
         },
         {
             name: 'Abnormal data distribution',
@@ -745,7 +744,7 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#a32952', opacity: 0.5 },
-            data: histogram(abnormalData).data,
+            data: normalizedHistogram(abnormalData).data,
         },
     ]
 

@@ -15,6 +15,7 @@ import SpaceBetween      from "@cloudscape-design/components/space-between"
 function Welcome() {
     return (
         <AppLayout
+            toolsHide={true}
             content={
                 <ContentLayout header={<Header variant="h1">Welcome!</Header>}>
                     <Container header={<Header variant="h2">Application overview</Header>}>

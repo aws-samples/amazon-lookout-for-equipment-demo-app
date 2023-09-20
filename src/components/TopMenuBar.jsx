@@ -22,6 +22,8 @@ import ApiGatewayContext from './contexts/ApiGatewayContext'
 function TopMenuBar({ user, signOut }) {
     const [ showSettingsModal, setShowSettingsModal ] = useState(false)
     const navigate = useNavigate()
+
+    console.log(user)
     
     let utilities = []
     if (signOut) {
@@ -29,10 +31,10 @@ function TopMenuBar({ user, signOut }) {
             {
                 type: "menu-dropdown",
                 text: user && user.username,
-                description: user && user.attributes['email'],
+                description: `L4E Demo App v${import.meta.env.VITE_VERSION}`,
                 iconName: "user-profile",
                 items: [
-                    { id: "feedback", text: "Feedback", href: "mailto:aws-custfeedback-l4edemoapp@amazon.fr?subject=Lookout%20for%20Equipment%20Demo%20App%20Feedback", external: true },
+                    { id: "feedback", text: "Feedback", href: "mailto:aws-custfeedback-l4edemoapp@amazon.fr?subject=Lookout%20for%20Equipment%20Demo%20App%20Feedback", external: true }
                 ]
             },
             {

@@ -1,6 +1,5 @@
 import { Amplify, API } from "aws-amplify"
 import { retryWrapper } from "./index"
-import appConfig from '../demoAppConfig.json'
 
 const target_list = {
 	"LookoutEquipment": "AWSLookoutEquipmentFrontendService",
@@ -10,30 +9,30 @@ const target_list = {
 
 Amplify.configure({
 	Auth: {
-		identityPoolId: `${appConfig.region}:${appConfig.identityPoolId}`,
-		region: `${appConfig.region}`,
+		identityPoolId: `${import.meta.env.VITE_REGION}:${import.meta.env.VITE_IDENTITY_POOL_ID}`,
+		region: `${import.meta.env.VITE_REGION}`,
 		mandatorySignIn: true,
-		userPoolId: `${appConfig.userPoolId}`,
-		userPoolWebClientId: `${appConfig.userPoolWebClientId}`,
+		userPoolId: `${import.meta.env.VITE_USER_POOL_ID}`,
+		userPoolWebClientId: `${import.meta.env.VITE_USER_POOL_WEB_CLIENT_ID}`,
 	},
 	API: {
 		endpoints: [
 			{
 				name: "LookoutEquipmentApi",
-				endpoint: `https://lookoutequipment.${appConfig.region}.amazonaws.com/`,
-				region: `${appConfig.region}`,
+				endpoint: `https://lookoutequipment.${import.meta.env.VITE_REGION}.amazonaws.com/`,
+				region: `${import.meta.env.VITE_REGION}`,
 				service: "lookoutequipment",
 			},
 			{
 				name: "DynamoDBApi",
-				endpoint: `https://dynamodb.${appConfig.region}.amazonaws.com/`,
-				region: `${appConfig.region}`,
+				endpoint: `https://dynamodb.${import.meta.env.VITE_REGION}.amazonaws.com/`,
+				region: `${import.meta.env.VITE_REGION}`,
 				service: "dynamodb",
 			},
             {
                 name: "StepFunctionsApi",
-                endpoint: `https://states.${appConfig.region}.amazonaws.com/`,
-                region: `${appConfig.region}`,
+                endpoint: `https://states.${import.meta.env.VITE_REGION}.amazonaws.com/`,
+                region: `${import.meta.env.VITE_REGION}`,
                 service: "states"
             }
 		],

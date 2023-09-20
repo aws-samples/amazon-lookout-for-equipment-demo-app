@@ -1,8 +1,0 @@
-{
-    "version": "1.0.0",
-    "userPoolId": "eu-west-1_s93PCdhWT",
-    "userPoolWebClientId": "3dblqgvrm6midi34iq6oabjv9l",
-    "identityPoolId": "580d8750-fca6-49d2-ada6-2afdc9075bd7",
-    "region": "eu-west-1",
-    "deployModelArn": "arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-deploy-model"
-}

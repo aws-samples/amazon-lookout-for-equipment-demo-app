@@ -15,6 +15,7 @@ dist-ssr
 *.bkp
 *.dtmp
 assets
+deploy.py
 
 # Editor directories and files
 .vscode/*

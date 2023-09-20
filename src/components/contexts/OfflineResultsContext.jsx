@@ -1,16 +1,19 @@
 // Imports:
 import { createContext, useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import Container from '@cloudscape-design/components/container'
-import Spinner from '@cloudscape-design/components/spinner'
 
-// Context:
-import ApiGatewayContext from './ApiGatewayContext'
+// Cloudscape components:
+import Alert     from '@cloudscape-design/components/alert'
+import Container from '@cloudscape-design/components/container'
+import Header    from '@cloudscape-design/components/header'
+import Spinner   from '@cloudscape-design/components/spinner'
 
 // Utils:
 import { getModelDetails } from '../../utils/dataExtraction'
 import { cleanList, binarySearchBins } from '../../utils/utils'
 
+// Contexts:
+import ApiGatewayContext from './ApiGatewayContext'
 const OfflineResultsContext = createContext()
 
 // ========================================
@@ -40,57 +43,59 @@ export const OfflineResultsProvider = ({ children }) => {
             setModelDetails(details)
             setLoading(false)
 
-            // Building and cleaning the tags list:
-            let tagsList = details['tagsList']
-            const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
-            tagsList = cleanList(tagsToRemove, tagsList)        
-            setTagsList(tagsList)
+            if (details['status'] === 'SUCCESS') {
+                // Building and cleaning the tags list:
+                let tagsList = details['tagsList']
+                const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
+                tagsList = cleanList(tagsToRemove, tagsList)        
+                setTagsList(tagsList)
 
-            // Building training time series for each tag present in the dataset:
-            const {trainingTimeseries, trainingHistogram} = buildTrainingTimeseries(
-                details.timeseries.Items,
-                tagsList,
-                new Date(details.trainingStart),
-                new Date(details.trainingEnd)
-            )
-            setTrainingTimeseries(trainingTimeseries)
+                // Building training time series for each tag present in the dataset:
+                const {trainingTimeseries, trainingHistogram} = buildTrainingTimeseries(
+                    details.timeseries.Items,
+                    tagsList,
+                    new Date(details.trainingStart),
+                    new Date(details.trainingEnd)
+                )
+                setTrainingTimeseries(trainingTimeseries)
 
-            // Building training and evaluation time series for each tag:
-            const { 
-                evaluationTimeseries, 
-                anomaliesTimeseries,
-                evaluationHistogram,
-                anomaliesHistogram
-            } = buildEvaluationTimeSeries(
-                details.timeseries.Items,
-                tagsList,
-                new Date(details.evaluationStart),
-                new Date(details.evaluationEnd),
-                details.events
-            )
-            setEvaluationTimeseries(evaluationTimeseries)
-            setAnomaliesTimeseries(anomaliesTimeseries)
+                // Building training and evaluation time series for each tag:
+                const { 
+                    evaluationTimeseries, 
+                    anomaliesTimeseries,
+                    evaluationHistogram,
+                    anomaliesHistogram
+                } = buildEvaluationTimeSeries(
+                    details.timeseries.Items,
+                    tagsList,
+                    new Date(details.evaluationStart),
+                    new Date(details.evaluationEnd),
+                    details.events
+                )
+                setEvaluationTimeseries(evaluationTimeseries)
+                setAnomaliesTimeseries(anomaliesTimeseries)
 
-            // Build the sensor contribution time series for each tag:
-            const sensorContributionTimeseries = buildSensorContributionTimeseries(
-                details.sensorContribution.Items,
-                tagsList
-            )
-            setSensorContributionTimeseries(sensorContributionTimeseries)
+                // Build the sensor contribution time series for each tag:
+                const sensorContributionTimeseries = buildSensorContributionTimeseries(
+                    details.sensorContribution.Items,
+                    tagsList
+                )
+                setSensorContributionTimeseries(sensorContributionTimeseries)
 
-            // Build the histogram data:
-            setHistogramData({
-                training: trainingHistogram,
-                evaluation: evaluationHistogram,
-                anomalies: anomaliesHistogram
-            })
+                // Build the histogram data:
+                setHistogramData({
+                    training: trainingHistogram,
+                    evaluation: evaluationHistogram,
+                    anomalies: anomaliesHistogram
+                })
+            }
         })
     }, [gateway, modelName, projectName])
 
     // --------------------------------------
     // Renders the provider and its children:
     // --------------------------------------
-    if (!loading && modelDetails['status'] === 'SUCCESS') {
+    if (!loading && modelDetails['status'] !== 'IN_PROGRESS') {
         return (
             <OfflineResultsContext.Provider value={{
                 modelDetails,
@@ -108,8 +113,11 @@ export const OfflineResultsProvider = ({ children }) => {
     }
     else {
         return (
-            <Container>
-                <Spinner />
+            <Container header={<Header variant="h1">Model overview</Header>}>
+                <Alert>
+                    Model training in progress&nbsp;
+                    <Spinner />
+                </Alert>
             </Container>
         )
     }

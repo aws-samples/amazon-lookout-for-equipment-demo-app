@@ -37,7 +37,7 @@ function ModelOverview() {
 
     // Define the badge color for the training status:
     let color = 'gray'
-    if (modelDetails && modelDetails['status'] == 'SUCCESS') {
+    if (modelDetails && modelDetails['status'] === 'SUCCESS') {
         color = 'green'
     }
     else {

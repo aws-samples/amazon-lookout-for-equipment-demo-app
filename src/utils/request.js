@@ -9,30 +9,30 @@ const target_list = {
 
 Amplify.configure({
 	Auth: {
-		identityPoolId: `${import.meta.env.VITE_REGION}:${import.meta.env.VITE_IDENTITY_POOL_ID}`,
-		region: `${import.meta.env.VITE_REGION}`,
+		identityPoolId: `${window.region}:${window.identityPoolId}`,
+		region: `${window.region}`,
 		mandatorySignIn: true,
-		userPoolId: `${import.meta.env.VITE_USER_POOL_ID}`,
-		userPoolWebClientId: `${import.meta.env.VITE_USER_POOL_WEB_CLIENT_ID}`,
+		userPoolId: `${window.userPoolId}`,
+		userPoolWebClientId: `${window.userPoolWebClientId}`,
 	},
 	API: {
 		endpoints: [
 			{
 				name: "LookoutEquipmentApi",
-				endpoint: `https://lookoutequipment.${import.meta.env.VITE_REGION}.amazonaws.com/`,
-				region: `${import.meta.env.VITE_REGION}`,
+				endpoint: `https://lookoutequipment.${window.region}.amazonaws.com/`,
+				region: `${window.region}`,
 				service: "lookoutequipment",
 			},
 			{
 				name: "DynamoDBApi",
-				endpoint: `https://dynamodb.${import.meta.env.VITE_REGION}.amazonaws.com/`,
-				region: `${import.meta.env.VITE_REGION}`,
+				endpoint: `https://dynamodb.${window.region}.amazonaws.com/`,
+				region: `${window.region}`,
 				service: "dynamodb",
 			},
             {
                 name: "StepFunctionsApi",
-                endpoint: `https://states.${import.meta.env.VITE_REGION}.amazonaws.com/`,
-                region: `${import.meta.env.VITE_REGION}`,
+                endpoint: `https://states.${window.region}.amazonaws.com/`,
+                region: `${window.region}`,
                 service: "states"
             }
 		],

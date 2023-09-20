@@ -23,15 +23,13 @@ function TopMenuBar({ user, signOut }) {
     const [ showSettingsModal, setShowSettingsModal ] = useState(false)
     const navigate = useNavigate()
 
-    console.log(user)
-    
     let utilities = []
     if (signOut) {
         utilities = [
             {
                 type: "menu-dropdown",
                 text: user && user.username,
-                description: `L4E Demo App v${import.meta.env.VITE_VERSION}`,
+                description: `L4E Demo App v${window.version}`,
                 iconName: "user-profile",
                 items: [
                     { id: "feedback", text: "Feedback", href: "mailto:aws-custfeedback-l4edemoapp@amazon.fr?subject=Lookout%20for%20Equipment%20Demo%20App%20Feedback", external: true }

@@ -65,7 +65,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     // ------------------------------------------------------
     const onDeployConfirm = async () => {
         // Configure the state machine to be launched:
-        const sfnArn = import.meta.env.VITE_DEPLOY_MODEL_ARN
+        const sfnArn = window.deployModelArn
         const inputPayload = { 
             modelName: modelName, 
             projectName: uid + '-' + projectName,

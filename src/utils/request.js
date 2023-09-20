@@ -9,7 +9,7 @@ const target_list = {
 
 Amplify.configure({
 	Auth: {
-		identityPoolId: `${window.region}:${window.identityPoolId}`,
+		identityPoolId: `${window.identityPoolId}`,
 		region: `${window.region}`,
 		mandatorySignIn: true,
 		userPoolId: `${window.userPoolId}`,

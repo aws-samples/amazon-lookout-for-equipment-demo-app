@@ -779,7 +779,7 @@ export function getSortedKeys(tagsList, sensorContribution) {
 // Get the scheduler details
 // -------------------------
 export async function getSchedulerDetails(gateway, modelName, uid, projectName) {
-    const bucket = awsmobile['aws_user_files_s3_bucket']
+    const bucket = window.appS3Bucket
     const possibleFrequency = {
         'PT5M': 5,
         'PT10M': 10,

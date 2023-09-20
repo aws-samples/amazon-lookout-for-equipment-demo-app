@@ -43,7 +43,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     const onDeployDismiss = props.onDismiss
     const onConfirm = props.onConfirm
 
-    const bucket = awsmobile['aws_user_files_s3_bucket']
+    const bucket = window.appS3Bucket
     const inputLocation = `s3://${bucket}/inference-data/${uid}-${modelName}/input/`
     const outputLocation = `s3://${bucket}/inference-data/${uid}-${modelName}/output/`
 

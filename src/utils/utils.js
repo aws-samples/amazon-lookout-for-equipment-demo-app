@@ -567,7 +567,7 @@ export async function getAvailableDefaultProjectName(gateway, uid) {
         projectExists = projectsList.indexOf(defaultProjectName) >= 0
         if (projectExists) {
             index += 1
-            defaultProjectName += `-${index}`
+            defaultProjectName = `Demo-Project-${index}`
         }
 
     } while (projectExists)

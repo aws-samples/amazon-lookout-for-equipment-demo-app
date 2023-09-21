@@ -1,11 +1,11 @@
 // Imports:
 import { createContext, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import request from "../../utils/request";
+import request from '../../utils/request'
 
 const ApiGatewayContext = createContext()
 
-export const ApiGatewayProvider = ({user, children}) => {
+export const ApiGatewayProvider = ({user, children}) => {    
     // Define a unique user ID based on the authenticated user property:
     let uid = undefined
     if (user && user.attributes) {

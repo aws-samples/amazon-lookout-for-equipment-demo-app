@@ -15,6 +15,12 @@ Amplify.configure({
 		userPoolId: `${window.userPoolId}`,
 		userPoolWebClientId: `${window.userPoolWebClientId}`,
 	},
+    Storage: {
+        AWSS3: {
+            bucket: `${window.appS3Bucket}`,
+            region: `${window.region}`
+        }
+    },
 	API: {
 		endpoints: [
 			{
@@ -39,7 +45,7 @@ Amplify.configure({
 	},
 })
 
-const request = (service, endpointName, data) => 
+const request = (service, endpointName, data) =>
     retryWrapper(() => 
 		API.post(service + "Api", "", {
 			body: data || {},

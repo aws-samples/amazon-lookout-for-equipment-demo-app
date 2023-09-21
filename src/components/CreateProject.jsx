@@ -1,5 +1,5 @@
 // Imports:
-import { Storage } from 'aws-amplify'
+import { Amplify, Storage } from 'aws-amplify'
 import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom"
 
@@ -64,6 +64,7 @@ function CreateProject() {
     // upload:
     // --------------------------------------
     const progressCallback = (progress) => {
+        console.log(progress)
         if (!progress['timeStamp']) {
             setProgressPercent(parseInt(progress.loaded / progress.total * 100))
             setBytesTransferred(`${getHumanReadableSize(progress.loaded)} bytes loaded`)            
@@ -78,6 +79,15 @@ function CreateProject() {
     // Uploading a file to S3:
     // -----------------------
     const uploadFileToS3 = async (prefix, file) => {
+        Storage.configure({
+            AWSS3: {
+                bucket: `${window.appS3Bucket}`,
+                region: `${window.region}`
+            }
+        })
+
+        console.log(`Using bucket ${window.appS3Bucket}`)
+        
         try {
             setFilename(file.name)
             setUploadInProgress(true)

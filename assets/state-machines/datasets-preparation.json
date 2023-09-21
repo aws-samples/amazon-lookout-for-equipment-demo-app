@@ -1,0 +1,192 @@
+{
+    "Comment": "A description of my state machine",
+    "StartAt": "Create new project entry",
+    "States": {
+      "Create new project entry": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "Parameters": {
+          "FunctionName": "arn:aws:lambda:eu-west-1:905637044774:function:l4e-demo-app-new-project-entry:$LATEST",
+          "Payload": {
+            "id.$": "$$.Execution.Id",
+            "bucket.$": "$.detail.bucket.name",
+            "key.$": "$.detail.object.key"
+          }
+        },
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6,
+            "BackoffRate": 2
+          }
+        ],
+        "Next": "Prepare hourly data",
+        "ResultPath": null
+      },
+      "Prepare hourly data": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "OutputPath": "$.Payload",
+        "Parameters": {
+          "Payload.$": "$",
+          "FunctionName": "arn:aws:lambda:eu-west-1:905637044774:function:l4e-demo-app-prepare-hourly-data"
+        },
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6,
+            "BackoffRate": 2
+          }
+        ],
+        "Next": "Parallel"
+      },
+      "Parallel": {
+        "Type": "Parallel",
+        "Branches": [
+          {
+            "StartAt": "Ingest hourly data",
+            "States": {
+              "Ingest hourly data": {
+                "Type": "Task",
+                "Parameters": {
+                  "InputFormat": "CSV",
+                  "S3BucketSource": {
+                    "S3Bucket.$": "$.bucket",
+                    "S3KeyPrefix.$": "$.importKey"
+                  },
+                  "TableCreationParameters": {
+                    "AttributeDefinitions": [
+                      {
+                        "AttributeName": "sampling_rate",
+                        "AttributeType": "S"
+                      },
+                      {
+                        "AttributeName": "unix_timestamp",
+                        "AttributeType": "N"
+                      }
+                    ],
+                    "KeySchema": [
+                      {
+                        "AttributeName": "sampling_rate",
+                        "KeyType": "HASH"
+                      },
+                      {
+                        "AttributeName": "unix_timestamp",
+                        "KeyType": "RANGE"
+                      }
+                    ],
+                    "TableName.$": "$.tableName",
+                    "BillingMode": "PAY_PER_REQUEST"
+                  }
+                },
+                "Resource": "arn:aws:states:::aws-sdk:dynamodb:importTable",
+                "Next": "DescribeImport",
+                "ResultSelector": {
+                  "ImportArn.$": "$.ImportTableDescription.ImportArn"
+                },
+                "ResultPath": "$.ImportResults"
+              },
+              "DescribeImport": {
+                "Type": "Task",
+                "Next": "Import completed?",
+                "Parameters": {
+                  "ImportArn.$": "$.ImportResults.ImportArn"
+                },
+                "Resource": "arn:aws:states:::aws-sdk:dynamodb:describeImport",
+                "ResultSelector": {
+                  "ImportArn.$": "$.ImportTableDescription.ImportArn",
+                  "ImportStatus.$": "$.ImportTableDescription.ImportStatus"
+                },
+                "ResultPath": "$.ImportResults"
+              },
+              "Import completed?": {
+                "Type": "Choice",
+                "Choices": [
+                  {
+                    "Variable": "$.ImportResults.ImportStatus",
+                    "StringEquals": "COMPLETED",
+                    "Next": "Delete imported data"
+                  }
+                ],
+                "Default": "Wait"
+              },
+              "Wait": {
+                "Type": "Wait",
+                "Seconds": 30,
+                "Next": "DescribeImport"
+              },
+              "Delete imported data": {
+                "Type": "Task",
+                "End": true,
+                "Parameters": {
+                  "Bucket.$": "$.bucket",
+                  "Key.$": "$.key"
+                },
+                "Resource": "arn:aws:states:::aws-sdk:s3:deleteObject",
+                "ResultPath": null
+              }
+            }
+          },
+          {
+            "StartAt": "CreateDataset",
+            "States": {
+              "CreateDataset": {
+                "Type": "Task",
+                "Parameters": {
+                  "ClientToken.$": "$.L4EClientToken",
+                  "DatasetName.$": "$.L4EDatasetName",
+                  "Tags": [
+                    {
+                      "Key": "Source",
+                      "Value": "L4EDemoApp"
+                    },
+                    {
+                      "Key": "AppVersion",
+                      "Value": "1.0.0"
+                    },
+                    {
+                      "Key": "AssetDescription",
+                      "Value.$": "$.assetDescription"
+                    }
+                  ]
+                },
+                "Resource": "arn:aws:states:::aws-sdk:lookoutequipment:createDataset",
+                "Next": "StartDataIngestionJob",
+                "ResultPath": null
+              },
+              "StartDataIngestionJob": {
+                "Type": "Task",
+                "End": true,
+                "Parameters": {
+                  "ClientToken.$": "$.L4EClientToken",
+                  "DatasetName.$": "$.L4EDatasetName",
+                  "IngestionInputConfiguration": {
+                    "S3InputConfiguration": {
+                      "Bucket.$": "$.bucket",
+                      "Prefix.$": "$.L4ES3InputPrefix",
+                      "KeyPattern": "{prefix}/{component_name}/*"
+                    }
+                  },
+                  "RoleArn": "arn:aws:iam::905637044774:role/service-role/StepFunctions-l4e-demo-app-datasets-preparation-role-693f12e4"
+                },
+                "Resource": "arn:aws:states:::aws-sdk:lookoutequipment:startDataIngestionJob"
+              }
+            }
+          }
+        ],
+        "End": true
+      }
+    }
+}

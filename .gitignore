@@ -11,11 +11,11 @@ node_modules
 dist
 dist-ssr
 *.local
-*.zip
+l4e-demo-app*.zip
 *.bkp
 *.dtmp
-assets
 deploy.py
+tmp
 
 # Editor directories and files
 .vscode/*

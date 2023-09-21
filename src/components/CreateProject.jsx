@@ -64,10 +64,9 @@ function CreateProject() {
     // upload:
     // --------------------------------------
     const progressCallback = (progress) => {
-        console.log(progress)
         if (!progress['timeStamp']) {
             setProgressPercent(parseInt(progress.loaded / progress.total * 100))
-            setBytesTransferred(`${getHumanReadableSize(progress.loaded)} bytes loaded`)            
+            setBytesTransferred(`${getHumanReadableSize(progress.loaded)} bytes loaded`)
         }
         else {
             setProgressPercent(100)
@@ -79,18 +78,17 @@ function CreateProject() {
     // Uploading a file to S3:
     // -----------------------
     const uploadFileToS3 = async (prefix, file) => {
-        Storage.configure({
-            AWSS3: {
-                bucket: `${window.appS3Bucket}`,
-                region: `${window.region}`
-            }
-        })
-
-        console.log(`Using bucket ${window.appS3Bucket}`)
-        
         try {
             setFilename(file.name)
             setUploadInProgress(true)
+
+            Storage.configure({
+                AWSS3: {
+                    bucket: `${window.appS3Bucket}`,
+                    region: `${window.region}`
+                }
+            })
+
             await Storage.put(
                 prefix + '/' + prefix + '/sensors.csv', 
                 file,
@@ -98,12 +96,15 @@ function CreateProject() {
                     contentType: file.type,
                     level: "private",
                     tagging: `L4EDemoAppUser=${uid}&AssetDescription=${assetDescription}`,
-                    progressCallback
+                    progressCallback,
+                    errorCallback: (error) => {
+                        console.log("ERROR CALLBACK", error);
+                    },
                 }
             )
         }
         catch (error) {
-            console.log("Error uploading file:", error.response);
+            console.log("Error uploading file:", error, error.response);
         }
     }
 

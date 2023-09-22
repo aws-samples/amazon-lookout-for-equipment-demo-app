@@ -113,7 +113,7 @@ Resources:
               - Functions
               - KeyPrefix
             - l4e-demo-app-setup.zip
-      Description: Custom Lambda resource for the Amazon Lookout for Equipment demo app setup
+      Description: Amazon Lookout for Equipment demo app setup
       Role: !GetAtt AppSetupRole.Arn
       Environment:
         Variables:
@@ -324,6 +324,7 @@ Resources:
                 - !Split
                   - "/"
                   - !Ref "AWS::StackId"
+      Description: Initialize bucket content and enable event notification
       Code:
         ZipFile: |
           import boto3

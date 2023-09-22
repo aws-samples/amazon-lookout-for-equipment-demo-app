@@ -39,7 +39,6 @@ module.exports = (event, context, callback) => {
   const sendResponse = (status, data) => {
     const requestBody = JSON.stringify({
       Status: status,
-    //   Reason: `Details: ${context.logStreamName}`,
       Reason: 'event: ' + JSON.stringify(event) + ' ### Message: ' + JSON.stringify(data),
       PhysicalResourceId: context.logStreamName,
       StackId: event.StackId,

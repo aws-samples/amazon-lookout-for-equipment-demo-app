@@ -85,7 +85,7 @@ function Settings({ visible, onDiscard }) {
         e.preventDefault()
 
         await gateway.dynamoDb.putItem(
-            'l4edemoapp-users', 
+            `l4edemoapp-users-${window.stackId}`,
             {
                 'user_id': {'S': uid},
                 'show_help': {'BOOL': showHelp.current},
@@ -141,7 +141,7 @@ function Settings({ visible, onDiscard }) {
 // ------------------------------------
 async function getUserSettings(gateway, uid, showHelp, isAdmin) {
     const userQuery = { 
-        TableName: 'l4edemoapp-users',
+        TableName: `l4edemoapp-users-${window.stackId}`,
         KeyConditionExpression: "#user = :user",
         ExpressionAttributeNames: {"#user": "user_id"},
         ExpressionAttributeValues: { 
@@ -174,7 +174,7 @@ async function getUserSettings(gateway, uid, showHelp, isAdmin) {
 // -------------------------------------------------
 async function createUser(gateway, uid, showHelp) {
     await gateway.dynamoDb.putItem(
-        'l4edemoapp-users', 
+        `l4edemoapp-users-${window.stackId}`,
         {
             'user_id': {'S': uid},
             'show_help': {'BOOL': true},

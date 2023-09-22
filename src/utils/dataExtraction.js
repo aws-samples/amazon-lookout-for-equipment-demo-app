@@ -35,51 +35,6 @@ export async function getSignalDetails(gateway, modelName) {
     return undefined
 }
 
-// // -----------------------------------------------------------
-// // Get details about a single time series from a given dataset
-// // -----------------------------------------------------------
-// export async function getSingleTimeSeries(gateway, modelName, sensorName) {
-//     const targetTableName = 'l4edemoapp-' + modelName
-//     let current_timeseries = undefined
-//     const timeSeriesQuery = { 
-//         TableName: targetTableName,
-//         KeyConditionExpression: "#sr = :sr",
-//         ExpressionAttributeNames: {
-//             "#sr": "sampling_rate", 
-//             "#sensor": sensorName,
-//             "#asset": "asset",
-//             "#timestamp": "timestamp",
-//             "#unix": "unix_timestamp"
-//         },
-//         ExpressionAttributeValues: { ":sr": {"S": "1h"}},
-//         Select: "SPECIFIC_ATTRIBUTES",
-//         ProjectionExpression: "#asset, #sr, #timestamp, #unix, #sensor"
-//     }
-
-//     let timeseries = await gateway.dynamoDb.dbQueryAll(timeSeriesQuery)
-//     // if (timeseries.LastEvaluatedKey) {
-//     //     let lastEvaluatedKey = timeseries.LastEvaluatedKey
-
-//     //     do {
-//     //         current_timeseries = await gateway
-//     //             .dynamoDb.dbQuery({...timeSeriesQuery, ExclusiveStartKey: lastEvaluatedKey})
-
-//     //         if (current_timeseries.LastEvaluatedKey) {
-//     //             lastEvaluatedKey = current_timeseries.LastEvaluatedKey
-//     //         }
-//     //         timeseries.Items = [...timeseries.Items, ...current_timeseries.Items]
-
-//     //     } while (current_timeseries.LastEvaluatedKey)
-//     // }
-
-//     return {
-//         timeseries: timeseries,
-//         startDate: timeseries.Items[0]['timestamp']['S'],
-//         endDate: timeseries.Items[timeseries.Items.length - 1]['timestamp']['S'],
-//         tagsList: Object.keys(timeseries.Items[0]),
-//     }
-// }
-
 // ---------------------------------------------
 // Extract all the sensor data for a given model
 // ---------------------------------------------
@@ -245,6 +200,10 @@ export async function getModelDetails(gateway, modelName, projectName, uid) {
     return response
 }
 
+// -------------------------------------------------
+// Builds the offCondition object based on the 
+// OffCondition string present in the model response
+// -------------------------------------------------
 function processOffResponse(modelResponse) {
     let offCondition = undefined
 
@@ -273,6 +232,9 @@ function processOffResponse(modelResponse) {
     return offCondition
 }
 
+// --------------------------------------------------------------
+// Extract the label group and labels associated to a given model
+// --------------------------------------------------------------
 async function processLabels(gateway, modelResponse) {
     let labels = undefined
     let labelGroupName = ""
@@ -335,6 +297,9 @@ async function getModelEvaluationInfos(gateway, modelName, assetName, endTime, u
     }
 }
 
+// ----------------------------------------------------------------------
+// Gets the anomalies detected in the evaluation range of a trained model
+// ----------------------------------------------------------------------
 async function getEvents(gateway, modelName) {
     let response = await gateway.lookoutEquipment.describeModel(modelName)
     response = JSON.parse(response['ModelMetrics'])['predicted_ranges']
@@ -367,23 +332,6 @@ async function getAnomalies(gateway, model, endTime, projectName, uid) {
     let anomalies = await gateway
         .dynamoDb.queryAll(anomaliesQuery)
         .catch((error) => console.log(error.response))
-
-    // let currentAnomaliesBatch = undefined
-    // if (anomalies.LastEvaluatedKey) {
-    //     let lastEvaluatedKey = anomalies.LastEvaluatedKey
-
-    //     do {
-    //         currentAnomaliesBatch = await gateway
-    //             .dynamoDb.query({...anomaliesQuery, ExclusiveStartKey: lastEvaluatedKey})
-    //             .catch((error) => console.log(error.response))
-
-    //         if (currentAnomaliesBatch.LastEvaluatedKey) {
-    //             lastEvaluatedKey = currentAnomaliesBatch.LastEvaluatedKey
-    //         }
-    //         anomalies.Items = [...anomalies.Items, ...currentAnomaliesBatch.Items]
-
-    //     } while (currentAnomaliesBatch.LastEvaluatedKey)
-    // }
 
     return anomalies
 }

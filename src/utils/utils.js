@@ -183,7 +183,7 @@ export const getModelListDetailed = async (gateway, currentProject) => {
 // ----------------------------------------------
 export async function getAllProjects(gateway, uid) {
     const projectQuery = { 
-        TableName: 'l4edemoapp-projects',
+        TableName: `l4edemoapp-projects-${window.stackId}`,
         KeyConditionExpression: "#user = :user",
         ExpressionAttributeNames: {"#user": "user_id"},
         ExpressionAttributeValues: { 
@@ -207,7 +207,7 @@ export async function getAllProjects(gateway, uid) {
 // ------------------------------------------------
 export async function getAllExecutionId(gateway, uid) {
     const projectQuery = { 
-        TableName: 'l4edemoapp-projects',
+        TableName: `l4edemoapp-projects-${window.stackId}`,
         KeyConditionExpression: "#user = :user",
         ExpressionAttributeNames: {"#user": "user_id"},
         ExpressionAttributeValues: { 

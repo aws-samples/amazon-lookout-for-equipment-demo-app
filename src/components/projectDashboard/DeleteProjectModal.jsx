@@ -90,7 +90,7 @@ function DeleteProjectModal({ visible, onDiscard }) {
             'user_id': {'S': uid},
             'project': {'S': projectName}
         }
-        await gateway.dynamoDb.deleteItem('l4edemoapp-projects', projectItem).catch((error) => console.log(error.response))
+        await gateway.dynamoDb.deleteItem(`l4edemoapp-projects-${window.stackId}`, projectItem).catch((error) => console.log(error.response))
 
         // Delete the L4E project:
         setDeleteMessage(`Deleting Lookout for Equipment project...`)

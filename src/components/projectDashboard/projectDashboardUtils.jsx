@@ -97,7 +97,7 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
 // --------------------------------------
 async function getProjectInfos(gateway, uid, projectName) {
     const projectQuery = { 
-        TableName: 'l4edemoapp-projects',
+        TableName: `l4edemoapp-projects-${window.stackId}`,
         KeyConditionExpression: "#user = :user AND #project = :project",
         ExpressionAttributeNames: {"#user": "user_id", "#project": "project"},
         ExpressionAttributeValues: { 

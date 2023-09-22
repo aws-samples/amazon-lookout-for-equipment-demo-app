@@ -66,7 +66,7 @@ Mappings:
 # ============================================================================
 Resources:
   # -------------------------
-  # Application initial setup
+  # APPLICATION INITIAL SETUP
   # -------------------------
   AppSetup:
     Type: Custom::AppSetup
@@ -212,6 +212,9 @@ Resources:
                 - !Split
                   - "/"
                   - !Ref "AWS::StackId"
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
       BucketEncryption:
         ServerSideEncryptionConfiguration:
         - ServerSideEncryptionByDefault:
@@ -300,7 +303,7 @@ Resources:
               - S3CanonicalUserId
 
   # ------------------------
-  # CloudFront configuration
+  # CLOUDFRONT CONFIGURATION
   # ------------------------
   CloudFrontOriginAccessIdentity:
       Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
@@ -369,7 +372,7 @@ Resources:
           CloudFrontDefaultCertificate: true
 
   # ------------------------------------
-  # Cognito authentication configuration
+  # COGNITO AUTHENTICATION CONFIGURATION
   # ------------------------------------
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
@@ -478,7 +481,7 @@ Resources:
         # unauthenticated: !GetAtt L4EDemoAppUnauthenticatedRole.Arn
 
   # ---------------
-  # DynamoDB Tables
+  # DYNAMODB TABLES
   # ---------------
   ProjectsTable:
     Type: AWS::DynamoDB::Table
@@ -535,33 +538,46 @@ Resources:
       TableClass: STANDARD
 
   # -----------------
-  # EventBridge rules
+  # EVENTBRIDGE RULES
   # -----------------
-  # ProjectCreateRule:
-  #   Type: AWS::Events::Rule
-  #   Properties: 
-  #     Name: !Join
-  #       - "-"
-  #       - - "L4EDemoApp-DatasetPreparationTrigger"
-  #         - !Select
-  #           - 0
-  #           - !Split
-  #             - "-"
-  #             - !Select
-  #               - 2
-  #               - !Split
-  #                 - "/"
-  #                 - !Ref "AWS::StackId"
-  #     Description: Triggered when a new CSV file is uploaded
-  #     EventPattern: !Sub '{"source":["aws.s3"],"detail-type":["Object Created"],"detail":{"bucket":{"name":["${ApplicationBucket.BucketName}"]},"object":{"key":[{"prefix":"private/"}]}}}'
-  #     State: ENABLED
-  #     Targets: 
-  #     - Arn: arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-datasets-preparation
-  #       Id: Id66313644-cede-4f6a-9dc8-21591f088ae6
-  #       RoleArn: arn:aws:iam::905637044774:role/service-role/Amazon_EventBridge_Invoke_Step_Functions_336626532
+  ProjectCreateRule:
+    Type: AWS::Events::Rule
+    Properties: 
+      Name: !Join
+        - "-"
+        - - "L4EDemoApp-DatasetPreparationTrigger"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Triggered when a new CSV file is uploaded
+      EventPattern: !Sub 
+        - '{"source":["aws.s3"],"detail-type":["Object Created"],"detail":{"bucket":{"name":["${ApplicationBucketName}"]},"object":{"key":[{"prefix":"private/"}]}}}'
+        - ApplicationBucketName: !Ref ApplicationBucket
+      State: ENABLED
+      Targets: 
+      - Arn: !GetAtt DatasetPreparationStateMachine.Arn
+        Id: !Join
+          - "-"
+          - - "DatasetPreparationStateMachineTarget"
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+        RoleArn: !GetAtt EventBridgeRuleRole.Arn
 
   # ----------------
-  # Lambda functions
+  # LAMBDA FUNCTIONS
   # ----------------
   FunctionNewProjectEntry:
     Type: AWS::Lambda::Function
@@ -594,6 +610,17 @@ Resources:
               - Functions
               - KeyPrefix
             - l4e-demo-app-new-project-entry.zip
+      Environment:
+        Variables:
+          STACK_ID: !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
       Handler: lambda_function.lambda_handler
       Role: !GetAtt LambdaNewEntryRole.Arn
       Runtime: python3.10
@@ -638,6 +665,17 @@ Resources:
               - Functions
               - KeyPrefix
             - l4e-demo-app-prepare-hourly-data.zip
+      Environment:
+        Variables:
+          STACK_ID: !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
       Handler: lambda_function.lambda_handler
       Role: !GetAtt LambdaNewEntryRole.Arn
       Runtime: python3.10
@@ -699,48 +737,50 @@ Resources:
           - '-'
           - - !FindInMap 
               - SourceCode
-              - OtherResources
+              - StateMachines
               - S3Bucket
             - !Ref 'AWS::Region'
         Key: !Join 
           - /
           - - !FindInMap 
               - SourceCode
-              - OtherResources
+              - StateMachines
               - KeyPrefix
             - 'datasets-preparation.json'
       DefinitionSubstitutions:
-    #     Lambda functions:
-    #     l4e-demo-app-new-project-entry
-    #     l4e-demo-app-prepare-hourly-data
-
-    #     IAM Role for the data ingestion in L4E:
-    #     arn:aws:iam::905637044774:role/service-role/StepFunctions-l4e-demo-app-datasets-preparation-role-693f12e4
-
         function-new-project-entry: !GetAtt   FunctionNewProjectEntry.Arn
         function-prepare-hourly-data: !GetAtt FunctionPrepareHourlyData.Arn
-    #     function-ingest-data: !GetAtt FunctionIngestData.Arn
-    #     function-wait-for-ingestion: !GetAtt FunctionWaitForIngestion.Arn
-    #     function-train-model: !GetAtt FunctionTrainModel.Arn
-    #     function-wait-for-training: !GetAtt FunctionWaitForTraining.Arn
-    #     function-create_scheduler: !GetAtt FunctionCreateScheduler.Arn
-    #   RoleArn: !GetAtt LookoutEquipmentAutomationStepFunctionsRole.Arn
-    #   LoggingConfiguration:
-    #     Destinations: 
-    #       - CloudWatchLogsLogGroup:
-    #           LogGroupArn: !GetAtt LookoutAutomationStateMachineLogGroup.Arn
-    #     IncludeExecutionData: True
-    #     Level: ALL
+        l4e-demo-app-version: 1.0.0
+        role-step-function-dataset-preparation: !GetAtt StepFunctionDatasetPreparationRole.Arn
+      RoleArn: !GetAtt StepFunctionDatasetPreparationRole.Arn
+      LoggingConfiguration:
+        Destinations: 
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt DatasetPreparationStateMachineLogGroup.Arn
+        IncludeExecutionData: True
+        Level: ALL
     DependsOn:
-    #   - LookoutEquipmentAutomationStepFunctionsRole
+      - StepFunctionDatasetPreparationRole
       - FunctionNewProjectEntry
       - FunctionPrepareHourlyData
-    #   - FunctionIngestData
-    #   - FunctionWaitForIngestion
-    #   - FunctionTrainModel
-    #   - FunctionWaitForTraining
-    #   - FunctionCreateScheduler
-    #   - LookoutAutomationStateMachineLogGroup
+      - DatasetPreparationStateMachineLogGroup
+
+  DatasetPreparationStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join
+        - "-"
+        - - "/aws/stepfunction/DatasetPreparationStateMachineLogGroup"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      RetentionInDays: 14
 
   # ---------
   # IAM Roles
@@ -898,6 +938,86 @@ Resources:
             - - !GetAtt ApplicationBucket.Arn
               - "uploads/*"
 
+  StepFunctionDatasetPreparationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - states.amazonaws.com
+            - lookoutequipment.amazonaws.com
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
+        - 'arn:aws:iam::aws:policy/AWSOpsWorksCloudWatchLogs'
+        - 'arn:aws:iam::aws:policy/AmazonLookoutEquipmentFullAccess'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaRole'
+      Policies:
+        - PolicyName: LambdaInvokeScopedAccessPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Action:
+              - lambda:InvokeFunction
+              Effect: Allow
+              Resource: !Join 
+                - ''
+                - - 'arn:'
+                  - !Ref 'AWS::Partition'
+                  - ':lambda:'
+                  - !Ref 'AWS::Region'
+                  - ':'
+                  - !Ref 'AWS::AccountId'
+                  - ':function:l4e-demo-app*'
+        - PolicyName: CloudWatchLogsDeliveryFullAccessPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Action:
+              - logs:CreateLogDelivery
+              - logs:GetLogDelivery
+              - logs:UpdateLogDelivery
+              - logs:DeleteLogDelivery
+              - logs:ListLogDeliveries
+              - logs:PutResourcePolicy
+              - logs:DescribeResourcePolicies
+              - logs:DescribeLogGroups
+              Effect: Allow
+              Resource: '*'
+
+  EventBridgeRuleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service:
+            - events.amazonaws.com
+      Policies:
+        - PolicyName: StepFunctionInvokePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Action:
+              - states:StartExecution
+              Effect: Allow
+              Resource: !Join 
+                - ''
+                - - 'arn:'
+                  - !Ref 'AWS::Partition'
+                  - ':states:'
+                  - !Ref 'AWS::Region'
+                  - ':'
+                  - !Ref 'AWS::AccountId'
+                  - ':stateMachine:l4e-demo-app*'
+
   LambdaNewEntryRole:
     Type: AWS::IAM::Role
     Properties:
@@ -942,8 +1062,6 @@ Resources:
                     - !Ref 'AWS::AccountId'
                     - ':log-group:/aws/lambda/*'
 
-    
-
 # ================
 # Outputs
 # ================
@@ -955,5 +1073,3 @@ Outputs:
       - Fn::Sub: https://${CloudFrontDistribution.DomainName}
       - Fn::Sub: https://${FrontendBucket.RegionalDomainName}/index.html
     Description: URL for the Amazon Lookout for Equipment Demo app
-
-

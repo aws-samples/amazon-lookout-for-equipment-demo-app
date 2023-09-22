@@ -1,4 +1,5 @@
 import boto3
+import os
 import pandas as pd
 import uuid
 
@@ -12,6 +13,7 @@ def lambda_handler(event, context):
     key = event['key']
     asset = key.split('/')[-2]
     executionId = event['id']
+    stackId = os.environ['STACK_ID']
     
     # Reading the CSV file:
     try:
@@ -32,7 +34,7 @@ def lambda_handler(event, context):
         
         # Create a new entry in the projects table:
         ddb_client.put_item(
-            TableName='l4edemoapp-projects',
+            TableName=f'l4edemoapp-projects-{stackId}',
             Item={
                 'user_id': {'S': userUid},
                 'project': {'S': asset},

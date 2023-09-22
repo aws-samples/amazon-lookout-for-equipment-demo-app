@@ -35,8 +35,9 @@ module.exports = (s3) => {
                 directory.files.filter((x) => x.type !== "Directory")
             )
             .then((files) =>
-                files.map((file) => {
+                files.map((file, index) => {
                     if (file.path != CONFIG_FILENAME) {
+                        console.log('(', index, '/', files.length, ')', file.path)
                         upload({
                             ACL,
                             Body: file.stream(),

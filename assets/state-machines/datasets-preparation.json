@@ -6,7 +6,7 @@
         "Type": "Task",
         "Resource": "arn:aws:states:::lambda:invoke",
         "Parameters": {
-          "FunctionName": "arn:aws:lambda:eu-west-1:905637044774:function:l4e-demo-app-new-project-entry:$LATEST",
+          "FunctionName": "${function-new-project-entry}:$LATEST",
           "Payload": {
             "id.$": "$$.Execution.Id",
             "bucket.$": "$.detail.bucket.name",
@@ -35,7 +35,7 @@
         "OutputPath": "$.Payload",
         "Parameters": {
           "Payload.$": "$",
-          "FunctionName": "arn:aws:lambda:eu-west-1:905637044774:function:l4e-demo-app-prepare-hourly-data"
+          "FunctionName": "${function-prepare-hourly-data}:$LATEST"
         },
         "Retry": [
           {
@@ -154,7 +154,7 @@
                     },
                     {
                       "Key": "AppVersion",
-                      "Value": "1.0.0"
+                      "Value": "${l4e-demo-app-version}"
                     },
                     {
                       "Key": "AssetDescription",
@@ -179,7 +179,7 @@
                       "KeyPattern": "{prefix}/{component_name}/*"
                     }
                   },
-                  "RoleArn": "arn:aws:iam::905637044774:role/service-role/StepFunctions-l4e-demo-app-datasets-preparation-role-693f12e4"
+                  "RoleArn": "${role-step-function-dataset-preparation}"
                 },
                 "Resource": "arn:aws:states:::aws-sdk:lookoutequipment:startDataIngestionJob"
               }

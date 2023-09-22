@@ -71,7 +71,7 @@ export async function createModel(
     }
 
     // Launch the creation request:
-    const response = await gateway.lookoutEquipmentCreateModel(createRequest)
+    const response = await gateway.lookoutEquipment.createModel(createRequest)
         .then((response) => { console.log('Model training launched:', response) })
         .catch((error) => { console.log(error.response)})
 

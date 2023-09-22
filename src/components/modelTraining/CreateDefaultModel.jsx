@@ -45,7 +45,7 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
         }
 
         // Launch the creation request:
-        const response = await gateway.lookoutEquipmentCreateModel(createRequest)
+        await gateway.lookoutEquipment.createModel(createRequest)
             .then((response) => { console.log(response) })
             .catch((error) => { console.log(error.response)})
 

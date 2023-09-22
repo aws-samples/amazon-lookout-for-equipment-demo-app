@@ -21,47 +21,13 @@ export const ApiGatewayProvider = ({user, children}) => {
         // ---------------------------
         // Lookout for Equipment calls
         // ---------------------------
-        lookoutEquipmentDescribeDataset(datasetName) {
-            return request("LookoutEquipment", "DescribeDataset", {DatasetName: datasetName})
-        },
-        lookoutEquipmentListDataIngestionJobs(datasetName) {
-            return request("LookoutEquipment", "ListDataIngestionJobs", {DatasetName: datasetName})
-        },
-        async lookoutEquipmentListSensorStatistics(datasetName, jobId) {
-            let response = undefined
-            let overallResponse = {SensorStatisticsSummaries: []}
-            do {
-                if (!response) {
-                    response = await request("LookoutEquipment", "ListSensorStatistics", {
-                        DatasetName: datasetName,
-                        IngestionJobId: jobId
-                    })
-                    .catch((error) => console.log(error.response))
-                }
-                else {
-                    response = await request("LookoutEquipment", "ListSensorStatistics", {
-                        DatasetName: datasetName,
-                        IngestionJobId: jobId,
-                        NextToken: response ? response['NextToken'] : ''
-                    })
-                    .catch((error) => console.log(error.response))
-                }
-                
-                overallResponse['SensorStatisticsSummaries'] = [...overallResponse['SensorStatisticsSummaries'], ...response['SensorStatisticsSummaries']]
-            } while (response['NextToken'])
-
-            return overallResponse
-        },
-        lookoutEquipmentCreateModel(createRequest) {
-            let requestArg = createRequest
-            requestArg['ClientToken'] = uuidv4()
-
-            return request("LookoutEquipment", "CreateModel", requestArg)
-        },
         lookoutEquipment: {
             // -------------------
             // Datasets management
             // -------------------
+            describeDataset(datasetName) {
+                return request("LookoutEquipment", "DescribeDataset", {DatasetName: datasetName})
+            },
             listDatasets(datasetName) {
                 if (datasetName) {
                     return request("LookoutEquipment", "ListDatasets", {DatasetNameBeginsWith: datasetName})
@@ -70,13 +36,47 @@ export const ApiGatewayProvider = ({user, children}) => {
                     return request("LookoutEquipment", "ListDatasets")
                 }
             },
+            listDataIngestionJobs(datasetName) {
+                return request("LookoutEquipment", "ListDataIngestionJobs", {DatasetName: datasetName})
+            },
             deleteDataset(datasetName) {
                 return request("LookoutEquipment", "DeleteDataset", { DatasetName: datasetName })
+            },
+            async listSensorStatistics(datasetName, jobId) {
+                let response = undefined
+                let overallResponse = {SensorStatisticsSummaries: []}
+                do {
+                    if (!response) {
+                        response = await request("LookoutEquipment", "ListSensorStatistics", {
+                            DatasetName: datasetName,
+                            IngestionJobId: jobId
+                        })
+                        .catch((error) => console.log(error.response))
+                    }
+                    else {
+                        response = await request("LookoutEquipment", "ListSensorStatistics", {
+                            DatasetName: datasetName,
+                            IngestionJobId: jobId,
+                            NextToken: response ? response['NextToken'] : ''
+                        })
+                        .catch((error) => console.log(error.response))
+                    }
+                    
+                    overallResponse['SensorStatisticsSummaries'] = [...overallResponse['SensorStatisticsSummaries'], ...response['SensorStatisticsSummaries']]
+                } while (response['NextToken'])
+    
+                return overallResponse
             },
 
             // -----------------
             // Models management
             // -----------------
+            createModel(createRequest) {
+                let requestArg = createRequest
+                requestArg['ClientToken'] = uuidv4()
+    
+                return request("LookoutEquipment", "CreateModel", requestArg)
+            },
             listModels(datasetName) {
                 if (datasetName) {
                     return request("LookoutEquipment", "ListModels", {DatasetNameBeginsWith: datasetName})
@@ -183,16 +183,13 @@ export const ApiGatewayProvider = ({user, children}) => {
         // ---------------
         // DynamobDB calls
         // ---------------
-        dynamoDbListTables() {
-            return request("DynamoDB", "ListTables")
-        },
-        dynamoDbDescribeTable(tableName) {
-            return request("DynamoDB", "DescribeTable", { TableName: tableName })
-        },
-        dynamoDbQuery(query) {
-            return request("DynamoDB", "Query", query)
-        },
         dynamoDb: {
+            describeTable(tableName) {
+                return request("DynamoDB", "DescribeTable", { TableName: tableName })
+            },
+            listTables() {
+                return request("DynamoDB", "ListTables")
+            },
             deleteTable(tableName) {
                 return request("DynamoDB", "DeleteTable", { TableName: tableName })
             },
@@ -201,6 +198,9 @@ export const ApiGatewayProvider = ({user, children}) => {
             },
             putItem(tableName, item) {
                 return request("DynamoDB", "PutItem", { TableName: tableName, Item: item })
+            },
+            query(query) {
+                return request("DynamoDB", "Query", query)
             },
             async queryAll(query) {
                 let response = undefined

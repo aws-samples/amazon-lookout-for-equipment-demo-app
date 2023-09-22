@@ -10,7 +10,7 @@ export async function getSignalDetails(gateway, modelName) {
 
     if (response['DatasetSummaries'].length > 0) {
         const projectDetail = await gateway
-            .lookoutEquipmentDescribeDataset(lookoutEquipmentProjectName)
+            .lookoutEquipment.describeDataset(lookoutEquipmentProjectName)
             .catch((error) => { console.log(error.response['data']['Message']) })
 
         if (projectDetail) {
@@ -19,9 +19,9 @@ export async function getSignalDetails(gateway, modelName) {
                 return undefined
             }
             else {
-                const ingestionJobDetails = await gateway.lookoutEquipmentListDataIngestionJobs(lookoutEquipmentProjectName)
+                const ingestionJobDetails = await gateway.lookoutEquipment.listDataIngestionJobs(lookoutEquipmentProjectName)
                 const jobId = ingestionJobDetails["DataIngestionJobSummaries"][0]["JobId"]
-                const sensorStatistics = await gateway.lookoutEquipmentListSensorStatistics(lookoutEquipmentProjectName, jobId)
+                const sensorStatistics = await gateway.lookoutEquipment.listSensorStatistics(lookoutEquipmentProjectName, jobId)
 
                 return {
                     tagsList: JSON.parse(projectDetail.Schema)['Components'][0]['Columns'],
@@ -35,50 +35,50 @@ export async function getSignalDetails(gateway, modelName) {
     return undefined
 }
 
-// -----------------------------------------------------------
-// Get details about a single time series from a given dataset
-// -----------------------------------------------------------
-export async function getSingleTimeSeries(gateway, modelName, sensorName) {
-    const targetTableName = 'l4edemoapp-' + modelName
-    let current_timeseries = undefined
-    const timeSeriesQuery = { 
-        TableName: targetTableName,
-        KeyConditionExpression: "#sr = :sr",
-        ExpressionAttributeNames: {
-            "#sr": "sampling_rate", 
-            "#sensor": sensorName,
-            "#asset": "asset",
-            "#timestamp": "timestamp",
-            "#unix": "unix_timestamp"
-        },
-        ExpressionAttributeValues: { ":sr": {"S": "1h"}},
-        Select: "SPECIFIC_ATTRIBUTES",
-        ProjectionExpression: "#asset, #sr, #timestamp, #unix, #sensor"
-    }
+// // -----------------------------------------------------------
+// // Get details about a single time series from a given dataset
+// // -----------------------------------------------------------
+// export async function getSingleTimeSeries(gateway, modelName, sensorName) {
+//     const targetTableName = 'l4edemoapp-' + modelName
+//     let current_timeseries = undefined
+//     const timeSeriesQuery = { 
+//         TableName: targetTableName,
+//         KeyConditionExpression: "#sr = :sr",
+//         ExpressionAttributeNames: {
+//             "#sr": "sampling_rate", 
+//             "#sensor": sensorName,
+//             "#asset": "asset",
+//             "#timestamp": "timestamp",
+//             "#unix": "unix_timestamp"
+//         },
+//         ExpressionAttributeValues: { ":sr": {"S": "1h"}},
+//         Select: "SPECIFIC_ATTRIBUTES",
+//         ProjectionExpression: "#asset, #sr, #timestamp, #unix, #sensor"
+//     }
 
-    let timeseries = await gateway.dynamoDbQuery(timeSeriesQuery)
-    if (timeseries.LastEvaluatedKey) {
-        let lastEvaluatedKey = timeseries.LastEvaluatedKey
+//     let timeseries = await gateway.dynamoDb.dbQueryAll(timeSeriesQuery)
+//     // if (timeseries.LastEvaluatedKey) {
+//     //     let lastEvaluatedKey = timeseries.LastEvaluatedKey
 
-        do {
-            current_timeseries = await gateway
-                .dynamoDbQuery({...timeSeriesQuery, ExclusiveStartKey: lastEvaluatedKey})
+//     //     do {
+//     //         current_timeseries = await gateway
+//     //             .dynamoDb.dbQuery({...timeSeriesQuery, ExclusiveStartKey: lastEvaluatedKey})
 
-            if (current_timeseries.LastEvaluatedKey) {
-                lastEvaluatedKey = current_timeseries.LastEvaluatedKey
-            }
-            timeseries.Items = [...timeseries.Items, ...current_timeseries.Items]
+//     //         if (current_timeseries.LastEvaluatedKey) {
+//     //             lastEvaluatedKey = current_timeseries.LastEvaluatedKey
+//     //         }
+//     //         timeseries.Items = [...timeseries.Items, ...current_timeseries.Items]
 
-        } while (current_timeseries.LastEvaluatedKey)
-    }
+//     //     } while (current_timeseries.LastEvaluatedKey)
+//     // }
 
-    return {
-        timeseries: timeseries,
-        startDate: timeseries.Items[0]['timestamp']['S'],
-        endDate: timeseries.Items[timeseries.Items.length - 1]['timestamp']['S'],
-        tagsList: Object.keys(timeseries.Items[0]),
-    }
-}
+//     return {
+//         timeseries: timeseries,
+//         startDate: timeseries.Items[0]['timestamp']['S'],
+//         endDate: timeseries.Items[timeseries.Items.length - 1]['timestamp']['S'],
+//         tagsList: Object.keys(timeseries.Items[0]),
+//     }
+// }
 
 // ---------------------------------------------
 // Extract all the sensor data for a given model
@@ -86,11 +86,11 @@ export async function getSingleTimeSeries(gateway, modelName, sensorName) {
 export async function getAllTimeseries(gateway, modelName) {
     const targetTableName = 'l4edemoapp-' + modelName
 
-    const listTables = await gateway.dynamoDbListTables()
+    const listTables = await gateway.dynamoDb.listTables()
     const tableAvailable = (listTables['TableNames'].indexOf(targetTableName) >= 0)
 
     if (tableAvailable) {
-        let tableStatus = await gateway.dynamoDbDescribeTable(targetTableName)
+        let tableStatus = await gateway.dynamoDb.describeTable(targetTableName)
         tableStatus = tableStatus['Table']['TableStatus']
 
         if (tableStatus === 'ACTIVE') {
@@ -101,22 +101,7 @@ export async function getAllTimeseries(gateway, modelName) {
                 ExpressionAttributeValues: { ":sr": {"S": "1h"}}
             }
 
-            let timeseries = await gateway.dynamoDbQuery(timeSeriesQuery)
-            let current_timeseries = undefined
-            if (timeseries.LastEvaluatedKey) {
-                let lastEvaluatedKey = timeseries.LastEvaluatedKey
-
-                do {
-                    current_timeseries = await gateway
-                        .dynamoDbQuery({...timeSeriesQuery, ExclusiveStartKey: lastEvaluatedKey})
-
-                    if (current_timeseries.LastEvaluatedKey) {
-                        lastEvaluatedKey = current_timeseries.LastEvaluatedKey
-                    }
-                    timeseries.Items = [...timeseries.Items, ...current_timeseries.Items]
-
-                } while (current_timeseries.LastEvaluatedKey)
-            }
+            let timeseries = await gateway.dynamoDb.queryAll(timeSeriesQuery)
 
             return {
                 timeseries: timeseries,
@@ -162,23 +147,9 @@ export async function getAllTimeseriesWindow(gateway, modelName, startTime, endT
         }
     }
 
-    let timeseries = await gateway.dynamoDbQuery(timeSeriesQuery)
-                            .catch((error) => { console.log(error.response)})
-    let current_timeseries = undefined
-    if (timeseries.LastEvaluatedKey) {
-        let lastEvaluatedKey = timeseries.LastEvaluatedKey
-
-        do {
-            current_timeseries = await gateway
-                .dynamoDbQuery({...timeSeriesQuery, ExclusiveStartKey: lastEvaluatedKey})
-
-            if (current_timeseries.LastEvaluatedKey) {
-                lastEvaluatedKey = current_timeseries.LastEvaluatedKey
-            }
-            timeseries.Items = [...timeseries.Items, ...current_timeseries.Items]
-
-        } while (current_timeseries.LastEvaluatedKey)
-    }
+    let timeseries = await gateway.dynamoDb
+                           .queryAll(timeSeriesQuery)
+                           .catch((error) => { console.log(error.response)})
 
     return {
         timeseries: timeseries,
@@ -394,25 +365,25 @@ async function getAnomalies(gateway, model, endTime, projectName, uid) {
     }
 
     let anomalies = await gateway
-        .dynamoDbQuery(anomaliesQuery)
+        .dynamoDb.queryAll(anomaliesQuery)
         .catch((error) => console.log(error.response))
 
-    let currentAnomaliesBatch = undefined
-    if (anomalies.LastEvaluatedKey) {
-        let lastEvaluatedKey = anomalies.LastEvaluatedKey
+    // let currentAnomaliesBatch = undefined
+    // if (anomalies.LastEvaluatedKey) {
+    //     let lastEvaluatedKey = anomalies.LastEvaluatedKey
 
-        do {
-            currentAnomaliesBatch = await gateway
-                .dynamoDbQuery({...anomaliesQuery, ExclusiveStartKey: lastEvaluatedKey})
-                .catch((error) => console.log(error.response))
+    //     do {
+    //         currentAnomaliesBatch = await gateway
+    //             .dynamoDb.query({...anomaliesQuery, ExclusiveStartKey: lastEvaluatedKey})
+    //             .catch((error) => console.log(error.response))
 
-            if (currentAnomaliesBatch.LastEvaluatedKey) {
-                lastEvaluatedKey = currentAnomaliesBatch.LastEvaluatedKey
-            }
-            anomalies.Items = [...anomalies.Items, ...currentAnomaliesBatch.Items]
+    //         if (currentAnomaliesBatch.LastEvaluatedKey) {
+    //             lastEvaluatedKey = currentAnomaliesBatch.LastEvaluatedKey
+    //         }
+    //         anomalies.Items = [...anomalies.Items, ...currentAnomaliesBatch.Items]
 
-        } while (currentAnomaliesBatch.LastEvaluatedKey)
-    }
+    //     } while (currentAnomaliesBatch.LastEvaluatedKey)
+    // }
 
     return anomalies
 }
@@ -421,7 +392,7 @@ async function getAnomalies(gateway, model, endTime, projectName, uid) {
 // Anomalies daily aggregation for a given model
 // ---------------------------------------------
 async function getDailyAggregation(gateway, model, endTime, projectName, uid) {
-    const dailyAggregation = await gateway.dynamoDbQuery({ 
+    const dailyAggregation = await gateway.dynamoDb.queryAll({ 
         TableName: `l4edemoapp-${uid}-${projectName}-daily_rate`,
         KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
         ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
@@ -440,7 +411,7 @@ async function getDailyAggregation(gateway, model, endTime, projectName, uid) {
 // ------------------------------------------------------
 async function getSensorContribution(gateway, model, assetName, endTime, uid) {
     const sensorContributionTableName = `l4edemoapp-${uid}-${assetName}-sensor_contribution`
-    const { TableNames: listTables } = await gateway.dynamoDbListTables()
+    const { TableNames: listTables } = await gateway.dynamoDb.listTables()
 
     let sensorContribution = undefined
     if (listTables.indexOf(sensorContributionTableName) >= 0) {

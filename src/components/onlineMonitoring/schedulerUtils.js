@@ -878,7 +878,7 @@ function getNextExecutionTimestamp(nextTime, timestampFormat) {
 // ----------------------------------------------------
 async function getExpectedContent(gateway, uid, projectName) {
     const datasetName = 'l4e-demo-app-' + uid + '-' + projectName
-    const response = await gateway.lookoutEquipmentDescribeDataset(datasetName)
+    const response = await gateway.lookoutEquipment.describeDataset(datasetName)
     const columns = JSON.parse(response['Schema'])['Components'][0]['Columns']
 
     let content = ""

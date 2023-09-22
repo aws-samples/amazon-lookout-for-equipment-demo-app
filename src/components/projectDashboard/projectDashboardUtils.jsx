@@ -7,7 +7,7 @@ import { getAllProjects, getAllExecutionId } from '../../utils/utils'
 export const getProjectDetails = async (gateway, uid, projectName) => {
     const listProjects = await getAllProjects(gateway, uid)
     const targetTableName = `l4edemoapp-${uid}-${projectName}`
-    const listTables = await gateway.dynamoDbListTables()
+    const listTables = await gateway.dynamoDb.listTables()
     const tableAvailable = (listTables['TableNames'].indexOf(targetTableName) >= 0)
     const executionIds = await getAllExecutionId(gateway, uid)
     
@@ -15,14 +15,14 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
     let errorDetails = undefined
     if (listProjects.indexOf(uid + '-' + projectName)) {
         if (tableAvailable) {
-            let tableStatus = await gateway.dynamoDbDescribeTable(targetTableName)
+            let tableStatus = await gateway.dynamoDb.describeTable(targetTableName)
             tableStatus = tableStatus['Table']['TableStatus']
 
             if (tableStatus === 'ACTIVE') {
                 let fetchError = false
 
                 const contentHead = await gateway
-                    .dynamoDbQuery({ 
+                    .dynamoDb.query({ 
                         TableName: targetTableName,
                         KeyConditionExpression: "sampling_rate = :sr",
                         ExpressionAttributeValues: { ":sr": {"S": "1h"} },
@@ -31,7 +31,7 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                     .catch(() => { fetchError = true })
 
                 const contentTail = await gateway
-                    .dynamoDbQuery(
+                    .dynamoDb.query(
                         { 
                             TableName: targetTableName,
                             KeyConditionExpression: "sampling_rate = :sr",
@@ -106,7 +106,7 @@ async function getProjectInfos(gateway, uid, projectName) {
         }
     }
 
-    const response = await gateway.dynamoDbQuery(projectQuery).catch((error) => console.log(error.response))
+    const response = await gateway.dynamoDb.queryAll(projectQuery).catch((error) => console.log(error.response))
 
     return {
         rowCounts: response.Items[0]['numRows']['N'],

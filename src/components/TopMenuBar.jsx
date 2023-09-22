@@ -150,7 +150,7 @@ async function getUserSettings(gateway, uid, showHelp, isAdmin) {
     }
 
     const response = await gateway
-                     .dynamoDbQuery(userQuery)
+                     .dynamoDb.queryAll(userQuery)
                      .catch((error) => console.log(error.response))
 
     if (response.Items.length == 0) {

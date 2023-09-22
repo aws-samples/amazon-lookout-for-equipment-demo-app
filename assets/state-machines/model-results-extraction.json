@@ -1,0 +1,121 @@
+{
+    "Comment": "A description of my state machine",
+    "StartAt": "Describe model",
+    "States": {
+      "Describe model": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "OutputPath": "$.Payload",
+        "Parameters": {
+          "Payload.$": "$",
+          "FunctionName": "${function-describe-model}"
+        },
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6,
+            "BackoffRate": 2
+          }
+        ],
+        "Next": "Model training finished?"
+      },
+      "Model training finished?": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.status",
+            "StringEquals": "IN_PROGRESS",
+            "Next": "Wait 30s"
+          }
+        ],
+        "Default": "Training successful?"
+      },
+      "Wait 30s": {
+        "Type": "Wait",
+        "Seconds": 30,
+        "Next": "Describe model"
+      },
+      "Training successful?": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.status",
+            "StringEquals": "SUCCESS",
+            "Next": "Extract model results"
+          }
+        ],
+        "Default": "Fail"
+      },
+      "Extract model results": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "OutputPath": "$.Payload",
+        "Parameters": {
+          "Payload.$": "$",
+          "FunctionName": "${function-training-results-extraction}"
+        },
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6,
+            "BackoffRate": 2
+          }
+        ],
+        "Next": "Ingest model results"
+      },
+      "Ingest model results": {
+        "Type": "Map",
+        "ItemProcessor": {
+          "ProcessorConfig": {
+            "Mode": "INLINE"
+          },
+          "StartAt": "Ingest file in DynamoDB",
+          "States": {
+            "Ingest file in DynamoDB": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "OutputPath": "$.Payload",
+              "Parameters": {
+                "FunctionName": "${function-ingest-model-results}",
+                "Payload.$": "$"
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "Lambda.ServiceException",
+                    "Lambda.AWSLambdaException",
+                    "Lambda.SdkClientException",
+                    "Lambda.TooManyRequestsException"
+                  ],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 6,
+                  "BackoffRate": 2
+                }
+              ],
+              "End": true
+            }
+          }
+        },
+        "Next": "Success",
+        "ItemsPath": "$.filesToIngest"
+      },
+      "Success": {
+        "Type": "Succeed"
+      },
+      "Fail": {
+        "Type": "Fail"
+      }
+    }
+  }

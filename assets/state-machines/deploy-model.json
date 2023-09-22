@@ -1,0 +1,189 @@
+{
+    "Comment": "A description of my state machine",
+    "StartAt": "Prepare replay data",
+    "States": {
+      "Prepare replay data": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::lambda:invoke",
+        "OutputPath": "$.Payload",
+        "Parameters": {
+          "Payload.$": "$",
+          "FunctionName": "${function-prepare-replay-data}"
+        },
+        "Retry": [
+          {
+            "ErrorEquals": [
+              "Lambda.ServiceException",
+              "Lambda.AWSLambdaException",
+              "Lambda.SdkClientException",
+              "Lambda.TooManyRequestsException"
+            ],
+            "IntervalSeconds": 2,
+            "MaxAttempts": 6,
+            "BackoffRate": 2
+          }
+        ],
+        "Next": "Choice"
+      },
+      "Choice": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.generateReplayData",
+            "BooleanEquals": false,
+            "Next": "Create Inference Scheduler without replay data"
+          }
+        ],
+        "Default": "Parallel"
+      },
+      "Create Inference Scheduler without replay data": {
+        "Type": "Task",
+        "End": true,
+        "Parameters": {
+          "ClientToken.$": "$.token",
+          "DataInputConfiguration": {
+            "S3InputConfiguration": {
+              "Bucket.$": "$.bucket",
+              "Prefix.$": "$.inputPrefix"
+            },
+            "InferenceInputNameConfiguration": {
+              "TimestampFormat": "yyyyMMddHHmmss",
+              "ComponentTimestampDelimiter": "-"
+            }
+          },
+          "DataOutputConfiguration": {
+            "S3OutputConfiguration": {
+              "Bucket.$": "$.bucket",
+              "Prefix.$": "$.outputPrefix"
+            }
+          },
+          "DataUploadFrequency": "PT5M",
+          "InferenceSchedulerName.$": "$.name",
+          "ModelName.$": "$.modelName",
+          "RoleArn": "${role-step-function-deploy-model}",
+          "Tags": [
+            {
+              "Key": "Source",
+              "Value": "L4EDemoApp"
+            },
+            {
+              "Key": "AppVersion",
+              "Value": "${l4e-demo-app-version}"
+            },
+            {
+              "Key": "Replay",
+              "Value": "false"
+            }
+          ]
+        },
+        "Resource": "arn:aws:states:::aws-sdk:lookoutequipment:createInferenceScheduler"
+      },
+      "Parallel": {
+        "Type": "Parallel",
+        "Branches": [
+          {
+            "StartAt": "Generate inference input files",
+            "States": {
+              "Generate inference input files": {
+                "Type": "Map",
+                "ItemProcessor": {
+                  "ProcessorConfig": {
+                    "Mode": "DISTRIBUTED",
+                    "ExecutionType": "EXPRESS"
+                  },
+                  "StartAt": "Generate inference input",
+                  "States": {
+                    "Generate inference input": {
+                      "Type": "Task",
+                      "Resource": "arn:aws:states:::lambda:invoke",
+                      "OutputPath": "$.Payload",
+                      "Parameters": {
+                        "Payload.$": "$",
+                        "FunctionName": "${function-generate-inference-input}"
+                      },
+                      "Retry": [
+                        {
+                          "ErrorEquals": [
+                            "Lambda.ServiceException",
+                            "Lambda.AWSLambdaException",
+                            "Lambda.SdkClientException",
+                            "Lambda.TooManyRequestsException"
+                          ],
+                          "IntervalSeconds": 2,
+                          "MaxAttempts": 6,
+                          "BackoffRate": 2
+                        }
+                      ],
+                      "End": true
+                    }
+                  }
+                },
+                "Label": "Generateinferenceinputfiles",
+                "ItemReader": {
+                  "Resource": "arn:aws:states:::s3:getObject",
+                  "ReaderConfig": {
+                    "InputType": "CSV",
+                    "CSVHeaderLocation": "FIRST_ROW"
+                  },
+                  "Parameters": {
+                    "Bucket.$": "$.bucket",
+                    "Key.$": "$.key"
+                  }
+                },
+                "End": true,
+                "MaxConcurrency": 10
+              }
+            }
+          },
+          {
+            "StartAt": "Create Inference Scheduler with replay data",
+            "States": {
+              "Create Inference Scheduler with replay data": {
+                "Type": "Task",
+                "Parameters": {
+                  "ClientToken.$": "$.token",
+                  "DataInputConfiguration": {
+                    "S3InputConfiguration": {
+                      "Bucket.$": "$.bucket",
+                      "Prefix.$": "$.inputPrefix"
+                    },
+                    "InferenceInputNameConfiguration": {
+                      "TimestampFormat": "yyyyMMddHHmmss",
+                      "ComponentTimestampDelimiter": "-"
+                    }
+                  },
+                  "DataOutputConfiguration": {
+                    "S3OutputConfiguration": {
+                      "Bucket.$": "$.bucket",
+                      "Prefix.$": "$.outputPrefix"
+                    }
+                  },
+                  "DataUploadFrequency": "PT5M",
+                  "InferenceSchedulerName.$": "$.name",
+                  "ModelName.$": "$.modelName",
+                  "RoleArn": "${role-step-function-deploy-model}",
+                  "Tags": [
+                    {
+                      "Key": "Source",
+                      "Value": "L4EDemoApp"
+                    },
+                    {
+                      "Key": "AppVersion",
+                      "Value": "1.0.0"
+                    },
+                    {
+                      "Key": "Replay",
+                      "Value": "true"
+                    }
+                  ]
+                },
+                "Resource": "arn:aws:states:::aws-sdk:lookoutequipment:createInferenceScheduler",
+                "End": true
+              }
+            }
+          }
+        ],
+        "End": true
+      }
+    }
+  }

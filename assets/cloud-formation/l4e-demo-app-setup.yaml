@@ -42,8 +42,14 @@ Conditions:
 Metadata:
   'AWS::CloudFormation::Interface':
     ParameterLabels:
+      AdminUsername:
+        default: "Admin username"
+      AdminEmail:
+        default: "Admin email"
       DataBucket:
         default: "S3 Bucket"
+      CreateCloudFrontDistribution:
+        default: "Create CloudFront distribution"
 
 # ============================================================================
 # CLOUDFORMATION TEMPLATE REUSABLE VARIABLES
@@ -212,9 +218,6 @@ Resources:
                 - !Split
                   - "/"
                   - !Ref "AWS::StackId"
-      NotificationConfiguration:
-        EventBridgeConfiguration:
-          EventBridgeEnabled: true
       BucketEncryption:
         ServerSideEncryptionConfiguration:
         - ServerSideEncryptionByDefault:
@@ -248,7 +251,6 @@ Resources:
                     - !Split
                       - "/"
                       - !Ref "AWS::StackId"
-            # Fn::Sub: ${ResourcePrefix}-L4EUserBucketCorsRule
           MaxAge: 3600
 
   FrontendBucket:
@@ -280,7 +282,6 @@ Resources:
                     - !Split
                       - "/"
                       - !Ref "AWS::StackId"
-            # Fn::Sub: ${ResourcePrefix}-L4ECorsRule
           MaxAge: 3600
 
   FrontendBucketReadPolicy:
@@ -301,6 +302,117 @@ Resources:
               Fn::GetAtt:
               - CloudFrontOriginAccessIdentity
               - S3CanonicalUserId
+
+  # ----------------------------------------------------------------------------
+  # APPLICATION BUCKET INITIALIZATION
+  # The initial S3 bucket must be initialized with a few directories to allow
+  # the trigger definition. This custom CloudFormation resource is ran before the
+  # bucket is configured:
+  # ----------------------------------------------------------------------------
+  InitializeApplicationBucketFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-initialize-data-bucket"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import os
+
+          def lambda_handler(event, context):
+              print(event)
+              
+              s3 = boto3.client('s3')
+              s3_resource = boto3.resource('s3')
+              bucket = event['ResourceProperties']['DataBucket']
+              region = event['ResourceProperties']['DataBucketRegion']
+              lambda_arn = event['ResourceProperties']['LambdaArn']
+              
+              try:
+                  # Stack creation request detected:
+                  if event['RequestType'] == 'Create':
+                      # Create the folders:
+                      s3.put_object(Bucket=bucket, Key=('inference-data/'))
+                      s3.put_object(Bucket=bucket, Key=('inference-data/input/'))
+                      s3.put_object(Bucket=bucket, Key=('inference-data/output/'))
+                      s3.put_object(Bucket=bucket, Key=('raw-datasets/'))
+                      
+                      bucket_notification = s3_resource.BucketNotification(bucket)
+                      notification_response = bucket_notification.put(
+                        NotificationConfiguration={
+                          'LambdaFunctionConfigurations': [{
+                            'LambdaFunctionArn': lambda_arn,
+                            'Events': ['s3:ObjectCreated:*'],
+                            'Filter': {
+                              'Key': {
+                                'FilterRules': [
+                                  {'Name': 'prefix', 'Value': 'inference-data/'},
+                                  {'Name': 'suffix', 'Value': '.jsonl'},
+                                ]
+                              }
+                            }
+                          }],
+                          'EventBridgeConfiguration': {}
+                        }
+                      )
+                      
+                  responseData = {'BucketName': bucket}
+                  responseStatus = 'SUCCESS'
+                  
+              except Exception as e:
+                  print('Failed to process the request:', e)
+                  responseStatus = 'FAILED'
+                  responseData = {'Failure': str(e)}
+              
+              print(event, context, responseStatus, responseData)    
+              cfnresponse.send(event, context, responseStatus, responseData)
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaNewEntryRole.Arn
+      Runtime: python3.10
+      MemorySize: 128
+      Timeout: 5
+    DependsOn:
+      - LambdaNewEntryRole
+
+  # This custom resource runs the previous lambda function to populate
+  # the S3 bucket and position the asset configuration trigger:
+  InitializeApplicationBucket:
+    Type: Custom::InitializeApplicationBucketFunction
+    Properties:
+      ServiceToken: !GetAtt InitializeApplicationBucketFunction.Arn
+      DataBucket: !Ref ApplicationBucket
+      DataBucketRegion: !Ref 'AWS::Region'
+      LambdaArn: !GetAtt FunctionStoreInferenceResults.Arn
+    DependsOn:
+      - InferenceTriggerS3Permission
+      - ApplicationBucket
+      - FunctionStoreInferenceResults
+
+  # Allows the S3 bucket to trigger the read asset configuration lambda
+  # function when a new CSV file is loaded in the asset-configuration
+  # prefix location:
+  InferenceTriggerS3Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt FunctionStoreInferenceResults.Arn
+      Action: lambda:InvokeFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !GetAtt ApplicationBucket.Arn
+    DependsOn:
+      - FunctionStoreInferenceResults
+      - ApplicationBucket
 
   # ------------------------
   # CLOUDFRONT CONFIGURATION
@@ -341,6 +453,11 @@ Resources:
         Enabled: true
         HttpVersion: http2
         Comment: The distribution for the Lookout for Equipment Demo
+        CustomErrorResponses:
+          - ErrorCachingMinTTL: 60
+            ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
         DefaultRootObject: index.html
         DefaultCacheBehavior:
           AllowedMethods:
@@ -576,6 +693,44 @@ Resources:
                     - !Ref "AWS::StackId"
         RoleArn: !GetAtt EventBridgeRuleRole.Arn
 
+  TrainingFinishedRule:
+    Type: AWS::Events::Rule
+    Properties: 
+      Name: !Join
+        - "-"
+        - - "L4EDemoApp-TrainingFinished"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Triggered when a model training is launched
+      EventPattern: !Sub 
+        - '{"source": ["aws.lookoutequipment"],"account": ["${Account}"],"region": ["${Region}"],"detail-type":["AWS API Call via CloudTrail"],"detail":{"eventSource":["lookoutequipment.amazonaws.com"],"eventName":["CreateModel"]}}'
+        - Region: !Ref 'AWS::Region'
+          Account: !Ref 'AWS::AccountId'
+      State: ENABLED
+      Targets: 
+      - Arn: !GetAtt ModelResultsExtractionStateMachine.Arn
+        Id: !Join
+          - "-"
+          - - "ModelResultsExtractionStateMachineTarget"
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+        RoleArn: !GetAtt EventBridgeRuleRole.Arn
+        InputPath: $.detail.requestParameters
+
   # ----------------
   # LAMBDA FUNCTIONS
   # ----------------
@@ -689,6 +844,352 @@ Resources:
       - LambdaNewEntryRole
       - PackagePandas
 
+  FunctionIngestModelResults:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-ingest-model-results"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Ingest the results from a trained model
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - l4e-demo-app-ingest-model-results.zip
+      Environment:
+        Variables:
+          STACK_ID: !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaNewEntryRole.Arn
+      Runtime: python3.10
+      MemorySize: 1024
+      Timeout: 600
+      Layers:
+        - !Ref PackagePandas
+    DependsOn:
+      - LambdaNewEntryRole
+      - PackagePandas
+
+  FunctionPrepareReplayData:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-prepare-replay-data"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Generate synthetic data from the historical dataset
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - l4e-demo-app-prepare-replay-data.zip
+      Environment:
+        Variables:
+          STACK_ID: !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaNewEntryRole.Arn
+      Runtime: python3.10
+      MemorySize: 1024
+      Timeout: 180
+      Layers:
+        - !Ref PackagePandas
+    DependsOn:
+      - LambdaNewEntryRole
+      - PackagePandas
+
+  FunctionTrainingResultsExtraction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-training-results-extraction"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Extracts and store the training results
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - l4e-demo-app-training-results-extraction.zip
+      Environment:
+        Variables:
+          BUCKET: !Ref ApplicationBucket
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaNewEntryRole.Arn
+      Runtime: python3.10
+      MemorySize: 1024
+      Timeout: 30
+      Layers:
+        - !Ref PackagePandas
+    DependsOn:
+      - LambdaNewEntryRole
+      - PackagePandas
+
+  FunctionStoreInferenceInput:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-store-inference-inputs"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Stores the input data used for the last inference call
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - l4e-demo-app-store-inference-inputs.zip
+      Environment:
+        Variables:
+          STACK_ID: !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaNewEntryRole.Arn
+      Runtime: python3.10
+      MemorySize: 512
+      Timeout: 30
+      Layers:
+        - !Ref PackagePandas
+    DependsOn:
+      - LambdaNewEntryRole
+      - PackagePandas
+
+  FunctionGenerateInferenceInput:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-generate-inference-input"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Generates inference inputs
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - l4e-demo-app-generate-inference-input.zip
+      Environment:
+        Variables:
+          STACK_ID: !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaNewEntryRole.Arn
+      Runtime: python3.10
+      MemorySize: 128
+      Timeout: 3
+    DependsOn:
+      - LambdaNewEntryRole
+
+  FunctionStoreInferenceResults:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-store-inference-results"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Store the results from the last inference call
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - l4e-demo-app-store-inference-results.zip
+      Environment:
+        Variables:
+          STACK_ID: !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaNewEntryRole.Arn
+      Runtime: python3.10
+      MemorySize: 128
+      Timeout: 3
+      Layers:
+        - !Ref PackagePandas
+    DependsOn:
+      - LambdaNewEntryRole
+      - PackagePandas
+
+  FunctionDescribeModel:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-describe-model"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Extract the L4E model parameters
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - l4e-demo-app-describe-model.zip
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt LambdaNewEntryRole.Arn
+      Runtime: python3.10
+      MemorySize: 128
+      Timeout: 3
+    DependsOn:
+      - LambdaNewEntryRole
+
   # -------------------------
   # LAMBDA LAYERS DEFINITIONS
   # -------------------------
@@ -714,9 +1215,10 @@ Resources:
       CompatibleRuntimes:
         - python3.10
 
-  # --------------------------
-  # Step functions definitions
-  # --------------------------
+  # -----------------------------
+  # STEP FUNCTIONS AND ASSOCIATED
+  # LOG GROUPS DEFINITIONS
+  # -----------------------------
   DatasetPreparationStateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
@@ -748,7 +1250,7 @@ Resources:
               - KeyPrefix
             - 'datasets-preparation.json'
       DefinitionSubstitutions:
-        function-new-project-entry: !GetAtt   FunctionNewProjectEntry.Arn
+        function-new-project-entry: !GetAtt FunctionNewProjectEntry.Arn
         function-prepare-hourly-data: !GetAtt FunctionPrepareHourlyData.Arn
         l4e-demo-app-version: 1.0.0
         role-step-function-dataset-preparation: !GetAtt StepFunctionDatasetPreparationRole.Arn
@@ -764,6 +1266,102 @@ Resources:
       - FunctionNewProjectEntry
       - FunctionPrepareHourlyData
       - DatasetPreparationStateMachineLogGroup
+
+  ModelResultsExtractionStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Join
+        - "-"
+        - - "l4e-demo-app-model-results-extraction"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      DefinitionS3Location:
+        Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - StateMachines
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - StateMachines
+              - KeyPrefix
+            - 'model-results-extraction.json'
+      DefinitionSubstitutions:
+        function-describe-model: !GetAtt FunctionDescribeModel.Arn
+        function-training-results-extraction: !GetAtt FunctionTrainingResultsExtraction.Arn
+        function-ingest-model-results: !GetAtt FunctionIngestModelResults.Arn
+      RoleArn: !GetAtt StepFunctionDatasetPreparationRole.Arn
+      LoggingConfiguration:
+        Destinations: 
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt ModelResultsExtractionStateMachineLogGroup.Arn
+        IncludeExecutionData: True
+        Level: ALL
+    DependsOn:
+      - StepFunctionDatasetPreparationRole
+      - FunctionDescribeModel
+      - FunctionTrainingResultsExtraction
+      - FunctionIngestModelResults
+      - ModelResultsExtractionStateMachineLogGroup
+
+  DeployModelStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Join
+        - "-"
+        - - "l4e-demo-app-model-deploy-model"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      DefinitionS3Location:
+        Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - StateMachines
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - StateMachines
+              - KeyPrefix
+            - 'deploy-model.json'
+      DefinitionSubstitutions:
+        function-prepare-replay-data: !GetAtt FunctionPrepareReplayData.Arn
+        function-generate-inference-input: !GetAtt FunctionGenerateInferenceInput.Arn
+        l4e-demo-app-version: 1.0.0
+        role-step-function-deploy-model: !GetAtt StepFunctionDatasetPreparationRole.Arn
+      RoleArn: !GetAtt StepFunctionDatasetPreparationRole.Arn
+      LoggingConfiguration:
+        Destinations: 
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt DeployModelStateMachineLogGroup.Arn
+        IncludeExecutionData: True
+        Level: ALL
+    DependsOn:
+      - StepFunctionDatasetPreparationRole
+      - FunctionPrepareReplayData
+      - FunctionGenerateInferenceInput
+      - DeployModelStateMachineLogGroup
 
   DatasetPreparationStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
@@ -782,8 +1380,42 @@ Resources:
                   - !Ref "AWS::StackId"
       RetentionInDays: 14
 
+  ModelResultsExtractionStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join
+        - "-"
+        - - "/aws/stepfunction/ModelResultsExtractionStateMachineLogGroup"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      RetentionInDays: 14
+
+  DeployModelStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join
+        - "-"
+        - - "/aws/stepfunction/DeployModelStateMachineLogGroup"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      RetentionInDays: 14
+
   # ---------
-  # IAM Roles
+  # IAM ROLES
   # ---------
   CognitoAuthenticatedRole:
     Type: AWS::IAM::Role
@@ -955,7 +1587,7 @@ Resources:
         - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
         - 'arn:aws:iam::aws:policy/AWSOpsWorksCloudWatchLogs'
         - 'arn:aws:iam::aws:policy/AmazonLookoutEquipmentFullAccess'
-        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaRole'
+        - 'arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess'
       Policies:
         - PolicyName: LambdaInvokeScopedAccessPolicy
           PolicyDocument:
@@ -984,6 +1616,7 @@ Resources:
               - logs:DeleteLogDelivery
               - logs:ListLogDeliveries
               - logs:PutResourcePolicy
+              - logs:PutRetentionPolicy
               - logs:DescribeResourcePolicies
               - logs:DescribeLogGroups
               Effect: Allow
@@ -1031,6 +1664,7 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
         - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
+        - 'arn:aws:iam::aws:policy/AmazonLookoutEquipmentReadOnlyAccess'
       Policies:
         - PolicyName: LambdaFunctionServiceRolePolicy
           PolicyDocument:
@@ -1063,7 +1697,7 @@ Resources:
                     - ':log-group:/aws/lambda/*'
 
 # ================
-# Outputs
+# OUTPUTS
 # ================
 Outputs:
   ApplicationUrl:

@@ -37,7 +37,7 @@ module.exports = (s3) => {
             .then((files) =>
                 files.map((file, index) => {
                     if (file.path != CONFIG_FILENAME) {
-                        console.log('(', index, '/', files.length, ')', file.path)
+                        console.log(`(File ${index}/${files.length}) ${file.path}`)
                         upload({
                             ACL,
                             Body: file.stream(),
@@ -64,10 +64,10 @@ module.exports = (s3) => {
                     })
                 );
             })
-            .then(() => {
-                console.log('Deleting assets/ folder')
-                Promise.all([deleteFile({ Bucket: TO_BUCKET, Key: 'assets/' })]);
-            })
+            // .then(() => {
+            //     console.log('Deleting assets/ folder')
+            //     Promise.all([deleteFile({ Bucket: TO_BUCKET, Key: 'assets/' })]);
+            // })
         },
 
         // ----------------------------------------------------------------

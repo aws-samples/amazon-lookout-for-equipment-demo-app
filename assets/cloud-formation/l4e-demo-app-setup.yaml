@@ -1448,7 +1448,7 @@ Resources:
             Federated: cognito-identity.amazonaws.com
       Policies:
       # The authenticated users needs the following permissions to interact with 
-      # all the Lookout for Equipment resources where this app is deployed
+      # all the Lookout for Equipment resources where this app is deployed:
       - PolicyName: !Join
         - "_"
         - - LookoutEquipmentPermissions
@@ -1676,10 +1676,7 @@ Resources:
           - Action:
             - s3:PutObject
             Effect: Allow
-            Resource: !Join
-            - "/"
-            - - !GetAtt ApplicationBucket.Arn
-              - "uploads/*"
+            Resource: !Sub ${ApplicationBucket.Arn}/uploads/*
 
   StepFunctionDatasetPreparationRole:
     Type: AWS::IAM::Role
@@ -1693,15 +1690,91 @@ Resources:
             Service:
             - states.amazonaws.com
             - lookoutequipment.amazonaws.com
-      ### TO DO: Remove the broad permission ranges ###
-      ManagedPolicyArns:
-        - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
-        - 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess'
-        - 'arn:aws:iam::aws:policy/AWSOpsWorksCloudWatchLogs'
-        - 'arn:aws:iam::aws:policy/AmazonLookoutEquipmentFullAccess'
-        - 'arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess'
       Policies:
-        - PolicyName: LambdaInvokeScopedAccessPolicy
+        - PolicyName: !Join
+          - "-"
+          - - StepFunctionsS3Permissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:DeleteObject
+                Effect: Allow
+                Resource: 
+                  - !GetAtt ApplicationBucket.Arn
+                  - !Sub ${ApplicationBucket.Arn}/*
+        - PolicyName: !Join
+          - "-"
+          - - StepFunctionsLookoutEquipmentPermissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - lookoutequipment:CreateInferenceScheduler
+                  - lookoutequipment:CreateDataset
+                  - lookoutequipment:StartDataIngestionJob
+                Effect: Allow
+                Resource: '*'
+        - PolicyName: !Join
+          - "-"
+          - - StepFunctionsDynamoDBPermissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                - 'dynamodb:ImportTable'
+                - 'dynamodb:DescribeImport'
+                Effect: Allow
+                Resource: !Join 
+                  - ''
+                  - - 'arn:'
+                    - !Ref 'AWS::Partition'
+                    - ':dynamodb:'
+                    - !Ref 'AWS::Region'
+                    - ':'
+                    - !Ref 'AWS::AccountId'
+                    - ':table/l4edemoapp-*'
+        - PolicyName: !Join
+          - "-"
+          - - StepFunctionsLambdaPermissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -1717,7 +1790,18 @@ Resources:
                   - ':'
                   - !Ref 'AWS::AccountId'
                   - ':function:l4e-demo-app*'
-        - PolicyName: CloudWatchLogsDeliveryFullAccessPolicy
+        - PolicyName: !Join
+          - "-"
+          - - StepFunctionsCloudWatchPermissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -1731,6 +1815,10 @@ Resources:
               - logs:PutRetentionPolicy
               - logs:DescribeResourcePolicies
               - logs:DescribeLogGroups
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
               Effect: Allow
               Resource: '*'
 
@@ -1786,10 +1874,7 @@ Resources:
                 Effect: Allow
                 Resource: 
                   - !GetAtt ApplicationBucket.Arn
-                  - !Join
-                    - ''
-                    - - !GetAtt ApplicationBucket.Arn
-                      - '/*'
+                  - !Sub ${ApplicationBucket.Arn}/*
 
   FunctionNewProjectEntryRole:
     Type: AWS::IAM::Role
@@ -2018,10 +2103,7 @@ Resources:
             Effect: Allow
             Resource:
               - !GetAtt ApplicationBucket.Arn
-              - !Join
-                - ''
-                - - !GetAtt ApplicationBucket.Arn
-                  - '/*'
+              - !Sub ${ApplicationBucket.Arn}/*
 
   # This gives read and write access to the application DynamoDB tables:
   DynamoDBAccessPolicy:

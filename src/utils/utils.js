@@ -191,8 +191,12 @@ export async function getAllProjects(gateway, uid) {
         }
     }
 
+    console.log('getAllProjects, projectQuery:', projectQuery)
+
     const response = await gateway.dynamoDb.queryAll(projectQuery)
                                   .catch((error) => console.log(error.response))
+
+    console.log('getAllProjects, response:', response)
     const projects = []
     response.Items.forEach((project) => {
         projects.push(project['project']['S'])
@@ -353,16 +357,23 @@ export function getIndex(x, value) {
 export async function checkProjectAvailability(gateway, projectName, projectsDetails) {
     let availability = false
     const targetTableName = `l4edemoapp-${projectName}`
+    console.log('checkProjectAvailability, targetTableName:', targetTableName)
     const lookoutEquipmentProjectName = `l4e-demo-app-${projectName}`
+    console.log('checkProjectAvailability, lookoutEquipmentProjectName:', lookoutEquipmentProjectName)
 
     // Checks if the DynamoDB table with the hourly data is available:
-    const listTables = await gateway.dynamoDb.listTables()
+    const listTables = await gateway.dynamoDb
+                                    .listTables()
+                                    .catch((error) => console.log(error.response))
+    console.log('checkProjectAvailability, listTables:', listTables)
     const tableAvailable = (listTables['TableNames'].indexOf(targetTableName) >= 0)
 
     // If the table is available, we need it in Active 
     // status (meaning the data import is finished):
     if (tableAvailable) {
-        let tableStatus = await gateway.dynamoDb.describeTable(targetTableName)
+        let tableStatus = await gateway.dynamoDb
+                                       .describeTable(targetTableName)
+                                       .catch((error) => console.log(error.response))
         tableStatus = tableStatus['Table']['TableStatus']
 
         // If the table is active, we need to check if the L4E 

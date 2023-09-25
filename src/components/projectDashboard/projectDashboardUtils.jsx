@@ -5,9 +5,14 @@ import { getAllProjects, getAllExecutionId } from '../../utils/utils'
 // Get details about the project to build the dashboard summary
 // ------------------------------------------------------------
 export const getProjectDetails = async (gateway, uid, projectName) => {
+    window.console.log('getProjectDetails')
     const listProjects = await getAllProjects(gateway, uid)
     const targetTableName = `l4edemoapp-${uid}-${projectName}`
-    const listTables = await gateway.dynamoDb.listTables()
+    window.console.log('targetTableName:', targetTableName)
+    const listTables = await gateway.dynamoDb
+                                    .listTables()
+                                    .catch((error) => window.console.log(error.response))
+    window.console.log('listTables:', listTables)
     const tableAvailable = (listTables['TableNames'].indexOf(targetTableName) >= 0)
     const executionIds = await getAllExecutionId(gateway, uid)
     
@@ -15,7 +20,9 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
     let errorDetails = undefined
     if (listProjects.indexOf(uid + '-' + projectName)) {
         if (tableAvailable) {
-            let tableStatus = await gateway.dynamoDb.describeTable(targetTableName)
+            let tableStatus = await gateway.dynamoDb
+                                           .describeTable(targetTableName)
+                                           .catch((error) => window.console.log(error.response))
             tableStatus = tableStatus['Table']['TableStatus']
 
             if (tableStatus === 'ACTIVE') {

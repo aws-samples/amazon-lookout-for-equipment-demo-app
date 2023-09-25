@@ -20,6 +20,7 @@ import ApiGatewayContext from './contexts/ApiGatewayContext'
 // to sign out and provides features linked to the current user profile:
 // =====================================================================
 function TopMenuBar({ user, signOut }) {
+    // const { uid } = useContext(ApiGatewayContext)
     const [ showSettingsModal, setShowSettingsModal ] = useState(false)
     const navigate = useNavigate()
 
@@ -50,7 +51,7 @@ function TopMenuBar({ user, signOut }) {
         // Render the component:
         return (
             <>
-                <Settings visible={showSettingsModal} onDiscard={() => setShowSettingsModal(false)} />
+                <Settings visible={showSettingsModal} onDiscard={() => setShowSettingsModal(false)} user={user} />
                 <TopNavigation
                     identity={{
                         title: "Amazon Lookout for Equipment Demonstration",
@@ -71,12 +72,12 @@ function TopMenuBar({ user, signOut }) {
 // --------------------------------------------
 // Components used to configure the application
 // --------------------------------------------
-function Settings({ visible, onDiscard }) {
+function Settings({ visible, onDiscard, user }) {
     const { gateway, uid, showHelp, isAdmin } = useContext(ApiGatewayContext)
     const [ checked, setChecked ] = useState(showHelp.current)
     
     useEffect(() => {
-        getUserSettings(gateway, uid, showHelp, isAdmin)
+        getUserSettings(gateway, user, uid, showHelp, isAdmin)
         .then((x) => setChecked(x.showHelp) )
     }, [gateway, uid])
 
@@ -139,7 +140,15 @@ function Settings({ visible, onDiscard }) {
 // ------------------------------------
 // Collects user settings from DynamoDB
 // ------------------------------------
-async function getUserSettings(gateway, uid, showHelp, isAdmin) {
+async function getUserSettings(gateway, user, uid, showHelp, isAdmin) {
+    console.log(`getUserSettings, user: "${user}", uid: "${uid}"`)
+    if (!user) {
+        return {
+            showHelp: false,
+            isAdmin: false
+        }
+    }
+
     const userQuery = { 
         TableName: `l4edemoapp-users-${window.stackId}`,
         KeyConditionExpression: "#user = :user",
@@ -149,22 +158,32 @@ async function getUserSettings(gateway, uid, showHelp, isAdmin) {
         }
     }
 
-    const response = await gateway
-                     .dynamoDb.queryAll(userQuery)
-                     .catch((error) => console.log(error.response))
+    try {
+        const response = await gateway
+                        .dynamoDb.queryAll(userQuery)
+                        .catch((error) => console.log(error.response))
 
-    if (response.Items.length == 0) {
-        await createUser(gateway, uid, showHelp)
-        isAdmin.current = false
-    }
-    else {
-        showHelp.current = response.Items[0].show_help.BOOL
-        isAdmin.current = response.Items[0].is_admin.BOOL
+        if (response.Items.length == 0) {
+            await createUser(gateway, uid, showHelp)
+            isAdmin.current = false
+        }
+        else {
+            showHelp.current = response.Items[0].show_help.BOOL
+            isAdmin.current = response.Items[0].is_admin.BOOL
+        }
+
+        return {
+            showHelp: showHelp.current,
+            isAdmin: isAdmin.current
+        }
     }
 
-    return {
-        showHelp: showHelp.current,
-        isAdmin: isAdmin.current
+    // If the user authentication is not through yet, we skip this function:
+    catch (error) {
+        return {
+            showHelp: false,
+            isAdmin: false
+        }
     }
 }
 

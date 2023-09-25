@@ -10,6 +10,9 @@ export const ApiGatewayProvider = ({user, children}) => {
     let uid = undefined
     if (user && user.attributes) {
         uid = user.attributes.sub.split("-")[0]
+        window.console.log('1:', uid)
+        if (uid === "") { uid = "" }
+        window.console.log('2:', uid)
     }
 
     const [ navbarCounter, setNavbarCounter ] = useState(0)

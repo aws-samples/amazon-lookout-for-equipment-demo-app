@@ -41,11 +41,15 @@ export async function getSignalDetails(gateway, modelName) {
 export async function getAllTimeseries(gateway, modelName) {
     const targetTableName = 'l4edemoapp-' + modelName
 
-    const listTables = await gateway.dynamoDb.listTables()
+    const listTables = await gateway.dynamoDb
+                                    .listTables()
+                                    .catch((error) => console.log(error.response))
     const tableAvailable = (listTables['TableNames'].indexOf(targetTableName) >= 0)
 
     if (tableAvailable) {
-        let tableStatus = await gateway.dynamoDb.describeTable(targetTableName)
+        let tableStatus = await gateway.dynamoDb
+                                .describeTable(targetTableName)
+                                .catch((error) => console.log(error.response))
         tableStatus = tableStatus['Table']['TableStatus']
 
         if (tableStatus === 'ACTIVE') {
@@ -56,7 +60,9 @@ export async function getAllTimeseries(gateway, modelName) {
                 ExpressionAttributeValues: { ":sr": {"S": "1h"}}
             }
 
-            let timeseries = await gateway.dynamoDb.queryAll(timeSeriesQuery)
+            let timeseries = await gateway.dynamoDb
+                                   .queryAll(timeSeriesQuery)
+                                   .catch((error) => console.log(error.response))
 
             return {
                 timeseries: timeseries,
@@ -359,7 +365,9 @@ async function getDailyAggregation(gateway, model, endTime, projectName, uid) {
 // ------------------------------------------------------
 async function getSensorContribution(gateway, model, assetName, endTime, uid) {
     const sensorContributionTableName = `l4edemoapp-${uid}-${assetName}-sensor_contribution`
-    const { TableNames: listTables } = await gateway.dynamoDb.listTables()
+    const { TableNames: listTables } = await gateway.dynamoDb
+                                                    .listTables()
+                                                    .catch((error) => console.log(error.response))
 
     let sensorContribution = undefined
     if (listTables.indexOf(sensorContributionTableName) >= 0) {
@@ -373,8 +381,9 @@ async function getSensorContribution(gateway, model, assetName, endTime, uid) {
             }
         }
 
-        sensorContribution = await gateway.dynamoDb.queryAll(sensorContributionQuery)
-                            .catch((error) => console.log(error.response))
+        sensorContribution = await gateway.dynamoDb
+                                          .queryAll(sensorContributionQuery)
+                                          .catch((error) => console.log(error.response))
     }
 
     return sensorContribution

@@ -4,6 +4,8 @@ import ReactEcharts from "echarts-for-react"
 import "../../styles/chartThemeMacarons.js"
 import { colorPalette } from "../../styles/chartThemeMacarons.js"
 
+import Alert from "@cloudscape-design/components/alert"
+
 // Contexts:
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
@@ -28,7 +30,6 @@ function ConditionOverview({ range, modelName, projectName, height }) {
     }, [gateway, range, modelName, projectName])
 
     if (anomalies && anomalies['totalTime'] > 0) {
-
         // Build the eChart configuration for this component:
         const { totalTime, normalTime, abnormalTime } = buildConditionOverviewData(anomalies)
         const chartOptions = buildConditionOverviewChart(modelName.slice(projectName.length + 1), totalTime, normalTime, abnormalTime, height)
@@ -41,6 +42,14 @@ function ConditionOverview({ range, modelName, projectName, height }) {
                 theme="macarons"
                 style={{height: height, width: "100%"}}
             />
+        )
+    }
+    else {
+        return (
+            <Alert type="warning">
+                No live data collected yet. This model may have not been running for long enough.
+                Refresh this screen in a few minute to visualize your asset health.
+            </Alert>
         )
     }
 }

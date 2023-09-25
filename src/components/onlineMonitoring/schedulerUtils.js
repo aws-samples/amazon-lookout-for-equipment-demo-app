@@ -1,7 +1,6 @@
 import { cleanList, getLegendWidth, sortDictionnary, normalizedHistogram } from '../../utils/utils'
 import { getSchedulerInfo, getAllTimeseriesWindow } from '../../utils/dataExtraction'
 import { buildTimeseries2 } from '../../utils/timeseries.js'
-import awsmobile from '../../aws-exports'
 
 // **************************************************************************************
 // THE FOLLOWING FUNCTIONS ARE USED TO EXTRACT ALL THE
@@ -16,6 +15,7 @@ export async function getLiveResults(gateway, uid, projectName, modelName, start
     const anomalies = await getAnomalies(gateway, uid, projectName, modelName, startTime, endTime)
     const rawAnomalies = await getRawAnomalies(gateway, uid, projectName, modelName, startTime, endTime)
     const sensorContribution = await getSensorContribution(gateway, uid, projectName, modelName, startTime, endTime)
+    const isUnhealthy = isAssetUnhealthy(anomalies)
 
     const timeseries = await getAllTimeseriesWindow(
         gateway,
@@ -35,9 +35,24 @@ export async function getLiveResults(gateway, uid, projectName, modelName, start
         sensorContribution: sensorContribution,
         tagsList: tagsList,
         anomalies: anomalies,
-        rawAnomalies: rawAnomalies
+        rawAnomalies: rawAnomalies,
+        isUnhealthy: isUnhealthy
     }
 }
+
+function isAssetUnhealthy(anomalies) {
+    let unhealthy = false
+    if (anomalies.length > 0) {
+        for (const item of anomalies) {
+            if (parseInt(item.anomaly.N) == 1) {
+                unhealthy = True
+                break
+            }
+        }
+    }
+
+    return unhealthy
+};
 
 // ----------------------------------------------
 // Get some key parameters from the current model
@@ -67,30 +82,45 @@ async function getModelDetails(gateway, modelName) {
     return response
 }
 
+// ---------------------------------------
+// Checks if a given DynamoDB table exists
+// ---------------------------------------
+async function tableExists(gateway, tableName) {
+    const listTables = await gateway.dynamoDb.listTables()
+                                    .catch((error) => console.log(error.response)) 
+    const tableAvailable = (listTables['TableNames'].indexOf(tableName) >= 0)
+
+    return tableAvailable
+}
+
 // ------------------------------------------------
 // This function gets the anomalous events detected
 // by a given model between a range of time
 // ------------------------------------------------
 async function getAnomalies(gateway, uid, projectName, modelName, startTime, endTime) {
-    const anomaliesQuery = { 
-        TableName: `l4edemoapp-${uid}-${projectName}-anomalies`,
-        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
-        ExpressionAttributeNames: {
-            "#model": "model",
-            "#timestamp": "timestamp"
-        },
-        ExpressionAttributeValues: {
-             ":model": {"S": modelName},
-             ":startTime": {"N": startTime.toString() },
-             ":endTime": {"N": endTime.toString() }
+    const tableName = `l4edemoapp-${uid}-${projectName}-anomalies`
+
+    if (await tableExists(gateway, tableName)) {
+        const anomaliesQuery = { 
+            TableName: tableName,
+            KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
+            ExpressionAttributeNames: {
+                "#model": "model",
+                "#timestamp": "timestamp"
+            },
+            ExpressionAttributeValues: {
+                ":model": {"S": modelName},
+                ":startTime": {"N": startTime.toString() },
+                ":endTime": {"N": endTime.toString() }
+            }
         }
+
+        let anomalies = await gateway
+            .dynamoDb.queryAll(anomaliesQuery)
+            .catch((error) => console.log(error.response))
+
+        if (anomalies.Items.length > 0) { return anomalies.Items }
     }
-
-    let anomalies = await gateway
-        .dynamoDb.queryAll(anomaliesQuery)
-        .catch((error) => console.log(error.response))
-
-    if (anomalies.Items.length > 0) { return anomalies.Items }
 
     return undefined
 }
@@ -100,25 +130,29 @@ async function getAnomalies(gateway, uid, projectName, modelName, startTime, end
 // by a given model between a range of time
 // ------------------------------------------------
 async function getRawAnomalies(gateway, uid, projectName, modelName, startTime, endTime) {
-    const rawAnomaliesQuery = { 
-        TableName: `l4edemoapp-${uid}-${projectName}-raw-anomalies`,
-        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
-        ExpressionAttributeNames: {
-            "#model": "model",
-            "#timestamp": "timestamp"
-        },
-        ExpressionAttributeValues: {
-             ":model": {"S": modelName},
-             ":startTime": {"N": startTime.toString() },
-             ":endTime": {"N": endTime.toString() }
+    const tableName = `l4edemoapp-${uid}-${projectName}-raw-anomalies`
+
+    if (await tableExists(gateway, tableName)) {
+        const rawAnomaliesQuery = { 
+            TableName: tableName,
+            KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
+            ExpressionAttributeNames: {
+                "#model": "model",
+                "#timestamp": "timestamp"
+            },
+            ExpressionAttributeValues: {
+                ":model": {"S": modelName},
+                ":startTime": {"N": startTime.toString() },
+                ":endTime": {"N": endTime.toString() }
+            }
         }
+
+        let anomalies = await gateway
+            .dynamoDb.queryAll(rawAnomaliesQuery)
+            .catch((error) => console.log(error.response))
+
+        if (anomalies.Items.length > 0) { return anomalies.Items }
     }
-
-    let anomalies = await gateway
-        .dynamoDb.queryAll(rawAnomaliesQuery)
-        .catch((error) => console.log(error.response))
-
-    if (anomalies.Items.length > 0) { return anomalies.Items }
 
     return undefined
 }
@@ -128,29 +162,33 @@ async function getRawAnomalies(gateway, uid, projectName, modelName, startTime, 
 // given by a model between a range of time
 // -------------------------------------------
 async function getSensorContribution(gateway, uid, projectName, modelName, startTime, endTime) {
-    const sensorContributionQuery = { 
-        TableName: `l4edemoapp-${uid}-${projectName}-sensor_contribution`,
-        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
-        ExpressionAttributeNames: {
-            "#model": "model",
-            "#timestamp": "timestamp"
-        },
-        ExpressionAttributeValues: {
-             ":model": {"S": modelName},
-             ":startTime": {"N": startTime.toString() },
-             ":endTime": {"N": endTime.toString() }
+    const tableName = `l4edemoapp-${uid}-${projectName}-sensor_contribution`
+
+    if (await tableExists(gateway, tableName)) {
+        const sensorContributionQuery = { 
+            TableName: tableName,
+            KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
+            ExpressionAttributeNames: {
+                "#model": "model",
+                "#timestamp": "timestamp"
+            },
+            ExpressionAttributeValues: {
+                ":model": {"S": modelName},
+                ":startTime": {"N": startTime.toString() },
+                ":endTime": {"N": endTime.toString() }
+            }
         }
-    }
 
-    let sensorContribution = await gateway
-        .dynamoDb.queryAll(sensorContributionQuery)
-        .catch((error) => console.log(error.response))
+        let sensorContribution = await gateway
+            .dynamoDb.queryAll(sensorContributionQuery)
+            .catch((error) => console.log(error.response))
 
-    // If the payload is too large (> 1 MB), the API will paginate
-    // the output. Let's collect all the data we need to cover the 
-    // range requested by the user:
-    if (sensorContribution.Items.length > 0) {
-        return sensorContribution.Items
+        // If the payload is too large (> 1 MB), the API will paginate
+        // the output. Let's collect all the data we need to cover the 
+        // range requested by the user:
+        if (sensorContribution.Items.length > 0) {
+            return sensorContribution.Items
+        }
     }
     
     return undefined
@@ -161,43 +199,47 @@ async function getSensorContribution(gateway, uid, projectName, modelName, start
 // by a given model between a range of time
 // ------------------------------------------------
 export async function getAssetCondition(gateway, asset, startTime, endTime, projectName) {
-    const anomaliesQuery = { 
-        TableName: `l4edemoapp-${projectName}-anomalies`,
-        KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
-        ExpressionAttributeNames: {
-            "#model": "model",
-            "#timestamp": "timestamp"
-        },
-        ExpressionAttributeValues: {
-             ":model": {"S": asset},
-             ":startTime": {"N": startTime.toString() },
-             ":endTime": {"N": endTime.toString() }
-        }
-    }
+    const tableName = `l4edemoapp-${projectName}-anomalies`
 
-    let anomalies = await gateway
-        .dynamoDb.queryAll(anomaliesQuery)
-        .catch((error) => console.log(error.response))
-
-    if (anomalies.Items.length > 0) {
-        let condition = { '0': 0.0, '1': 0.0 }
-        let totalTime = 0.0
-        anomalies.Items.forEach((item, index) => {
-            if (index > 0) {
-                const previousTimestamp = parseFloat(anomalies.Items[index - 1]['timestamp']['N'])
-                const currentTimestamp = parseFloat(item['timestamp']['N'])
-                const duration = currentTimestamp - previousTimestamp
-
-                condition[item['anomaly']['N']] += duration
-                totalTime += duration
+    if (await tableExists(gateway, tableName)) {
+        const anomaliesQuery = { 
+            TableName: tableName,
+            KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
+            ExpressionAttributeNames: {
+                "#model": "model",
+                "#timestamp": "timestamp"
+            },
+            ExpressionAttributeValues: {
+                ":model": {"S": asset},
+                ":startTime": {"N": startTime.toString() },
+                ":endTime": {"N": endTime.toString() }
             }
-            
-        })
+        }
 
-        return {
-            totalTime: totalTime,
-            condition: condition, 
-            anomalies: anomalies
+        let anomalies = await gateway
+            .dynamoDb.queryAll(anomaliesQuery)
+            .catch((error) => console.log(error.response))
+
+        if (anomalies.Items.length > 0) {
+            let condition = { '0': 0.0, '1': 0.0 }
+            let totalTime = 0.0
+            anomalies.Items.forEach((item, index) => {
+                if (index > 0) {
+                    const previousTimestamp = parseFloat(anomalies.Items[index - 1]['timestamp']['N'])
+                    const currentTimestamp = parseFloat(item['timestamp']['N'])
+                    const duration = currentTimestamp - previousTimestamp
+
+                    condition[item['anomaly']['N']] += duration
+                    totalTime += duration
+                }
+                
+            })
+
+            return {
+                totalTime: totalTime,
+                condition: condition, 
+                anomalies: anomalies
+            }
         }
     }
 
@@ -230,14 +272,18 @@ export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContr
     series = [...series, ...rawAnomaliesSeries]
 
     // Prepare sensor contribution data:
-    let { sortedKeys, sensorContributionSeries } = buildSensorContributionSeries(
-        tagsList, 
-        samplingRate, 
-        anomalies[0].timestamp['N']*1000,
-        anomalies[anomalies.length - 1].timestamp['N']*1000, 
-        sensorContribution
-    )
-    series = [...series, ...sensorContributionSeries]
+    let sortedKeys = tagsList
+    if (sensorContribution) {
+        let sensorContributionSeries = {}
+        ({ sortedKeys, sensorContributionSeries } = buildSensorContributionSeries(
+            tagsList, 
+            samplingRate, 
+            anomalies[0].timestamp['N']*1000,
+            anomalies[anomalies.length - 1].timestamp['N']*1000, 
+            sensorContribution
+        ))
+        series = [...series, ...sensorContributionSeries]
+    }
 
     // Configuring the series for the raw time series data:
     const signalSeries = buildSignalSeries(timeseries, tagsList)
@@ -274,6 +320,7 @@ export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContr
         animation: false,
         dataZoom: [{ type:'slider', start: 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 90, height: 30, left: gridLeft }],
         legend: {
+            type: 'scroll',
             right: 10,
             top: 380,
             selector: [

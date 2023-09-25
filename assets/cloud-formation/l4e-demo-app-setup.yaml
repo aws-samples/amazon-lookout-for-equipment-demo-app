@@ -1768,6 +1768,7 @@ Resources:
               - Action:
                   - s3:GetObject
                   - s3:ListBucket
+                  - s3:PutObject
                   - s3:DeleteObject
                 Effect: Allow
                 Resource: 
@@ -1793,6 +1794,25 @@ Resources:
                   - lookoutequipment:CreateDataset
                   - lookoutequipment:StartDataIngestionJob
                   - lookoutequipment:TagResource
+                Effect: Allow
+                Resource: '*'
+        - PolicyName: !Join
+          - "-"
+          - - StepFunctionsStartSFNPermissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - states:StartExecution
                 Effect: Allow
                 Resource: '*'
         - PolicyName: !Join

@@ -79,7 +79,9 @@ function DeleteProjectModal({ visible, onDiscard }) {
 
         // Delete the DynamoDB Tables:
         setDeleteMessage(`Deleting DynamoDB tables...`)
-        const listTables = await gateway.dynamoDb.listTables()
+        const listTables = await gateway.dynamoDb
+                                        .listTables()
+                                        .catch((error) => console.log(error.response))
         await deleteTable(gateway, listTables, `l4edemoapp-${uid}-${projectName}`)
         await deleteTable(gateway, listTables, `l4edemoapp-${uid}-${projectName}-sensor_contribution`)
         await deleteTable(gateway, listTables, `l4edemoapp-${uid}-${projectName}-anomalies`)

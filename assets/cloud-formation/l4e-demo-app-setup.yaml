@@ -690,8 +690,8 @@ Resources:
         InviteMessageTemplate:
           EmailMessage: Hi!<br /><br />Your Amazon Lookout for Equipment Demo username is <b>{username}</b>
             and the temporary password is <b>{####}</b>. You will have to change it when you log in for the
-            first time.<br /><br />Thanks for testing out our app, we're looking forward to your feedbacks.
-            <br /><br />The AWS Lookout for Equipment team.
+            first time.<br /><br />Thank you for testing out our app, we're looking forward to your feedbacks!
+            <br /><br />The Amazon Lookout for Equipment team.
           EmailSubject: Amazon Lookout for Equipment Demo - Your temporary password
           SMSMessage: Your Lookout for Equipment Demo username is {username} and 
             the temporary password is "{####}".

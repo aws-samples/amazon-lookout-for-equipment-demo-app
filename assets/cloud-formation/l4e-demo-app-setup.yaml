@@ -429,9 +429,9 @@ Resources:
       - ApplicationBucket
       - FunctionStoreInferenceResults
 
-  # Allows the S3 bucket to trigger the read asset configuration lambda
-  # function when a new CSV file is loaded in the asset-configuration
-  # prefix location:
+  # Allows the Application S3 bucket to trigger the inference results
+  # storage Lambda function when a new JSONL file is loaded in the
+  # `inference-data/input` prefix location:
   InferenceTriggerS3Permission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -443,6 +443,160 @@ Resources:
     DependsOn:
       - FunctionStoreInferenceResults
       - ApplicationBucket
+
+  # ----------------------------------------------------------------------------
+  # DYNAMODB TABLES INITIALIZATION
+  # The initial DynamoDB users table will be initialized with the admin user.
+  # When a stack deletion is triggered, all the tables associated with this app
+  # will also be removed to reduce incurred costs
+  # ----------------------------------------------------------------------------
+  InitializeDynamoDBTablesFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-initialize-ddb-tables"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Initialize and clean-up DynamoDB tables
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import os
+
+          cognito_client = boto3.client('cognito-idp')
+          ddb_client = boto3.client('dynamodb')
+
+          def lambda_handler(event, context):
+              print(event)
+              print('------------------------------')
+              
+              user_table_name = event['ResourceProperties']['UserTableName']
+              stack_id = event['ResourceProperties']['StackId']
+              user_pool_id = event['ResourceProperties']['CognitoUserPoolId']
+              user_name = event['ResourceProperties']['AdminUserName']
+
+              try:
+                  # --------------------------------
+                  # Stack creation request detected:
+                  # --------------------------------
+                  if event['RequestType'] == 'Create':
+                    # Get user infos from the Cognito Identity Pool:
+                    response = cognito_client.admin_get_user(
+                        UserPoolId=user_pool_id,
+                        Username=user_name
+                    )
+                    
+                    attributes = {}
+                    response = response['UserAttributes']
+                    for attr in response:
+                        attributes[attr['Name']] = attr['Value']
+                        
+                    admin_email = {'email': {'S': attributes['email']}}
+                    admin_uid = attributes['sub'].split('-')[0]
+                    
+                    user_item = {}
+                    user_item['user_id'] = {'S': attributes['sub'].split('-')[0]}
+                    user_item['show_help'] = {'BOOL': True}
+                    user_item['is_admin'] = {'BOOL': True}
+                    user_item['email'] = {'S': attributes['email']}
+                    
+                    # Creates this first user in DynamoDB:
+                    ddb_client.put_item(TableName=user_table_name, Item=user_item)
+
+                  # ------------------------------
+                  # Stack delete request detected:
+                  # ------------------------------
+                  elif event['RequestType'] == 'Delete':
+                    # Get all tables:
+                    list_tables = list_all_tables()
+                    response = ddb_client.scan(TableName=user_table_name)
+
+                    # We loop through all the users to delete the
+                    # tables associated to each of them:
+                    if (len(response['Items']) > 0):
+                        for item in response['Items']:
+                            user_id = item['user_id']['S']
+                            if user_id in list_tables.keys():
+                                delete_user_tables(list_tables[user_id])
+
+                  responseData = {'UserName': user_name}
+                  responseStatus = 'SUCCESS'
+                  
+              except Exception as e:
+                  print('Failed to process the request:', e)
+                  responseStatus = 'FAILED'
+                  responseData = {'Failure': str(e)}
+              
+              print(event, context, responseStatus, responseData)    
+              cfnresponse.send(event, context, responseStatus, responseData)
+
+          def list_all_tables():
+            response = None
+            lastEvaluatedKey = None
+            
+            response = ddb_client.list_tables()
+            list_tables = response['TableNames']
+            
+            while ('LastEvaluatedTableName' in response.keys()):
+                response = ddb_client.list_tables(
+                    ExclusiveStartTableName=response['LastEvaluatedTableName']
+                )
+                
+                list_tables += response['TableNames']
+                
+            user_tables = {}
+            for table_name in list_tables:
+                table_owner = table_name.split('-')[1]
+                if table_owner not in user_tables.keys():
+                    user_tables[table_owner] = []
+                user_tables[table_owner].append(table_name)
+            
+            return user_tables
+            
+          def delete_user_tables(list_tables):
+            for table in list_tables:
+                print(f'Deleting user table: {table}...')
+                ddb_client.delete_table(TableName=table)
+      Handler: index.lambda_handler
+      Role: !GetAtt InitializeDynamoDBTablesRole.Arn
+      Runtime: python3.10
+      MemorySize: 128
+      Timeout: 5
+    DependsOn:
+      - InitializeDynamoDBTablesRole
+
+  # This custom resource runs the previous lambda function to either
+  # initialize or delete the DynamoDB tables linked to this app:
+  InitializeDynamoDBTables:
+    Type: Custom::InitializeDynamoDBTablesFunction
+    Properties:
+      ServiceToken: !GetAtt InitializeDynamoDBTablesFunction.Arn
+      UserTableName: !Ref UsersTable
+      AdminUserName: !Ref AdminUsername
+      CognitoUserPoolId: !Ref CognitoUserPool
+      StackId: !Select
+        - 0
+        - !Split
+          - "-"
+          - !Select
+            - 2
+            - !Split
+              - "/"
+              - !Ref "AWS::StackId"
+    DependsOn:
+      - UsersTable
+      - CognitoUserPool
+      - InitializeDynamoDBTablesRole
+      - InitializeDynamoDBTablesFunction
 
   # ------------------------
   # CLOUDFRONT CONFIGURATION
@@ -1566,8 +1720,6 @@ Resources:
           Statement:
           - Action:
             - states:StartExecution
-            - states:GetExecutionHistory
-            - states:DescribeExecution
             Effect: Allow
             Resource: !Join 
               - ''
@@ -1578,6 +1730,19 @@ Resources:
                 - ':'
                 - !Ref 'AWS::AccountId'
                 - ':stateMachine:l4e-demo-app*'
+          - Action:
+            - states:DescribeExecution
+            - states:GetExecutionHistory
+            Effect: Allow
+            Resource: !Join 
+              - ''
+              - - 'arn:'
+                - !Ref 'AWS::Partition'
+                - ':states:'
+                - !Ref 'AWS::Region'
+                - ':'
+                - !Ref 'AWS::AccountId'
+                - ':execution:l4e-demo-app*'
       # The different S3 access (public, private and protected):
       - PolicyName: !Join
         - "_"
@@ -1955,6 +2120,64 @@ Resources:
                 Resource: 
                   - !GetAtt ApplicationBucket.Arn
                   - !Sub ${ApplicationBucket.Arn}/*
+
+  InitializeDynamoDBTablesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - !Ref LambdaExecutionPolicy
+        # - arn:aws:iam::aws:policy/AmazonCognitoReadOnly
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+      Policies:
+        - PolicyName: UserTablesManagementPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - 'dynamodb:PutItem'
+                  - 'dynamodb:Scan'
+                  - 'dynamodb:DeleteTable'
+                Effect: Allow
+                Resource: !Join 
+                  - ''
+                  - - 'arn:'
+                    - !Ref 'AWS::Partition'
+                    - ':dynamodb:'
+                    - !Ref 'AWS::Region'
+                    - ':'
+                    - !Ref 'AWS::AccountId'
+                    - ':table/l4edemoapp-*'
+              - Action:
+                  - 'dynamodb:ListTables'
+                Effect: Allow
+                Resource: !Join 
+                  - ''
+                  - - 'arn:'
+                    - !Ref 'AWS::Partition'
+                    - ':dynamodb:'
+                    - !Ref 'AWS::Region'
+                    - ':'
+                    - !Ref 'AWS::AccountId'
+                    - ':table/*'
+              - Action:
+                  - 'cognito-idp:AdminGetUser'
+                Effect: Allow
+                Resource: !Join 
+                  - ''
+                  - - 'arn:'
+                    - !Ref 'AWS::Partition'
+                    - ':cognito-idp:'
+                    - !Ref 'AWS::Region'
+                    - ':'
+                    - !Ref 'AWS::AccountId'
+                    - ':userpool/'
+                    - !Ref CognitoUserPool
 
   FunctionNewProjectEntryRole:
     Type: AWS::IAM::Role

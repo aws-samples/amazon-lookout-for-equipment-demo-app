@@ -141,7 +141,6 @@ function Settings({ visible, onDiscard, user }) {
 // Collects user settings from DynamoDB
 // ------------------------------------
 async function getUserSettings(gateway, user, uid, showHelp, isAdmin) {
-    console.log(`getUserSettings, user: "${user}", uid: "${uid}"`)
     if (!user) {
         return {
             showHelp: false,

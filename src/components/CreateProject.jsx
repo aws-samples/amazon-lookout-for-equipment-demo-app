@@ -82,13 +82,6 @@ function CreateProject() {
             setFilename(file.name)
             setUploadInProgress(true)
 
-            Storage.configure({
-                AWSS3: {
-                    bucket: `${window.appS3Bucket}`,
-                    region: `${window.region}`
-                }
-            })
-
             await Storage.put(
                 prefix + '/' + prefix + '/sensors.csv', 
                 file,
@@ -96,10 +89,7 @@ function CreateProject() {
                     contentType: file.type,
                     level: "private",
                     tagging: `L4EDemoAppUser=${uid}&AssetDescription=${assetDescription}`,
-                    progressCallback,
-                    errorCallback: (error) => {
-                        console.log("ERROR CALLBACK", error);
-                    },
+                    progressCallback
                 }
             )
         }

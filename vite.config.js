@@ -17,8 +17,8 @@ export default defineConfig({
         }
         ]
     },
-    build: {
-        minify: false
+    // build: {
+        // minify: false
         // rollupOptions: {
         //     output:{
         //         manualChunks(id) {
@@ -28,5 +28,5 @@ export default defineConfig({
         //         }
         //     }
         // }
-    }
+    // }
 })

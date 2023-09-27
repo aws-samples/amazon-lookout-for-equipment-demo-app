@@ -47,11 +47,17 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                     .catch(() => { fetchError = true })
 
                 const { rowCounts, assetDescription } = await getProjectInfos(gateway, uid, projectName)
+                
+                const response = await gateway.lookoutEquipment
+                                              .describeDataset(`l4e-demo-app-${uid}-${projectName}`)
+                                              .catch(() => { fetchError = true })
+                const datasetStatus = response['Status']
 
                 if (!fetchError) {
                     return {
                         projectDetails: {
                             contentHead: contentHead,
+                            datasetStatus: datasetStatus,
                             contentTail: contentTail,
                             rowCounts: rowCounts,
                             assetDescription: assetDescription,

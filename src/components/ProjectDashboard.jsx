@@ -14,12 +14,14 @@ import HelpPanelContext from './contexts/HelpPanelContext'
 
 // CloudScape Components:
 import Alert             from "@cloudscape-design/components/alert"
+import Box               from "@cloudscape-design/components/box"
 import Button            from "@cloudscape-design/components/button"
 import AppLayout         from "@cloudscape-design/components/app-layout"
 import Container         from "@cloudscape-design/components/container"
 import ContentLayout     from "@cloudscape-design/components/content-layout"
 import ExpandableSection from "@cloudscape-design/components/expandable-section"
 import Header            from "@cloudscape-design/components/header"
+import Icon              from "@cloudscape-design/components/icon"
 import SpaceBetween      from "@cloudscape-design/components/space-between"
 import Spinner           from "@cloudscape-design/components/spinner"
 
@@ -32,10 +34,12 @@ import { getProjectDetails } from './projectDashboard/projectDashboardUtils'
 function ProjectDashboard() {
     const { projectName } = useParams()
     const [ modelDetails, setModelDetails ]                     = useState(undefined)
-    const [ errorMessage, setErrorMessage ]                     = useState(undefined)
+    const [ errorMessage, setErrorMessage ]                     = useState("")
     const [ errorDetails, setErrorDetails ]                     = useState(undefined)
     const [ isLoading, setIsLoading ]                           = useState(true)
     const [ showDeleteProjectModal, setShowDeleteProjectModal ] = useState(false)
+    const [ progressBar, setProgressBar ]                       = useState('.')
+    const [ time, setTime]                                      = useState(Date.now())
 
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
@@ -48,7 +52,20 @@ function ProjectDashboard() {
             setErrorDetails(errorDetails)
             setIsLoading(false)
         })
-    }, [gateway, projectName])
+    }, [gateway, projectName, time])
+
+    // This effect will trigger a refresh of the project
+    // dashboard every 30s until dataset ingestion is done:
+    useEffect(() => {
+        const startTime = Date.now()
+        if (!modelDetails) {
+            const interval = setInterval(() => { 
+                setTime(Date.now()) 
+                setProgressBar('.'.repeat(parseInt((Date.now() - startTime)/(30 * 1000)) + 1))
+            }, 30 * 1000)
+            return () => { clearInterval(interval) }
+        }
+    }, [])
 
     // When data loads successfully, we render the full component:
     let children = ""
@@ -64,9 +81,19 @@ function ProjectDashboard() {
         if (!isLoading && !modelDetails & errorMessage === "") {
             children = <Container header={<Header variant="h1">Summary</Header>}>
                             <Alert header="Data preparation in progress">
-                                Data preparation and ingestion in the app still in progress: after uploading your
-                                dataset, the app prepares it to optimize visualization speed. This step usually takes
-                                10 to 20 minutes depending on the size of the dataset you uploaded.
+                                <SpaceBetween size="l">
+                                    Data preparation and ingestion in the app still in progress: after uploading your
+                                    dataset, the app ingests it into Amazon Lookout for Equipment and also prepares it
+                                    to optimize visualization speed. This step usually takes 5 to 20 minutes depending
+                                    on the size of the dataset you uploaded.
+
+                                    <Box>
+                                        {Array.from(
+                                            { length: progressBar.length }, 
+                                            (_, i) => <Icon name="angle-right-double" size="small" variant="link" />
+                                        )}
+                                    </Box>
+                                </SpaceBetween>
                             </Alert>
                         </Container>
         }

@@ -90,7 +90,12 @@ function DatasetSummary({ modelDetails }) {
             <Container 
                 header={<Header 
                             variant="h1"
-                            actions={<Button iconName="status-negative" onClick={() => setShowDeleteProjectModal(true)}>Delete project</Button>}
+                            actions={
+                                <Button 
+                                    iconName="status-negative" 
+                                    onClick={() => setShowDeleteProjectModal(true)}
+                                    disabled={modelDetails['datasetStatus'] !== 'ACTIVE'}
+                                >Delete project</Button>}
                             info={ <Link variant="info" onFollow={() => setHelpPanelOpen({
                                 status: true,
                                 page: 'projectDashboard',

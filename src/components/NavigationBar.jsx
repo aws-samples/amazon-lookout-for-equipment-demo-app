@@ -22,7 +22,7 @@ function NavigationBar({ activeHref }) {
     const { projectName } = useParams()
     const [time, setTime] = useState(Date.now())
 
-    // This effects will triggers a refresh of the menu bar every 60 seconds:
+    // This effect will trigger a refresh of the menu bar every 60 seconds:
     useEffect(() => {
       const interval = setInterval(() => setTime(Date.now()), 60 * 1000)
       return () => { clearInterval(interval) }

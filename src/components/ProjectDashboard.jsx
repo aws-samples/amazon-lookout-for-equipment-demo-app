@@ -90,8 +90,9 @@ function ProjectDashboard() {
                                     <Box>
                                         {Array.from(
                                             { length: progressBar.length }, 
-                                            (_, i) => <Icon name="angle-right-double" size="small" variant="link" />
+                                            (_, i) => <Icon name="drag-indicator" size="normal" variant="link" />
                                         )}
+                                        <Spinner />
                                     </Box>
                                 </SpaceBetween>
                             </Alert>

@@ -163,7 +163,7 @@ async function getUserSettings(gateway, user, uid, showHelp, isAdmin) {
                         .catch((error) => console.log(error.response))
 
         if (response.Items.length == 0) {
-            await createUser(gateway, uid, showHelp)
+            await createUser(gateway, uid, showHelp, user.attributes.email)
             isAdmin.current = false
         }
         else {
@@ -179,6 +179,8 @@ async function getUserSettings(gateway, user, uid, showHelp, isAdmin) {
 
     // If the user authentication is not through yet, we skip this function:
     catch (error) {
+        console.log(userQuery)
+
         return {
             showHelp: false,
             isAdmin: false
@@ -190,13 +192,14 @@ async function getUserSettings(gateway, user, uid, showHelp, isAdmin) {
 // A user connects for the first time to the app: we 
 // create his/her record in the users DynamoDB table
 // -------------------------------------------------
-async function createUser(gateway, uid, showHelp) {
+async function createUser(gateway, uid, showHelp, email) {
     await gateway.dynamoDb.putItem(
         `l4edemoapp-users-${window.stackId}`,
         {
             'user_id': {'S': uid},
             'show_help': {'BOOL': true},
-            'is_admin': {'BOOL': false}
+            'is_admin': {'BOOL': false},
+            'email': {'S': email}
         }
     ).catch((error) => console.log(error.response))
 

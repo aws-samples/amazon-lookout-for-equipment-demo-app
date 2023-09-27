@@ -78,6 +78,7 @@ module.exports = (s3) => {
                 ACL,
                 Bucket: TO_BUCKET,
                 Key: CONFIG_FILENAME,
+                ContentType: "application/javascript",
                 Body: `var version = "${VERSION}";
 var region = "${REGION}";
 var userPoolId = "${COGNITO_USER_POOL_ID}";

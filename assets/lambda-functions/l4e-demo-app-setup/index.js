@@ -3,6 +3,15 @@ const ResponseHandler = require("./response-handler");
 const S3Handler = require("./s3-handler");
 
 exports.handler = (event, context, callback) => {
+    console.log('=====================================')
+    console.log('Event: ---')
+    console.log(event)
+    console.log('Context: ---')
+    console.log(context)
+    console.log('Callback: ---')
+    console.log(callback)
+    console.log('=====================================')
+    
     const { copyFiles, removeFiles, writeSettings } = S3Handler(new AWS.S3());
     const { sendResponse } = ResponseHandler(event, context, callback);
 

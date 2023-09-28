@@ -93,7 +93,7 @@ function OnlineMonitoring() {
         }]
 
         if (liveResults['isUnhealthy']) {
-            tabsDefinition.push([
+            tabsDefinition.push(...[
                 {
                     label: "Detected events",
                     id: "detectedEvents",

@@ -45,7 +45,7 @@ function isAssetUnhealthy(anomalies) {
     if (anomalies.length > 0) {
         for (const item of anomalies) {
             if (parseInt(item.anomaly.N) == 1) {
-                unhealthy = True
+                unhealthy = true
                 break
             }
         }
@@ -274,14 +274,14 @@ export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContr
     // Prepare sensor contribution data:
     let sortedKeys = tagsList
     if (sensorContribution) {
-        let sensorContributionSeries = {}
-        ({ sortedKeys, sensorContributionSeries } = buildSensorContributionSeries(
+        // let sensorContributionSeries = {}
+        let { sortedKeys, sensorContributionSeries } = buildSensorContributionSeries(
             tagsList, 
             samplingRate, 
             anomalies[0].timestamp['N']*1000,
             anomalies[anomalies.length - 1].timestamp['N']*1000, 
             sensorContribution
-        ))
+        )
         series = [...series, ...sensorContributionSeries]
     }
 

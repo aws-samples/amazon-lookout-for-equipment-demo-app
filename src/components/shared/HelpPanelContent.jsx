@@ -61,7 +61,7 @@ export const helpPanelContent = {
                     its content is aligned with your expectations. Use the <b>summary</b> section to double
                     check the following items:
                     <ul>
-                        <li>The start and end date of your dataset: note that a minimum of 90 days is currently necessary to train a model</li>
+                        <li>The start and end date of your dataset: note that a minimum of 14 days is currently necessary to train a model</li>
                         <li>The number of attributes found in the CSV file your uploaded when your project was created</li>
                         <li>The number of rows found in the dataset</li>
                     </ul>

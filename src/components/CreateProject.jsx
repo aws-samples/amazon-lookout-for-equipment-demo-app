@@ -253,7 +253,7 @@ function CreateProject() {
                                     >
                                         <SpaceBetween size="xs">
                                             <Box>
-                                                Pick a dataset on your local computer to upload it. Keep in mind that at least <b>90 days</b> of 
+                                                Pick a dataset on your local computer to upload it. Keep in mind that at least <b>14 days</b> of 
                                                 data will be needed to train a model further down the road:
                                             </Box>
                                             <FileUpload

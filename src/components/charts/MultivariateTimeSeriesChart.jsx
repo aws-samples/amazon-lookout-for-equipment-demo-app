@@ -120,7 +120,7 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
 
         // ----------------------------------------------------------
         // Compute the total duration of the labels located in the
-        // training range. L4E must have at least 90 days of training
+        // training range. L4E must have at least 14 days of training
         // data available. This will help show the users when they
         // are below this treshold:
         // ----------------------------------------------------------

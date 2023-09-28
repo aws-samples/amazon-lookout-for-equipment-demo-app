@@ -77,14 +77,14 @@ function DefaultModelConfig() {
         let evaluationStartDate = ""
         let evaluationEndDate = ""    
         const totalNumDays = parseInt((trainingEndDate - trainingStartDate) / 1000 / 86400)
-        if (totalNumDays < 91) {
-            errorMessage.current = (<>You need at least <b>90 days</b> of to train a model: only <b>{totalNumDays} days</b> available.</>)
+        if (totalNumDays < 15) {
+            errorMessage.current = (<>You need at least <b>14 days</b> of to train a model: only <b>{totalNumDays} days</b> available.</>)
         }
         else {
             trainingStartDate = data.startDate
-            trainingEndDate = new Date(new Date(data.startDate).getTime() + 91 * 86400 * 1000).toISOString().replace('T', ' ').substring(0, 19)
-            evaluationStartDate = new Date(new Date(data.startDate).getTime() + 91 * 86401 * 1000).toISOString().replace('T', ' ').substring(0, 19)
-            evaluationEndDate = new Date(new Date(data.startDate).getTime() + (91 + 180) * 86401 * 1000)
+            trainingEndDate = new Date(new Date(data.startDate).getTime() + 15 * 86400 * 1000).toISOString().replace('T', ' ').substring(0, 19)
+            evaluationStartDate = new Date(new Date(data.startDate).getTime() + 15 * 86400 * 1000).toISOString().replace('T', ' ').substring(0, 19)
+            evaluationEndDate = new Date(new Date(data.startDate).getTime() + (15 + 90) * 86400 * 1000)
             evaluationEndDate = Math.min(new Date(data.endDate), evaluationEndDate)
             evaluationEndDate = new Date(evaluationEndDate).toISOString().replace('T', ' ').substring(0, 19)
         }

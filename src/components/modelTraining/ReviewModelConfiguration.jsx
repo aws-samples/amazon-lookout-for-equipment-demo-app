@@ -73,7 +73,7 @@ function ReviewModelConfiguration() {
         trainingDuration -= totalLabelDuration.current
         trainingDuration = parseInt(trainingDuration / 1000 / 86400)
 
-        if (trainingDuration < 90 || 
+        if (trainingDuration < 14 || 
             selectedItems.length === 0 || 
             modelName.current === "" || 
             (!selectedLabelGroupName.current && listLabels !== "") || 
@@ -116,7 +116,7 @@ function ReviewModelConfiguration() {
                         <FormField label="Training duration (90 days minimum)">
                             <Input 
                                 value={`${trainingDuration} day${trainingDuration > 1 ? 's' : ''}`}
-                                invalid={trainingDuration >= 90 ? false : true}
+                                invalid={trainingDuration >= 14 ? false : true}
                                 readOnly={true}
                             />
                         </FormField>

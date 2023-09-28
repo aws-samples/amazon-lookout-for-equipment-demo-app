@@ -124,7 +124,7 @@ var theme = {
                 color: ['#eee']
             }
         },
-        axisLabel: {textStyle: { ...font }}
+        axisLabel: { ...font }
     },
 
     valueAxis: {
@@ -144,7 +144,7 @@ var theme = {
                 color: ['#eee']
             }
         },
-        axisLabel: {textStyle: { ...font }}
+        axisLabel: {...font}
     },
 
     timeline: {

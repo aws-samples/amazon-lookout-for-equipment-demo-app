@@ -34,7 +34,7 @@ const samplingRateTable = {
     300: ['5 minutes', 'PT5M'],
     600: ['10 minutes', 'PT10M'],
     900: ['15 minutes', 'PT15M'],
-    180: ['30 minutes', 'PT30M'],
+    1800: ['30 minutes', 'PT30M'],
     3600: ['1 hour', 'PT1H']
 }
 
@@ -105,6 +105,8 @@ function DefaultModelConfig() {
                 Type: "DOUBLE"
             })
         })
+
+        console.log(calculatedSR)
 
         defaultModelConfig.current = {
             modelName: projectName + '-' + modelName.current,

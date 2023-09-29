@@ -26,10 +26,10 @@
             "BackoffRate": 2
           }
         ],
-        "Next": "Prepare hourly data",
+        "Next": "Prepare hourly and summary data",
         "ResultPath": null
       },
-      "Prepare hourly data": {
+      "Prepare hourly and summary data": {
         "Type": "Task",
         "Resource": "arn:aws:states:::lambda:invoke",
         "OutputPath": "$.Payload",
@@ -117,25 +117,53 @@
                   {
                     "Variable": "$.ImportResults.ImportStatus",
                     "StringEquals": "COMPLETED",
-                    "Next": "Delete imported data"
+                    "Next": "Ingest summary in DynamoDB"
                   }
                 ],
                 "Default": "Wait"
+              },
+              "Ingest summary in DynamoDB": {
+                "Type": "Task",
+                "Resource": "arn:aws:states:::lambda:invoke",
+                "Parameters": {
+                  "FunctionName": "${function-ingest-model-results}",
+                  "Payload": {
+                    "bucket.$": "$.bucket",
+                    "key.$": "$.summaryKey",
+                    "table.$": "$.tableName",
+                    "fieldTypes.$": "$.fieldTypes"
+                  }
+                },
+                "Retry": [
+                  {
+                    "ErrorEquals": [
+                      "Lambda.ServiceException",
+                      "Lambda.AWSLambdaException",
+                      "Lambda.SdkClientException",
+                      "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 1,
+                    "MaxAttempts": 3,
+                    "BackoffRate": 2
+                  }
+                ],
+                "Next": "Delete hourly file",
+                "ResultPath": null
               },
               "Wait": {
                 "Type": "Wait",
                 "Seconds": 30,
                 "Next": "DescribeImport"
               },
-              "Delete imported data": {
+              "Delete hourly file": {
                 "Type": "Task",
-                "End": true,
                 "Parameters": {
                   "Bucket.$": "$.bucket",
                   "Key.$": "$.key"
                 },
                 "Resource": "arn:aws:states:::aws-sdk:s3:deleteObject",
-                "ResultPath": null
+                "ResultPath": null,
+                "End": true
               }
             }
           },
@@ -189,4 +217,4 @@
         "End": true
       }
     }
-}
+  }

@@ -30,8 +30,12 @@ def lambda_handler(event, context):
         if tag['Key'] == 'AssetDescription':
             assetDescription = tag['Value']
 
-    # Resampling and adding columns:
-    df_hourly = df.resample('1H').mean().ffill().fillna(value=0.0)
+    # Resampling to hourly: we limit gap fillings to one day:
+    df_hourly = df.resample('1H').mean().ffill(limit=24)
+    df_hourly = df_hourly.dropna(axis='index', how='all')
+    df_hourly = df_hourly.fillna(value=0.0)
+    
+    # Adding columns:
     df_hourly['asset'] = asset
     df_hourly['sampling_rate'] = '1h'
     df_hourly = df_hourly.reset_index()

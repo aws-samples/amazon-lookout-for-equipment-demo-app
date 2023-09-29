@@ -2,24 +2,35 @@ import boto3
 import pandas as pd
 import uuid
 import os
+import csv
 
 s3_client = boto3.client('s3')
 s3 = boto3.resource('s3')
 
 def lambda_handler(event, context):
+    print(event['detail'])
+    print('-----------------------------------')
+    
     # Assembling the S3 path to process:
     bucket = event['detail']['bucket']['name']
     key = event['detail']['object']['key']
     asset = key.split('/')[-2]
-            
+
+    # Guessing the CSV delimiter:
+    data = s3_client.get_object(Bucket=bucket, Key=key, Range='bytes=0-4095')
+    sniffer = csv.Sniffer()
+    delimiter = sniffer.sniff(data['Body'].read().decode('utf-8')).delimiter
+    print('Detected delimiter:', delimiter)
+
     # Reading the CSV file:
     data = s3_client.get_object(Bucket=bucket, Key=key)
-    df = pd.read_csv(data['Body'])
+    df = pd.read_csv(data['Body'], delimiter=delimiter)
     timestampCol = list(df.columns)[0]
     df[timestampCol] = pd.to_datetime(df[timestampCol])
     df = df.set_index(timestampCol)
     df.index.name = "timestamp"
-    
+    df.index = df.index.tz_convert(None)
+
     # Reading tags on the object
     tags = s3_client.get_object_tagging(Bucket=bucket, Key=key)['TagSet']
     userUid = ""
@@ -51,6 +62,24 @@ def lambda_handler(event, context):
     import_key = f'prepared-datasets/{asset}/'
     target_bucket.upload_file(local_fname, target_key)
     
+    # Keeping a snapshot of the raw data that we will
+    # display in the project dashboard screen:
+    df_summary = pd.concat([df.head(20), df.tail(20)], axis='index')
+    df_summary['asset'] = asset
+    df_summary['sampling_rate'] = 'summary'
+    df_summary = df_summary.reset_index()
+    df_summary['unix_timestamp'] = (df_summary['timestamp'] - pd.Timestamp('1970-01-01')) // pd.Timedelta('1s')
+    df_summary['unix_timestamp'] = df_summary['unix_timestamp'].astype(float)
+    df_summary = df_summary[['timestamp', 'unix_timestamp', 'asset', 'sampling_rate'] + list(df_summary.columns)[1:-3]]
+    field_types = {f: 'S' for f in list(df_summary.columns)}
+    field_types.update({'unix_timestamp': 'N'})
+
+    local_fname = f'/tmp/{asset}_summary.csv'
+    df_summary.to_csv(local_fname, index=None)
+    target_bucket = s3.Bucket(bucket)
+    target_key = f'prepared-datasets/{asset}/{asset}_summary.csv'
+    target_bucket.upload_file(local_fname, target_key)
+
     # Writing an update for the initial file 
     # with the right timestamp column name:
     local_fname = f'/tmp/{asset}_raw.csv'
@@ -62,6 +91,7 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'bucket': bucket,
         'key': f'prepared-datasets/{asset}/{asset}_prepared.csv',
+        'summaryKey': f'prepared-datasets/{asset}/{asset}_summary.csv',
         'importKey': import_key,
         'asset': asset,
         'L4ES3InputPrefix': 'raw-datasets/' + asset + '/',
@@ -70,4 +100,5 @@ def lambda_handler(event, context):
         'userUid': userUid,
         'assetDescription': assetDescription,
         'tableName': f'l4edemoapp-{userUid}-{asset}',
+        'fieldTypes': field_types
     }

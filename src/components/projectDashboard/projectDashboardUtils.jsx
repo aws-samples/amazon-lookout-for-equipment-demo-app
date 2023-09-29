@@ -25,27 +25,53 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
 
             if (tableStatus === 'ACTIVE') {
                 let fetchError = false
+                let contentTail = {}
+                let contentHead = {}
 
-                const contentHead = await gateway
+                contentHead = await gateway
                     .dynamoDb.query({ 
                         TableName: targetTableName,
                         KeyConditionExpression: "sampling_rate = :sr",
-                        ExpressionAttributeValues: { ":sr": {"S": "1h"} },
-                        Limit: 5
+                        ExpressionAttributeValues: { ":sr": {"S": "summary"} },
+                        Limit: 20
                     })
                     .catch(() => { fetchError = true })
 
-                const contentTail = await gateway
-                    .dynamoDb.query(
-                        { 
-                            TableName: targetTableName,
-                            KeyConditionExpression: "sampling_rate = :sr",
-                            ExpressionAttributeValues: { ":sr": {"S": "1h"} },
-                            Limit: 5,
-                            ScanIndexForward: false
-                        }
-                    )
-                    .catch(() => { fetchError = true })
+                if (contentHead.Items.length == 0) {
+                    contentHead = await gateway
+                                        .dynamoDb.query({ 
+                                            TableName: targetTableName,
+                                            KeyConditionExpression: "sampling_rate = :sr",
+                                            ExpressionAttributeValues: { ":sr": {"S": "1h"} },
+                                            Limit: 20
+                                        })
+                                        .catch(() => { fetchError = true })
+
+                    contentTail = await gateway
+                                        .dynamoDb.query(
+                                            { 
+                                                TableName: targetTableName,
+                                                KeyConditionExpression: "sampling_rate = :sr",
+                                                ExpressionAttributeValues: { ":sr": {"S": "1h"} },
+                                                Limit: 20,
+                                                ScanIndexForward: false
+                                            }
+                                        )
+                                        .catch(() => { fetchError = true })
+                }
+                else {
+                    contentTail = await gateway
+                                        .dynamoDb.query(
+                                            { 
+                                                TableName: targetTableName,
+                                                KeyConditionExpression: "sampling_rate = :sr",
+                                                ExpressionAttributeValues: { ":sr": {"S": "summary"} },
+                                                Limit: 20,
+                                                ScanIndexForward: false
+                                            }
+                                        )
+                                        .catch(() => { fetchError = true })
+                }
 
                 const { rowCounts, assetDescription } = await getProjectInfos(gateway, uid, projectName)
                                                              .catch(() => { fetchError = true })
@@ -92,7 +118,12 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
 
             if (response['status'] === 'FAILED') {
                 errorMessage = 'Dataset ingestion failed. Check your file, delete this project and try again.'
-                errorDetails = JSON.parse(response['cause'])['errorMessage']
+                try {
+                    errorDetails = JSON.parse(response['cause'])['errorMessage']
+                }
+                catch {
+                    errorDetails = response['cause']
+                }
             }
         }
     }

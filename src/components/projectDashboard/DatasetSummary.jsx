@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 
 // Cloudscape components:
 import Alert             from "@cloudscape-design/components/alert"
+import Badge             from "@cloudscape-design/components/badge"
 import Box               from "@cloudscape-design/components/box"
 import Button            from "@cloudscape-design/components/button"
 import ColumnLayout      from "@cloudscape-design/components/column-layout"
@@ -56,6 +57,15 @@ function DatasetSummary({ modelDetails }) {
             e.preventDefault()
             navigate(`/model-training/ProjectName/${projectName}`)
         }}>Model training</Link>
+
+    // Define the badge color for the training status:
+    let color = 'gray'
+    if (modelDetails && modelDetails['ingestionStatus'] === 'SUCCESS') {
+        color = 'green'
+    }
+    else {
+        color = 'red'
+    }
     
     // Render the component:
     return (
@@ -161,6 +171,10 @@ function DatasetSummary({ modelDetails }) {
                                 rowCounts={modelDetails && modelDetails['rowCounts']}
                                 startDate={modelDetails && modelDetails['startDate']}
                                 endDate={modelDetails && modelDetails['endDate']} />
+                        </div>
+                        <div>
+                            <Box variant="awsui-key-label">Lookout for Equipment ingestion status</Box>
+                            {<Badge color={color}>{modelDetails['ingestionStatus']}</Badge>}
                         </div>
                     </SpaceBetween>
                 </ColumnLayout> }

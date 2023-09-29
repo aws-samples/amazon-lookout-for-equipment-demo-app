@@ -63,6 +63,8 @@ Mappings:
     Functions:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.0.0/functions
+      Version: 2
+      SetupVersion: 1
     Layers:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.0.0/layers
@@ -111,12 +113,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-setup.zip
+            - '/'
+            - l4e-demo-app-setup
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - SetupVersion
+            - '.zip'
       Description: Amazon Lookout for Equipment demo app setup
       Role: !GetAtt AppSetupRole.Arn
       Environment:
@@ -939,12 +948,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-new-project-entry.zip
+            - '/'
+            - l4e-demo-app-new-project-entry
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - Version
+            - '.zip'
       Environment:
         Variables:
           STACK_ID: !Select
@@ -997,12 +1013,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-prepare-hourly-data.zip
+            - '/'
+            - l4e-demo-app-prepare-hourly-data
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - Version
+            - '.zip'
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1052,12 +1075,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-ingest-model-results.zip
+            - '/'
+            - l4e-demo-app-ingest-model-results
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - Version
+            - '.zip'
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1105,12 +1135,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-prepare-replay-data.zip
+            - '/'
+            - l4e-demo-app-prepare-replay-data
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - Version
+            - '.zip'
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1158,12 +1195,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-training-results-extraction.zip
+            - '/'
+            - l4e-demo-app-training-results-extraction
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - Version
+            - '.zip'
       Environment:
         Variables:
           BUCKET: !Ref ApplicationBucket
@@ -1203,12 +1247,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-store-inference-inputs.zip
+            - '/'
+            - l4e-demo-app-store-inference-inputs
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - Version
+            - '.zip'
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1256,12 +1307,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-generate-inference-input.zip
+            - '/'
+            - l4e-demo-app-generate-inference-input
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - Version
+            - '.zip'
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1306,12 +1364,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-store-inference-results.zip
+            - '/'
+            - l4e-demo-app-store-inference-results
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - Version
+            - '.zip'
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1359,12 +1424,19 @@ Resources:
               - S3Bucket
             - !Ref 'AWS::Region'
         S3Key: !Join 
-          - /
+          - ''
           - - !FindInMap 
               - SourceCode
               - Functions
               - KeyPrefix
-            - l4e-demo-app-describe-model.zip
+            - '/'
+            - l4e-demo-app-describe-model
+            - '-v'
+            - !FindInMap 
+              - SourceCode
+              - Functions
+              - Version
+            - '.zip'
       Handler: lambda_function.lambda_handler
       Role: !GetAtt FunctionDescribeModelRole.Arn
       Runtime: python3.10

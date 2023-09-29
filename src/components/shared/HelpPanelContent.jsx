@@ -607,7 +607,7 @@ export const helpPanelContent = {
                             right to adjust this display. Sensor contributions are only computed when the raw anomaly score for a
                             given timestamp is greater than 0.5
                         </li>
-                        <li>The <b>time series</b> plots of the selected sensors: this will help you put the anomlies in context.</li>
+                        <li>The <b>time series</b> plots of the selected sensors: this will help you put the anomalies in context.</li>
                     </ul>
                 </div>
             )

@@ -16,6 +16,7 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
     let errorMessage = ""
     let errorDetails = undefined
     if (listProjects.indexOf(uid + '-' + projectName)) {
+        // The dynamoDB Table is available and the project is listed:
         if (tableAvailable) {
             let tableStatus = await gateway.dynamoDb
                                            .describeTable(targetTableName)
@@ -49,16 +50,23 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                 const { rowCounts, assetDescription } = await getProjectInfos(gateway, uid, projectName)
                                                              .catch(() => { fetchError = true })
                 
-                const response = await gateway.lookoutEquipment
+                let response = await gateway.lookoutEquipment
                                               .describeDataset(`l4e-demo-app-${uid}-${projectName}`)
                                               .catch(() => { fetchError = true })
                 const datasetStatus = response['Status']
+
+                // If the dataset is active, it means an ingestion was successful:
+                response = await gateway.lookoutEquipment
+                                        .listDataIngestionJobs(`l4e-demo-app-${uid}-${projectName}`)
+                                        .catch(() => { fetchError = true })
+                const ingestionStatus = response['DataIngestionJobSummaries'][0]['Status']
 
                 if (!fetchError) {
                     return {
                         projectDetails: {
                             contentHead: contentHead,
                             datasetStatus: datasetStatus,
+                            ingestionStatus: ingestionStatus,
                             contentTail: contentTail,
                             rowCounts: rowCounts,
                             assetDescription: assetDescription,

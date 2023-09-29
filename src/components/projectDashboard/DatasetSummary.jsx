@@ -60,7 +60,7 @@ function DatasetSummary({ modelDetails }) {
     // Render the component:
     return (
         <SpaceBetween size="l">
-            { showHelp.current && showUserGuide && <Container>
+            { showHelp.current && showUserGuide && modelDetails['ingestionStatus'] !== 'FAILED' && <Container>
                 <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                     <p>
                         You can use this screen to verify that your dataset was correctly ingested and that 
@@ -94,7 +94,7 @@ function DatasetSummary({ modelDetails }) {
                                 <Button 
                                     iconName="status-negative" 
                                     onClick={() => setShowDeleteProjectModal(true)}
-                                    disabled={modelDetails['datasetStatus'] !== 'ACTIVE'}
+                                    disabled={modelDetails['datasetStatus'] !== 'ACTIVE' && modelDetails['ingestionStatus'] !== 'FAILED'}
                                 >Delete project</Button>}
                             info={ <Link variant="info" onFollow={() => setHelpPanelOpen({
                                 status: true,
@@ -103,7 +103,7 @@ function DatasetSummary({ modelDetails }) {
                             })}>Info</Link> }
                         >Summary</Header>}
                 footer={
-                    <ExpandableSection 
+                    modelDetails['ingestionStatus'] !== 'FAILED' && <ExpandableSection 
                         headerText={
                             <Header 
                                 variant="h4"
@@ -128,7 +128,7 @@ function DatasetSummary({ modelDetails }) {
                     onDiscard={() => { setShowDeleteProjectModal(false) }}
                     currentProjectName={projectName} />
 
-                <ColumnLayout columns={2} variant="text-grid">
+                { modelDetails['ingestionStatus'] !== 'FAILED' && <ColumnLayout columns={2} variant="text-grid">
                     <SpaceBetween size="l">
                         <div>
                             <Box variant="awsui-key-label">Sensors</Box>
@@ -163,8 +163,14 @@ function DatasetSummary({ modelDetails }) {
                                 endDate={modelDetails && modelDetails['endDate']} />
                         </div>
                     </SpaceBetween>
-                </ColumnLayout>
+                </ColumnLayout> }
+
+                { modelDetails['ingestionStatus'] === 'FAILED' && <Alert header="Error" type="error">
+                        Dataset ingestion failed in Amazon Lookout for Equipment: delete this project and verify your input file.
+                </Alert> }
             </Container>
+
+
         </SpaceBetween>
     )
 }

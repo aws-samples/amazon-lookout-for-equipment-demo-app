@@ -106,8 +106,6 @@ function DefaultModelConfig() {
             })
         })
 
-        console.log(calculatedSR)
-
         defaultModelConfig.current = {
             modelName: projectName + '-' + modelName.current,
             datasetName: `l4e-demo-app-${uid}-${projectName}`,

@@ -29,7 +29,6 @@ function ModelTraining() {
     return (
         <ModelParametersProvider>
             <TimeSeriesProvider projectName={projectName}>
-
                 { /* --------------------------- *
                    * Default model training view * 
                    * --------------------------- */ }

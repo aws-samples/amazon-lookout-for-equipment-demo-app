@@ -12,7 +12,7 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                                     .catch((error) => console.log(error.response))
     const tableAvailable = (listTables['TableNames'].indexOf(targetTableName) >= 0)
     const executionIds = await getAllExecutionId(gateway, uid)
-    
+
     let errorMessage = ""
     let errorDetails = undefined
     if (listProjects.indexOf(uid + '-' + projectName)) {
@@ -47,6 +47,7 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                     .catch(() => { fetchError = true })
 
                 const { rowCounts, assetDescription } = await getProjectInfos(gateway, uid, projectName)
+                                                             .catch(() => { fetchError = true })
                 
                 const response = await gateway.lookoutEquipment
                                               .describeDataset(`l4e-demo-app-${uid}-${projectName}`)
@@ -200,7 +201,7 @@ export function getClosestSamplingRate(samplingRate) {
         }
 
         index += 1
-    } while (!calculatedSR || index == samplingRateList.length)
+    } while (!calculatedSR && index < samplingRateList.length)
 
     if (!calculatedSR) {
         calculatedSR = samplingRateList[samplingRateList.length - 1]

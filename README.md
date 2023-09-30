@@ -51,7 +51,8 @@ This template will deploy the following components in your AWS account:
 
 <img src="assets/architecture-diagram-without-legend.png" alt="Architecture diagram" />
 
-1. Deploy this AWS Solution into your AWS account. Open the App and use Amazon Cognito to authenticate.
+0. Deploy this AWS Solution into your AWS account. The React frontend is stored in S3 and distributed by CloudFront
+1. Open the App and use Amazon Cognito to authenticate.
 2. To create a new project, end user uploads a CSV file that will be used to create an Amazon Lookout for Equipment project. Data will also be prepared for visualization purpose in the app. The prepared data will be stored in a DynamoDB table.
 3. Once a project is created, user can visualize the project attributes and a summary of the ingested dataset
 4. User can also dive deeper in the sensor data, visualize sensor grade results, timeseries and value distributions
@@ -89,7 +90,7 @@ This folder is structured as followed:
 
 ## Questions
 
-Please contact the [**Lookout for Equipment team**](mailto:aws-custfeedback-l4edemoapp@amazon.fr?subject=Lookout%20for%20Equipment%20Demo%20App%20Feedback) or raise an issue on this repository.
+Please contact the [**Lookout for Equipment team**](mailto:aws-custfeedback-l4edemoapp@amazon.fr?subject=Lookout%20for%20Equipment%20Demo%20App%20Feedback) or raise an issue against this repository.
 
 ## Security
 
@@ -97,4 +98,4 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 
 ## License
 
-This library is licensed under the MIT-0 License. See the LICENSE file.
+This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) file.

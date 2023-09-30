@@ -216,7 +216,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
         // -----------------------------------------------------------------------
         const createLabelGroup = async (e) => {
             e.preventDefault()
-            const { error } = await checkLabelGroupErrors(labelGroupName, projectName)
+            let { error } = await checkLabelGroupErrors(labelGroupName, projectName)
 
             if (!error) {
                 const labelGroupRequest = {
@@ -225,29 +225,42 @@ function LabelsManagement({ componentHeight, readOnly }) {
                 }
 
                 await gateway.lookoutEquipment.createLabelGroup(labelGroupRequest)
-                    .catch((error) => { console.log(error.response) })
+                    .catch((err) => { 
+                        console.log(err.response) 
+                        error = true
+                        if (err.response.data.__type === 'com.amazonaws.thorbrain#ServiceQuotaExceededException') {
+                            setErrorMessage(`Limit exceeded for "max number of label groups". Please contact
+                                             your administrator to request a limit increase for this account.`)
+                        }
+                        else {
+                            setErrorMessage(err.response.data.Message)
+                        }
+                        
+                    })
 
-                labels.current.forEach(async (label) => {
-                    const labelRequest = {
-                        LabelGroupName: uid + '-' + projectName + '-' + labelGroupName,
-                        StartTime: new Date(label['start']).getTime() / 1000,
-                        EndTime: new Date(label['end']).getTime() / 1000,
-                        Rating: 'ANOMALY'
-                    }
+                if (!error) {
+                    labels.current.forEach(async (label) => {
+                        const labelRequest = {
+                            LabelGroupName: uid + '-' + projectName + '-' + labelGroupName,
+                            StartTime: new Date(label['start']).getTime() / 1000,
+                            EndTime: new Date(label['end']).getTime() / 1000,
+                            Rating: 'ANOMALY'
+                        }
 
-                    await gateway.lookoutEquipment.createLabel(labelRequest)
-                        .catch((error) => { console.log(error.response) })
+                        await gateway.lookoutEquipment.createLabel(labelRequest)
+                            .catch((error) => { console.log(error.response) })
 
-                    // Wait to prevent label creation throttling:
-                    await new Promise(r => setTimeout(r, 400))
-                })
+                        // Wait to prevent label creation throttling:
+                        await new Promise(r => setTimeout(r, 400))
+                    })
 
-                const labelGroupOptions = await getLabelGroups(gateway, uid, projectName)
-                setGroupLabelOptions(labelGroupOptions)
-                setSelectedOption({label: labelGroupName, value: uid + '-' + projectName + '-' + labelGroupName})
-                setDeleteButtonDisabled(false)
-                selectedLabelGroupName.current = labelGroupName
-                selectedLabelGroupValue.current = uid + '-' + projectName + '-' + labelGroupName
+                    const labelGroupOptions = await getLabelGroups(gateway, uid, projectName)
+                    setGroupLabelOptions(labelGroupOptions)
+                    setSelectedOption({label: labelGroupName, value: uid + '-' + projectName + '-' + labelGroupName})
+                    setDeleteButtonDisabled(false)
+                    selectedLabelGroupName.current = labelGroupName
+                    selectedLabelGroupValue.current = uid + '-' + projectName + '-' + labelGroupName
+                }
             }
         }
 

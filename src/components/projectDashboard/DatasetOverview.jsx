@@ -1,5 +1,9 @@
+// Cloudscape components:
 import Box from "@cloudscape-design/components/box"
 import Table from "@cloudscape-design/components/table"
+
+// Utils:
+import { cleanList } from '../../utils/utils'
 
 // -------------------------------------------
 // Builds the columns definition for the table
@@ -67,13 +71,11 @@ function buildTableItems(modelDetails) {
 function DatasetOverview({ modelDetails }) {
     if (modelDetails) {
         // Get the tags list and filter out the non-sensor related columns:
-        const tagsList = [...modelDetails.attributeList]
+        let tagsList = [...modelDetails.attributeList]
         const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
-        tagsToRemove.forEach((tag) => {
-            const index = tagsList.indexOf(tag)
-            const removed = tagsList.splice(index, 1)
-        })
-        
+        tagsList = cleanList(tagsToRemove, tagsList)
+        tagsList.sort()
+
         // Build the table components (header and body):
         const columns = buildColumnsDefinition(tagsList)
         const tableItems = buildTableItems(modelDetails)

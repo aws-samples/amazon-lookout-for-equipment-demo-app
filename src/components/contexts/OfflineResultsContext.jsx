@@ -47,7 +47,7 @@ export const OfflineResultsProvider = ({ children }) => {
                 // Building and cleaning the tags list:
                 let tagsList = details['tagsList']
                 const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
-                tagsList = cleanList(tagsToRemove, tagsList)        
+                tagsList = cleanList(tagsToRemove, tagsList)
                 setTagsList(tagsList)
 
                 // Building training time series for each tag present in the dataset:

@@ -182,6 +182,8 @@ export const getModelListDetailed = async (gateway, currentProject) => {
 // Get all the projects listed under this account
 // ----------------------------------------------
 export async function getAllProjects(gateway, uid) {
+    const projects = []
+
     const projectQuery = { 
         TableName: `l4edemoapp-projects-${window.stackId}`,
         KeyConditionExpression: "#user = :user",
@@ -192,11 +194,13 @@ export async function getAllProjects(gateway, uid) {
     }
 
     const response = await gateway.dynamoDb.queryAll(projectQuery)
-                                  .catch((error) => console.log(error.response))
-    const projects = []
-    response.Items.forEach((project) => {
-        projects.push(project['project']['S'])
-    })
+                                .catch((error) => console.log(error))
+
+    if (response.Items && response.Items.length > 0) {
+        response.Items.forEach((project) => {
+            projects.push(project['project']['S'])
+        })
+    }
 
     return projects
 }
@@ -206,6 +210,8 @@ export async function getAllProjects(gateway, uid) {
 // for the projects associated to the current user
 // ------------------------------------------------
 export async function getAllExecutionId(gateway, uid) {
+    const ids = {}
+
     const projectQuery = { 
         TableName: `l4edemoapp-projects-${window.stackId}`,
         KeyConditionExpression: "#user = :user",
@@ -216,7 +222,6 @@ export async function getAllExecutionId(gateway, uid) {
     }
 
     const response = await gateway.dynamoDb.queryAll(projectQuery).catch((error) => console.log(error.response))
-    const ids = {}
     response.Items.forEach((project) => {
         ids[project['project']['S']] = project['executionId'] ? project['executionId']['S'] : undefined
     })

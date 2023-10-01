@@ -5,6 +5,30 @@ import request from '../../utils/request'
 
 const ApiGatewayContext = createContext()
 
+async function queryAllItems(summaryLabel, service, api, payload) {
+    let response = undefined
+    let currentPayload = {}
+    if (payload) { currentPayload = payload }
+    let overallResponse = {}
+    overallResponse[summaryLabel] = []
+    
+    do {
+        if (!response) {
+            response = await request(service, api, currentPayload)
+            .catch((error) => console.log(error.response))
+        }
+        else {
+            currentPayload['NextToken'] = response ? response['NextToken'] : ''
+            response = await request(service, api, currentPayload)
+            .catch((error) => console.log(error.response))
+        }
+
+        overallResponse[summaryLabel] = [...overallResponse[summaryLabel], ...response[summaryLabel]]
+    } while (response['NextToken'])
+
+    return overallResponse
+}
+
 export const ApiGatewayProvider = ({user, children}) => {    
     // Define a unique user ID based on the authenticated user property:
     let uid = undefined
@@ -29,12 +53,21 @@ export const ApiGatewayProvider = ({user, children}) => {
             describeDataset(datasetName) {
                 return request("LookoutEquipment", "DescribeDataset", {DatasetName: datasetName})
             },
-            listDatasets(datasetName) {
+            async listDatasets(datasetName) {
                 if (datasetName) {
-                    return request("LookoutEquipment", "ListDatasets", {DatasetNameBeginsWith: datasetName})
+                    return queryAllItems(
+                        'DatasetSummaries', 
+                        'LookoutEquipment', 
+                        'ListDatasets', 
+                        { DatasetNameBeginsWith: datasetName }
+                    )
                 }
                 else {
-                    return request("LookoutEquipment", "ListDatasets")
+                    return queryAllItems(
+                        'DatasetSummaries', 
+                        'LookoutEquipment', 
+                        'ListDatasets'
+                    )
                 }
             },
             listDataIngestionJobs(datasetName) {
@@ -44,29 +77,12 @@ export const ApiGatewayProvider = ({user, children}) => {
                 return request("LookoutEquipment", "DeleteDataset", { DatasetName: datasetName })
             },
             async listSensorStatistics(datasetName, jobId) {
-                let response = undefined
-                let overallResponse = {SensorStatisticsSummaries: []}
-                do {
-                    if (!response) {
-                        response = await request("LookoutEquipment", "ListSensorStatistics", {
-                            DatasetName: datasetName,
-                            IngestionJobId: jobId
-                        })
-                        .catch((error) => console.log(error.response))
-                    }
-                    else {
-                        response = await request("LookoutEquipment", "ListSensorStatistics", {
-                            DatasetName: datasetName,
-                            IngestionJobId: jobId,
-                            NextToken: response ? response['NextToken'] : ''
-                        })
-                        .catch((error) => console.log(error.response))
-                    }
-                    
-                    overallResponse['SensorStatisticsSummaries'] = [...overallResponse['SensorStatisticsSummaries'], ...response['SensorStatisticsSummaries']]
-                } while (response['NextToken'])
-    
-                return overallResponse
+                return queryAllItems(
+                    'SensorStatisticsSummaries', 
+                    'LookoutEquipment', 
+                    'ListSensorStatistics', 
+                    { DatasetName: datasetName, IngestionJobId: jobId }
+                )
             },
 
             // -----------------
@@ -78,12 +94,21 @@ export const ApiGatewayProvider = ({user, children}) => {
     
                 return request("LookoutEquipment", "CreateModel", requestArg)
             },
-            listModels(datasetName) {
+            async listModels(datasetName) {
                 if (datasetName) {
-                    return request("LookoutEquipment", "ListModels", {DatasetNameBeginsWith: datasetName})
+                    return queryAllItems(
+                        'ModelSummaries', 
+                        'LookoutEquipment', 
+                        'ListModels', 
+                        { DatasetNameBeginsWith: datasetName }
+                    )
                 }
                 else {
-                    return request("LookoutEquipment", "ListModels")
+                    return queryAllItems(
+                        'ModelSummaries', 
+                        'LookoutEquipment', 
+                        'ListModels'
+                    )
                 }
             },
             describeModel(modelName) {
@@ -96,12 +121,21 @@ export const ApiGatewayProvider = ({user, children}) => {
             // ---------------------
             // Schedulers management
             // ---------------------
-            listInferenceSchedulers(modelName) {
+            async listInferenceSchedulers(modelName) {
                 if (modelName) {
-                    return request("LookoutEquipment", "ListInferenceSchedulers", {ModelName: modelName})
+                    return queryAllItems(
+                        'InferenceSchedulerSummaries', 
+                        'LookoutEquipment', 
+                        'ListInferenceSchedulers', 
+                        { ModelName: modelName }
+                    )
                 }
                 else {
-                    return request("LookoutEquipment", "ListInferenceSchedulers")
+                    return queryAllItems(
+                        'InferenceSchedulerSummaries', 
+                        'LookoutEquipment', 
+                        'ListInferenceSchedulers'
+                    )
                 }
             },
             stopInferenceScheduler(schedulerName) {
@@ -112,18 +146,6 @@ export const ApiGatewayProvider = ({user, children}) => {
             },
             deleteInferenceScheduler(schedulerName) {
                 return request("LookoutEquipment", "DeleteInferenceScheduler", {InferenceSchedulerName: schedulerName})
-            },
-            listInferenceExecutions(schedulerName, sinceTimestamp, nextToken) {
-                let payload = { InferenceSchedulerName: schedulerName }
-                if (sinceTimestamp) { 
-                    payload['DataStartTimeAfter'] = sinceTimestamp 
-                    payload['DataEndTimeBefore'] = parseInt(Date.now() / 1000)
-                }
-                if (nextToken) {
-                    payload['NextToken'] = nextToken
-                }
-
-                return request("LookoutEquipment", "ListInferenceExecutions", payload)
             },
             describeInferenceScheduler(schedulerName) {
                 return request("LookoutEquipment", "DescribeInferenceScheduler", {InferenceSchedulerName: schedulerName})
@@ -153,10 +175,19 @@ export const ApiGatewayProvider = ({user, children}) => {
                 return request("LookoutEquipment", "CreateLabel", requestArg)
             },
             listLabelGroups(groupNameBeginsWith) {
+                // We don't use pagination to collect more than 50 label groups 
+                // with this query. It's unlikely that more than 50 label groups
+                // will be created for a given dataset:
                 return request("LookoutEquipment", "ListLabelGroups", {LabelGroupNameBeginsWith: groupNameBeginsWith})
             },
-            listLabels(labelGroupName) {
-                return request("LookoutEquipment", "ListLabels", {LabelGroupName: labelGroupName})
+            async listLabels(labelGroupName) {
+                return queryAllItems(
+                    'LabelSummaries', 
+                    'LookoutEquipment', 
+                    'ListLabels', {
+                        LabelGroupName: labelGroupName
+                    }
+                )
             },
             deleteLabelGroup(labelGroupName) {
                 return request("LookoutEquipment", "DeleteLabelGroup", {LabelGroupName: labelGroupName})
@@ -188,8 +219,27 @@ export const ApiGatewayProvider = ({user, children}) => {
             describeTable(tableName) {
                 return request("DynamoDB", "DescribeTable", { TableName: tableName })
             },
-            listTables() {
-                return request("DynamoDB", "ListTables")
+            async listTables() {
+                let response = undefined
+                let overallResponse = {TableNames: []}
+                let LastEvaluatedTableName = undefined
+    
+                do {
+                    if (!response) {
+                        response = await request("DynamoDB", "ListTables")
+                                         .catch((error) => console.log(error.response))
+                    }
+                    else {
+                        LastEvaluatedTableName = response['LastEvaluatedTableName']
+                        response = await request("DynamoDB", "ListTables", {ExclusiveStartTableName: LastEvaluatedTableName})
+                                         .catch((error) => console.log(error.response))
+                    }
+    
+                    overallResponse['TableNames'] = [...overallResponse['TableNames'], ...response['TableNames']]
+    
+                } while (response['LastEvaluatedTableName'])
+    
+                return overallResponse
             },
             deleteTable(tableName) {
                 return request("DynamoDB", "DeleteTable", { TableName: tableName })

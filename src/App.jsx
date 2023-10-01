@@ -18,7 +18,7 @@ function App() {
   return (
     <div>
       {authStatus === 'configuring' && 'Loading...'}
-      {authStatus !== 'authenticated' ? 
+      {authStatus !== 'authenticated' && authStatus !== 'configuring' ? 
         <ThemeProvider theme={cloudscapeTheme}>
             <TopMenuBar />
 

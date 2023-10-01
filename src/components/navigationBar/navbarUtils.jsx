@@ -15,7 +15,7 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
 
     // Extracts all the projects, models and schedulers visible from this account:
     const projects = await getAllProjects(gateway, uid)
-    const projectsDetails = await gateway.lookoutEquipment.listDatasets()
+    const projectsDetails = await gateway.lookoutEquipment.listDatasets(`l4e-demo-app-${uid}-`)
     const modelsList = await getAllModels(gateway, projects, uid)
     const schedulersList = await getAllSchedulers(gateway, modelsList)
 

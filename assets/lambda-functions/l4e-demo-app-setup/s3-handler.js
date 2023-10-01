@@ -13,7 +13,8 @@ const {
     VERSION,
     USER_FILES_BUCKET,
     SFN_MODEL_DEPLOYMENT_ARN,
-    STACK_ID
+    STACK_ID,
+    ALLOW_USER_SIGN_UP
 } = process.env;
 
 const CONFIG_FILENAME = "app.config.js";
@@ -64,10 +65,6 @@ module.exports = (s3) => {
                     })
                 );
             })
-            // .then(() => {
-            //     console.log('Deleting assets/ folder')
-            //     Promise.all([deleteFile({ Bucket: TO_BUCKET, Key: 'assets/' })]);
-            // })
         },
 
         // ----------------------------------------------------------------
@@ -86,7 +83,8 @@ var userPoolWebClientId = "${COGNITO_USER_POOL_CLIENT_ID}";
 var identityPoolId = "${COGNITO_IDENTITY_POOL_ID}";
 var appS3Bucket = "${USER_FILES_BUCKET}";
 var stackId = "${STACK_ID}";
-var deployModelArn = "${SFN_MODEL_DEPLOYMENT_ARN}";`
+var deployModelArn = "${SFN_MODEL_DEPLOYMENT_ARN}";
+var allowUserSignUp = "${ALLOW_USER_SIGN_UP}";`
             }).promise();
         }
     };

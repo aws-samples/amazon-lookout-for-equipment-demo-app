@@ -5,6 +5,7 @@ import Home from './components/Home'
 import TopMenuBar from './components/TopMenuBar'
 
 // Cloudscape components:
+import Alert             from "@cloudscape-design/components/alert"
 import AppLayout         from "@cloudscape-design/components/app-layout"
 import Container         from "@cloudscape-design/components/container"
 import ContentLayout     from "@cloudscape-design/components/content-layout"
@@ -39,11 +40,19 @@ function App() {
                                         operational dashboard to visualize your live results.
                                     </p>
                                     
-                                    <h5>Use the following form to sign into the application:</h5>
+                                    <h5>Use the following form to sign into the application.</h5>
                                 </TextContent>
                             </Container>
 
-                            <Authenticator />
+                            {window.allowUserSignUp === "false" && <Alert>
+                                Your administrator does not allow new users to sign up using this form. Contact them to
+                                create a new account.
+                            </Alert> }
+
+                            <Authenticator 
+                                initialState="signIn"
+                                hideSignUp={window.allowUserSignUp === "false"}
+                            />
                         </SpaceBetween>
                     </ContentLayout>
                 }

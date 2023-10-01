@@ -16,6 +16,7 @@
     "@cloudscape-design/components": "^3.0.303",
     "@cloudscape-design/design-tokens": "^3.0.15",
     "@cloudscape-design/global-styles": "^1.0.9",
+    "@octokit/core": "^5.0.1",
     "aws-amplify": "^5.3.11",
     "echarts": "^5.4.3",
     "echarts-for-react": "^3.0.2",

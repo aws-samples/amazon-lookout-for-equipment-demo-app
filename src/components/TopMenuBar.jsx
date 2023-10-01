@@ -1,28 +1,16 @@
 // Imports:
 import { useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom"
-import { Octokit } from "@octokit/core"
 
 // CloudScape components:
 import TopNavigation from "@cloudscape-design/components/top-navigation"
 
 // App component:
 import Settings from './topMenuBar/Settings'
+import ReleaseInfo from './topMenuBar/ReleaseInfo'
 
-async function getLatestVersion() {
-    const octokit = new Octokit({
-        auth: 'token'
-    })
-      
-    const response = await octokit.request('GET /repos/{owner}/{repo}/releases/tags/{tag}', {
-        owner: 'aws-samples',
-        repo: 'amazon-lookout-for-equipment-demo-app',
-        tag: 'Beta1',
-        headers: { 'X-GitHub-Api-Version': '2022-11-28' }
-    })
-
-    return response.data.tag_name
-}
+// Utils:
+import { isLatestVersion } from '../utils/utils'
 
 // =====================================================================
 // Component main entry point. This component manages the top menu bar 
@@ -31,12 +19,27 @@ async function getLatestVersion() {
 // =====================================================================
 function TopMenuBar({ user, signOut }) {
     // const { uid } = useContext(ApiGatewayContext)
-    const [ showSettingsModal, setShowSettingsModal ] = useState(false)
+    const [ showSettingsModal, setShowSettingsModal ]       = useState(false)
+    const [ showReleaseInfoModal, setShowReleaseInfoModal ] = useState(false)
+    const [ isLatest, setIsLatest ]                         = useState(true)
+    const [ publicationDate, setPublicationDate ]           = useState("")
+    const [ releaseInfo, setReleaseInfo ]                   = useState("")
+    const [ latestVersion, setLatestVersion ]               = useState("")
     const navigate = useNavigate()
 
     useEffect(() => {
-        getLatestVersion()
-        .then((x) => console.log(x))
+        isLatestVersion()
+        .then((x) => {
+            if (x) {
+                setIsLatest(x['isLatestVersion'])
+                setPublicationDate(x['publicationDate'])
+                setReleaseInfo(x['releaseInfo'])
+                setLatestVersion(x['latestVersion'])
+            }
+            else {
+                setIsLatest(true)
+            }
+        })
     }, [])
 
     let utilities = []
@@ -63,10 +66,29 @@ function TopMenuBar({ user, signOut }) {
             }
         ]
 
+        if (!isLatest) {
+            utilities = [{
+                type: "button",
+                iconName: "notification",
+                badge: true,
+                title: "Notifications",
+                onClick: () => setShowReleaseInfoModal(true)
+            }, ...utilities]
+        }
+
         // Render the component:
         return (
             <>
                 <Settings visible={showSettingsModal} onDiscard={() => setShowSettingsModal(false)} user={user} />
+
+                { !isLatest && <ReleaseInfo 
+                    visible={showReleaseInfoModal} 
+                    onDiscard={() => setShowReleaseInfoModal(false)} 
+                    releaseInfo={releaseInfo} 
+                    publicationDate={publicationDate} 
+                    latestVersion={latestVersion}
+                /> }
+
                 <TopNavigation
                     identity={{
                         title: "Amazon Lookout for Equipment Demonstration",

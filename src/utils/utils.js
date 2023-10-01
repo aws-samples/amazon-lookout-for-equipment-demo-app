@@ -1,6 +1,7 @@
 // Imports
 import * as awsui from '@cloudscape-design/design-tokens/index.js'
 import { histogram } from 'echarts-stat'
+import { Octokit } from "@octokit/core"
 
 // --------------------------------------
 // Search in which bin a given date falls
@@ -620,4 +621,69 @@ export async function checkLabelGroupNameAvailability(gateway, uid, projectName,
     }
 
     return labelGroupsList.indexOf(currentLabelGroupName) < 0
+}
+
+// ---------------------------------------
+// Checks if the app version is the latest
+// ---------------------------------------
+export async function isLatestVersion() {
+    const currentVersion = window.version
+    const { latestVersion, releaseInfo, publicationDate } = await getLatestReleaseInfo()
+
+    if (latestVersion) {
+        return {
+            isLatestVersion: compareVersions(currentVersion, latestVersion) >= 0,
+            releaseInfo: releaseInfo,
+            publicationDate: publicationDate,
+            latestVersion: latestVersion
+        }
+    }
+    
+    return false   
+}
+
+// --------------------------------------------------------------------
+// Query the GitHub API to get the version number of the latest release
+// of the Lookout for Equipment demo application
+// --------------------------------------------------------------------
+async function getLatestReleaseInfo() {
+    const octokit = new Octokit()
+      
+    try {
+        const response = await octokit.request('GET /repos/{owner}/{repo}/releases/latest', {
+            owner: 'aws-samples',
+            repo: 'amazon-lookout-for-equipment-demo-app',
+            headers: { 'X-GitHub-Api-Version': '2022-11-28' }
+        })
+
+        return {
+            latestVersion: response.data.tag_name.split('-')[0].slice(1),
+            releaseInfo: response.data.body,
+            publicationDate: new Date(response.data.published_at).toISOString().replace('T', ' ').substring(0, 19)
+        }
+    }
+    catch (error) {
+        console.error('Error checking latest version:', error)
+        
+        return {
+            latestVersion: false,
+            releaseInfo: undefined,
+            publicationDate: undefined
+        }
+    }
+}
+
+// ---------------------------
+// Compare two version numbers
+// ---------------------------
+function compareVersions(a, b) {
+    const partsA = a.split('.').map(Number)
+    const partsB = b.split('.').map(Number)
+
+    for (let i = 0; i < 3; i++) {
+        if (partsA[i] < partsB[i]) return -1
+        if (partsA[i] > partsB[i]) return 1
+    }
+
+    return 0
 }

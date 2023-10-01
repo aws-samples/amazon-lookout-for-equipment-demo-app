@@ -20,7 +20,7 @@ ones are optional:
 you do not already have one: then you can setup your environment automatically by deploying the following 
 CloudFormation template.
 
-### Deploy the application
+### First time deployment
 In another browser window, login to your AWS account. Once you have done that, open one of the link below 
 (depending on the region closest to you) in a new tab to start the process of deploying the items you need 
 via CloudFormation.
@@ -36,6 +36,14 @@ via CloudFormation.
 After you clicked on the `Launch stack` button above, you will be brought to the `Create stack` screen. Start by clicking `Next` at the bottom:
 
 To be finished...
+
+### Updating the app
+
+When a new release of this application is available in this repository, a notification will appear in the top menu bar of the app:
+
+To update the app in your AWS account, the following these steps:
+
+To do.
 
 ### Uninstalling the demo app
 

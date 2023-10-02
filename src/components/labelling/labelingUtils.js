@@ -60,9 +60,10 @@ export function redrawBrushes(eChartRef, labels) {
 // Called when clearing the selection: this action removes
 // all the labels from the plots and the table below
 // -------------------------------------------------------
-export function onClear(e, eChartRef, labels) {
+export function onClear(e, eChartRef, labels, storedRanges) {
     if (e['command'] && e['command'] === 'clear') {
         labels.current = []
+        storedRanges.current = []
         eChartRef.current.getEchartsInstance().dispatchAction({
             type: 'brush',
             areas: []
@@ -73,9 +74,40 @@ export function onClear(e, eChartRef, labels) {
 // -----------------------------------------------------------------
 // The user can use brushes to highlight labels directly on the plot
 // -----------------------------------------------------------------
-export function onBrushEndEvent(e, labels, labelsTableRef) {
+export function onBrushEndEvent(e, labels, labelsTableRef, storedRanges, eChartRef) {
+    let refreshAreas = false
+
+    // If the stored areas and the new areas don't have the
+    // same size, we add the last area to the storedRanges:
+    if (e.areas.length > storedRanges.current.length) {
+        storedRanges.current.push(e.areas[e.areas.length - 1])
+    }
+
+    // If they have the same size, then one area may have been 
+    // modified. In all cases, we loop through all of them to identify 
+    // a modified one. Note that the modified area is necessarily one
+    // that has a non-null width as it is one visible given the current
+    // data zoom:
+    e.areas.forEach((area, index) => {
+        const start = area.coordRange[0]
+        const end = area.coordRange[1]
+        const storedRangeStart = storedRanges.current[index].coordRange[0]
+        const storedRangeEnd = storedRanges.current[index].coordRange[1]
+
+        // The current area is not null and it has different coordinates: this 
+        // looks like an update range, we update its record in storedRanges:
+        if (start != end && (start != storedRangeStart || end != storedRangeEnd)) {
+            storedRanges.current[index] = area
+        }
+
+        // Both coordinates are the same:
+        else if (start == end) {
+            refreshAreas = true
+        }
+    })
+
     let currentRanges = []
-    e["areas"].forEach((area) => {
+    storedRanges.current.forEach((area) => {
         currentRanges.push({
             "start": area.coordRange[0],
             "end": area.coordRange[1]
@@ -84,6 +116,23 @@ export function onBrushEndEvent(e, labels, labelsTableRef) {
 
     labels.current = currentRanges
     labelsTableRef.current.updateTable(labels.current)
+
+    // If a refresh is necessary, we trigger it:
+    if (refreshAreas && eChartRef) {
+        let areasList = []
+        storedRanges.current.forEach((label) => {
+            areasList.push({
+                brushType: 'lineX',
+                coordRange: [label.coordRange[0], label.coordRange[1]],
+                xAxisIndex: 0
+            })
+        })
+
+        eChartRef.current.getEchartsInstance().dispatchAction({
+            type: 'brush',
+            areas: areasList
+        })
+    }
 }
 
 // --------------------------------------

@@ -212,7 +212,7 @@ export function buildChartOptions(
             option['toolbox']['show'] = false
         }
         else {
-            option['brush']['transformable'] = false
+            option['brush']['transformable'] = true
             option['toolbox']['show'] = true
         }
     }

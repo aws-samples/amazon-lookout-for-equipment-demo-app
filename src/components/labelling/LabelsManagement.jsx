@@ -67,6 +67,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
         ? {label: emptyGroupName, value: 'NewGroup'} 
         : {label: selectedLabelGroupName.current, value: selectedLabelGroupValue.current}
     )
+    const storedRanges = useRef([])
 
     if (!componentHeight) { componentHeight = 350 }
 
@@ -447,9 +448,9 @@ function LabelsManagement({ componentHeight, readOnly }) {
                             style={{ height: componentHeight, width: "100%" }}
                             ref={eChartRef}
                             onEvents={{
-                                'brushEnd': useCallback((e) => onBrushEndEvent(e, labels, labelsTableRef), [labels]),
+                                'brushEnd': useCallback((e) => { onBrushEndEvent(e, labels, labelsTableRef, storedRanges, eChartRef) }, [labels]),
                                 'brush': useCallback((e) => {
-                                    onClear(e, eChartRef, labels)
+                                    onClear(e, eChartRef, labels, storedRanges)
                                     if (e['command'] && e['command'] === 'clear') {
                                         if (labelsTableRef && labelsTableRef.current) {
                                             labelsTableRef.current.updateTable([])

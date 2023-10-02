@@ -29,7 +29,7 @@ def lambda_handler(event, context):
     df[timestampCol] = pd.to_datetime(df[timestampCol])
     df = df.set_index(timestampCol)
     df.index.name = "timestamp"
-    df.index = df.index.tz_convert(None)
+    df.index = df.index.tz_localize('utc').tz_convert(None)
 
     # Reading tags on the object
     tags = s3_client.get_object_tagging(Bucket=bucket, Key=key)['TagSet']

@@ -20,12 +20,14 @@ def lambda_handler(event, context):
     # Locate the input file used to run the inference:
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
+
     timestamp = key.split('/')[-2][:-1].replace('-', '').replace(':', '').replace('T', '')
     modelName = key.split('/')[1]
     response = l4e_client.describe_model(ModelName=modelName)
-    projectName = response['DatasetName'][13:]
+    uid = response['DatasetName'][13:].split('-')[0]
+    projectName = response['DatasetName'][22:]
     inferenceInputKey = '/'.join(key.split('/')[0:2]) + f'/input/{projectName}-{timestamp}.csv'
-    
+
     # Read the input CSV file:
     data = s3_client.get_object(Bucket=bucket, Key=inferenceInputKey)
     df = pd.read_csv(data['Body'])
@@ -38,7 +40,6 @@ def lambda_handler(event, context):
     df['asset'] = projectName
     df['unix_timestamp'] = (pd.to_datetime(df['timestamp']) - pd.Timestamp('1970-01-01')) // pd.Timedelta('1s')
     df['unix_timestamp'] = df['unix_timestamp'].astype(float)
-    
     
     # === TODO === Optimize the following ingestion with the batch PutItems() API
     
@@ -53,7 +54,7 @@ def lambda_handler(event, context):
             else:
                 item.update({key: {'S': str(values)}})
                 
-        ddb_client.put_item(TableName=f'l4edemoapp-{projectName}', Item=item)
+        ddb_client.put_item(TableName=f'l4edemoapp-{uid}-{projectName}', Item=item)
     
     return {
         'statusCode': 200,

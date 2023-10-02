@@ -16,9 +16,10 @@ ddb_client = boto3.client('dynamodb')
 # tables storing the inference results.
 # ===================================================================
 def lambda_handler(event, context):
+    print(event)
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
-    modelName = key.split('/')[1][9:]
+    modelName = key.split('/')[1]
     response = l4e_client.describe_model(ModelName=modelName)
     projectName = response['DatasetName'][13:]
     
@@ -46,7 +47,7 @@ def lambda_handler(event, context):
         # Write the diagnostic data to the l4edemoapp-XXX-sensor_contribution
         # DynamoDB table where XXX is the name of the dataset / project:
         if ('diagnostics' in data.keys()):
-            print('Processing diagnostics data (TODO)')
+            print('Processing diagnostics data')
             storeSensorContribution(modelName, timestamp, data['diagnostics'], projectName)
         else:
             print('No diagnostics data to process')
@@ -126,8 +127,6 @@ def storeSensorContribution(model, timestamp, diagnostics, project):
         value = sensorContribution['value']
         
         items.update({tag: {'N': str(value)}})
-        
-    print(items)
         
     ddb_client.put_item(
         TableName=f'l4edemoapp-{project}-sensor_contribution',

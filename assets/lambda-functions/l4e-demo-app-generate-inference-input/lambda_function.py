@@ -29,7 +29,7 @@ def lambda_handler(event, context):
     data.close()
     
     targetBucket = s3.Bucket(bucket)
-    inferenceKey = f'inference-data/{uid}-{modelName}/input/{projectName}-{currentTimestamp}.csv'
+    inferenceKey = f'inference-data/{modelName}/input/{projectName}-{currentTimestamp}.csv'
     targetBucket.upload_file(localFname, inferenceKey)
 
     return { 'statusCode': 200 }

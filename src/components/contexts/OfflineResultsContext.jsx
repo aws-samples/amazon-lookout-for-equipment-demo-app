@@ -95,7 +95,7 @@ export const OfflineResultsProvider = ({ children }) => {
     // --------------------------------------
     // Renders the provider and its children:
     // --------------------------------------
-    if (modelDetails['status'] === 'IN_PROGRESS') {
+    if (modelDetails && modelDetails['status'] === 'IN_PROGRESS') {
         return (
             <Container header={<Header variant="h1">Model overview</Header>}>
                 <Alert>
@@ -105,7 +105,7 @@ export const OfflineResultsProvider = ({ children }) => {
             </Container>
         )
     }
-    else if (modelDetails['status'] !== 'IN_PROGRESS' && !loading) {
+    else if (modelDetails && modelDetails['status'] !== 'IN_PROGRESS' && !loading) {
         return (
             <OfflineResultsContext.Provider value={{
                 modelDetails,

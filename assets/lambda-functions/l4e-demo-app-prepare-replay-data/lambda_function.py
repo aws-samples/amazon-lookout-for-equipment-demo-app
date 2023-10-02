@@ -91,17 +91,17 @@ def lambda_handler(event, context):
         df['uid'] = uid
         
         inference_fname = os.path.join('/tmp', f'{modelName}.csv')
-        inference_key = f'inference-data/{uid}-{modelName}/inference-input.csv'
+        inference_key = f'inference-data/{modelName}/inference-input.csv'
         df.to_csv(inference_fname)
         targetBucket.upload_file(inference_fname, inference_key)
         
         s3Client.put_object(
             Bucket=bucket,
-            Key=f'inference-data/{uid}-{modelName}/output/TemporaryFile-CanBeDeleted.tmp'
+            Key=f'inference-data/{modelName}/output/TemporaryFile-CanBeDeleted.tmp'
         )
         s3Client.put_object(
             Bucket=bucket,
-            Key=f'inference-data/{uid}-{modelName}/input/TemporaryFile-CanBeDeleted.tmp'
+            Key=f'inference-data/{modelName}/input/TemporaryFile-CanBeDeleted.tmp'
         )
     
         return {
@@ -112,8 +112,8 @@ def lambda_handler(event, context):
             'token': str(uuid.uuid4()),
             'name': f'{modelName}-scheduler',
             'modelName': modelName,
-            'inputPrefix': f'inference-data/{uid}-{modelName}/input/',
-            'outputPrefix': f'inference-data/{uid}-{modelName}/output/',
+            'inputPrefix': f'inference-data/{modelName}/input/',
+            'outputPrefix': f'inference-data/{modelName}/output/',
             'generateReplayData': True,
             'replayStartTime': str(replayStartTime),
             'replayEndTime': str(replayEndTime),
@@ -125,11 +125,11 @@ def lambda_handler(event, context):
         bucket = response['IngestionInputConfiguration']['S3InputConfiguration']['Bucket']
         s3Client.put_object(
             Bucket=bucket,
-            Key=f'inference-data/{uid}-{modelName}/output/TemporaryFile-CanBeDeleted.tmp'
+            Key=f'inference-data/{modelName}/output/TemporaryFile-CanBeDeleted.tmp'
         )
         s3Client.put_object(
             Bucket=bucket,
-            Key=f'inference-data/{uid}-{modelName}/input/TemporaryFile-CanBeDeleted.tmp'
+            Key=f'inference-data/{modelName}/input/TemporaryFile-CanBeDeleted.tmp'
         )
         
         return {
@@ -138,8 +138,8 @@ def lambda_handler(event, context):
             'token': str(uuid.uuid4()),
             'name': f'{modelName}-scheduler',
             'modelName': modelName,
-            'inputPrefix': f'inference-data/{uid}-{modelName}/input/',
-            'outputPrefix': f'inference-data/{uid}-{modelName}/output/',
+            'inputPrefix': f'inference-data/{modelName}/input/',
+            'outputPrefix': f'inference-data/{modelName}/output/',
             'generateReplayData': False,
             'uid': uid
         }

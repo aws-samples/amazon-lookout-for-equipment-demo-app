@@ -71,7 +71,7 @@ function ListModels({ projectName }) {
         setCounter(counter + 1)
     }
 
-    const deleteScheduler = async (modelName) => {
+    const deleteScheduler = async () => {
         const schedulerName = currentModelName + '-scheduler'
         await gateway.lookoutEquipment
             .deleteInferenceScheduler(schedulerName)
@@ -136,7 +136,9 @@ function ListModels({ projectName }) {
     // --------------------------------------
     else {
         const tableContent = buildModelTableContent(
-            modelsSummary, 
+            modelsSummary,
+            uid,
+            projectName,
             showModelDeployment, 
             stopScheduler, 
             startScheduler,
@@ -149,6 +151,8 @@ function ListModels({ projectName }) {
             e.preventDefault()
             navigate(`/onlineMonitoring/modelName/${modelsSummary[0]['ModelName']}/ProjectName/${projectName}`)
         }}>Online monitoring</Link>
+
+        console.log(modelsSummary)
 
         return (
             <Container header={<Header variant="h1">Model overview</Header>}>

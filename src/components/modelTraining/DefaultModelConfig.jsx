@@ -107,7 +107,7 @@ function DefaultModelConfig() {
         })
 
         defaultModelConfig.current = {
-            modelName: projectName + '-' + modelName.current,
+            modelName: `${uid}-${projectName}-${modelName.current}`,
             datasetName: `l4e-demo-app-${uid}-${projectName}`,
             projectName: projectName,
             trainingStartDate: parseInt(new Date(trainingStartDate).getTime() / 1000),

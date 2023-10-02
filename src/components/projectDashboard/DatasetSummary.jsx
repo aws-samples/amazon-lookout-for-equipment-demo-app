@@ -174,7 +174,7 @@ function DatasetSummary({ modelDetails }) {
                         </div>
                         <div>
                             <Box variant="awsui-key-label">Lookout for Equipment ingestion status</Box>
-                            {<Badge color={color}>{modelDetails['ingestionStatus']}</Badge>}
+                            {<Badge color={color}>{modelDetails['ingestionStatus'].replace('_',' ')}</Badge>}
                         </div>
                     </SpaceBetween>
                 </ColumnLayout> }

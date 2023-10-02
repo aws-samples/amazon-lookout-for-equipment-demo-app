@@ -76,7 +76,7 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
             if (schedulersList[project]) {
                 const currentSchedulers = schedulersList[project]
                 if (currentSchedulers.length > 0) {
-                    const onlineMonitoringSection = buildSchedulersSection(currentSchedulers, project)
+                    const onlineMonitoringSection = buildSchedulersSection(currentSchedulers, uid, project)
                     currentItems['items'] = [...currentItems['items'], ...onlineMonitoringSection]
                 }
             }
@@ -132,9 +132,9 @@ async function buildOfflineResultsSection(currentModels, gateway, uid, project) 
                     name={model['status'] === 'SUCCESS' ? 'status-positive' : 'status-in-progress'} 
                     variant={model['status'] === 'SUCCESS' ? 'success': 'error'} />
                 &nbsp;&nbsp;
-                {model['name'].slice(project.length + 1)}
+                {model['name'].slice(uid.length + 1 + project.length + 1)}
             </>,
-            href: `/offline-results/modelName/${model['name']}/projectName/${project}`
+            href: `/offline-results/modelName/${model['name'].slice(uid.length + 1 + project.length + 1)}/projectName/${project}`
         })
     }
 
@@ -160,14 +160,14 @@ async function buildOfflineResultsSection(currentModels, gateway, uid, project) 
 // Build the online monitoring section where the
 // user can visualize  the deployed model results
 // ----------------------------------------------
-function buildSchedulersSection(currentSchedulers, project) {
+function buildSchedulersSection(currentSchedulers, uid, project) {
     let onlineMonitoringItems = []
 
     currentSchedulers.forEach((model) => {
         onlineMonitoringItems.push({ 
             type: 'link', 
-            text: model.slice(project.length + 1),
-            href: `/online-monitoring/modelName/${model}/projectName/${project}`
+            text: model.slice(uid.length + 1 + project.length + 1),
+            href: `/online-monitoring/modelName/${model.slice(uid.length + 1 + project.length + 1)}/projectName/${project}`
         })
     })
 

@@ -1,13 +1,11 @@
 // Imports:
-import { forwardRef, useContext, useEffect, useState, useImperativeHandle } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useContext } from 'react'
+import { useParams } from 'react-router-dom'
 
 // Cloudscape components:
 import Alert        from "@cloudscape-design/components/alert"
 import Box          from "@cloudscape-design/components/box"
-import Button       from "@cloudscape-design/components/button"
-import ColumnLayout from "@cloudscape-design/components/column-layout"
-import Container       from "@cloudscape-design/components/container"
+import Container    from "@cloudscape-design/components/container"
 import Form         from "@cloudscape-design/components/form"
 import FormField    from "@cloudscape-design/components/form-field"
 import Input        from "@cloudscape-design/components/input"
@@ -17,8 +15,6 @@ import TextContent  from "@cloudscape-design/components/text-content"
 
 // Contexts
 import ModelParametersContext from '../contexts/ModelParametersContext'
-import TimeSeriesContext from '../contexts/TimeSeriesContext'
-import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 function ReviewModelConfiguration() {
     const { 
@@ -39,12 +35,7 @@ function ReviewModelConfiguration() {
         selectedSamplingRate
     } = useContext(ModelParametersContext)
 
-    const { x } = useContext(TimeSeriesContext)
-    // const { gateway, uid } = useContext(ApiGatewayContext)
-    // const [visible, setVisible] = useState(false)
     const { projectName } = useParams()
-    // const dismissModelSummary = props.dismissFunction
-    // const navigate = useNavigate()
     const modelExists = listModels.current.indexOf(datasetName.current + '-' + modelName.current) >= 0
     let error = false
 

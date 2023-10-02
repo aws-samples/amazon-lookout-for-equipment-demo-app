@@ -18,8 +18,8 @@ const percentageFormatter = (value) => `${(value * 100).toFixed(0)}%`
 // Component main entry point
 // --------------------------
 function ConditionOverview({ range, modelName, projectName, height }) {
-    const asset = modelName
     const { gateway, uid } = useContext(ApiGatewayContext)
+    const asset = `${uid}-${projectName}-${modelName}`
     const endTime = Date.now()
     const startTime = endTime - range * 86400 * 1000
     const [ anomalies, setAnomalies ] = useState(undefined)
@@ -32,7 +32,7 @@ function ConditionOverview({ range, modelName, projectName, height }) {
     if (anomalies && anomalies['totalTime'] > 0) {
         // Build the eChart configuration for this component:
         const { totalTime, normalTime, abnormalTime } = buildConditionOverviewData(anomalies)
-        const chartOptions = buildConditionOverviewChart(modelName.slice(projectName.length + 1), totalTime, normalTime, abnormalTime, height)
+        const chartOptions = buildConditionOverviewChart(modelName, totalTime, normalTime, abnormalTime, height)
 
         // Renders the component:
         return (

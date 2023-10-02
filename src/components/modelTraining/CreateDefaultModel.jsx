@@ -15,7 +15,7 @@ import ApiGatewayContext from '../contexts/ApiGatewayContext'
 // Component main entry point
 // --------------------------
 const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const [visible, setVisible] = useState(false)
     const dismissModelSummary = props.dismissFunction
     const modelConfig = props.modelConfig
@@ -41,7 +41,12 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
             TrainingDataEndTime: modelConfig['trainingEndDate'],
             EvaluationDataStartTime: modelConfig['evaluationStartDate'],
             EvaluationDataEndTime: modelConfig['evaluationEndDate'],
-            DataPreProcessingConfiguration: { TargetSamplingRate: modelConfig['samplingRate'] }
+            DataPreProcessingConfiguration: { TargetSamplingRate: modelConfig['samplingRate'] },
+            Tags: [
+                {"Key": "Source", "Value": "L4EDemoApp"},
+                {"Key": "AppVersion", "Value": "1.0.0"},
+                {"Key": "User", "Value": uid}
+            ]
         }
 
         // Launch the creation request:
@@ -49,7 +54,9 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
             .then((response) => { console.log(response) })
             .catch((error) => { console.log(error.response)})
 
-        navigate(`/offline-results/modelName/${modelConfig['modelName']}/projectName/${modelConfig['projectName']}`)
+        const modelName = modelConfig['modelName'].slice(uid.length + 1 + modelConfig['projectName'].length + 1)
+        const projectName = modelConfig['projectName']
+        navigate(`/offline-results/modelName/${modelName}/projectName/${projectName}`)
     }
 
     // Renders the modal window:

@@ -44,8 +44,8 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     const onConfirm = props.onConfirm
 
     const bucket = window.appS3Bucket
-    const inputLocation = `s3://${bucket}/inference-data/${uid}-${modelName}/input/`
-    const outputLocation = `s3://${bucket}/inference-data/${uid}-${modelName}/output/`
+    const inputLocation = `s3://${bucket}/inference-data/${modelName}/input/`
+    const outputLocation = `s3://${bucket}/inference-data/${modelName}/output/`
 
     // -------------------------------------
     // Expose the visibility toggle of this 
@@ -130,7 +130,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
             <Modal 
                 visible={visible}
                 onDismiss={onDeployDismiss}
-                header={`Deploy model ${modelName}`}
+                header={`Deploy model ${modelName.slice(uid.length + 1 + projectName.length + 1)}`}
                 footer={
                     <Box float="right">
                         <SpaceBetween direction="horizontal" size="xs">

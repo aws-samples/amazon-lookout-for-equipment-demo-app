@@ -124,7 +124,7 @@ export async function getAllTimeseriesWindow(gateway, modelName, startTime, endT
 // Get trained model information
 // -----------------------------
 export async function getModelDetails(gateway, modelName, projectName, uid) {
-    const modelResponse = await gateway.lookoutEquipment.describeModel(modelName)
+    const modelResponse = await gateway.lookoutEquipment.describeModel(`${uid}-${projectName}-${modelName}`)
 
     let offCondition = processOffResponse(modelResponse)
     if (offCondition) { offCondition['component'] = projectName }
@@ -287,7 +287,7 @@ async function getModelEvaluationInfos(gateway, modelName, assetName, endTime, u
     const anomalies = await getAnomalies(gateway, modelName, endTime, assetName, uid)
     const dailyAggregation = await getDailyAggregation(gateway, modelName, endTime, assetName, uid)
     const sensorContribution = await getSensorContribution(gateway, modelName, assetName, endTime, uid)
-    const events = await getEvents(gateway, modelName)
+    const events = await getEvents(gateway, modelName, assetName, uid)
 
     let tagsList = undefined
     if (sensorContribution && sensorContribution.Items.length > 0) {
@@ -306,8 +306,8 @@ async function getModelEvaluationInfos(gateway, modelName, assetName, endTime, u
 // ----------------------------------------------------------------------
 // Gets the anomalies detected in the evaluation range of a trained model
 // ----------------------------------------------------------------------
-async function getEvents(gateway, modelName) {
-    let response = await gateway.lookoutEquipment.describeModel(modelName)
+async function getEvents(gateway, modelName, projectName, uid) {
+    let response = await gateway.lookoutEquipment.describeModel(`${uid}-${projectName}-${modelName}`)
     response = JSON.parse(response['ModelMetrics'])['predicted_ranges']
     let events = []
 
@@ -330,7 +330,7 @@ async function getAnomalies(gateway, model, endTime, projectName, uid) {
         KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
         ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
         ExpressionAttributeValues: { 
-            ":model": {"S": model},
+            ":model": {"S": `${uid}-${projectName}-${model}`},
             ":endTime": {"N": endTime.toString()}
         }
     }
@@ -351,7 +351,7 @@ async function getDailyAggregation(gateway, model, endTime, projectName, uid) {
         KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
         ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
         ExpressionAttributeValues: { 
-            ":model": {"S": model},
+            ":model": {"S": `${uid}-${projectName}-${model}`},
             ":endTime": {"N": endTime.toString()}
         }
     })
@@ -376,7 +376,7 @@ async function getSensorContribution(gateway, model, assetName, endTime, uid) {
             KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
             ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
             ExpressionAttributeValues: { 
-                ":model": {"S": model},
+                ":model": {"S": `${uid}-${assetName}-${model}`},
                 ":endTime": {"N": endTime.toString()}
             }
         }

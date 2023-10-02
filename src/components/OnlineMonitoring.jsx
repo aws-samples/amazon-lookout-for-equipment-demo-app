@@ -47,7 +47,7 @@ function OnlineMonitoring() {
     
     // Get the current status of the scheduler to be displayed:
     useEffect(() => {
-        getSchedulerStatus(gateway, modelName)
+        getSchedulerStatus(gateway, `${uid}-${projectName}-${modelName}`)
         .then((x) => { 
             setSchedulerStatus(x)
             switch (x) {

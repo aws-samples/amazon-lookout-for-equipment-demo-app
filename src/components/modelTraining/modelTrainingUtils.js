@@ -44,7 +44,7 @@ export async function createModel(
 
     // Assemble the model creation request:
     let createRequest = {
-        ModelName: datasetName.current + '-' + modelName.current,
+        ModelName: `${uid}-${datasetName.current}-${modelName.current}`,
         DatasetName: `l4e-demo-app-${uid}-${datasetName.current}`,
         DatasetSchema: { InlineDataSchema: JSON.stringify(schema) },
         TrainingDataStartTime: parseInt(new Date(trainingStartDate).getTime() / 1000),
@@ -54,7 +54,8 @@ export async function createModel(
         DataPreProcessingConfiguration: { TargetSamplingRate: selectedSamplingRate['value'] },
         Tags: [
             {"Key": "Source", "Value": "L4EDemoApp"},
-            {"Key": "AppVersion", "Value": "1.0.0"}
+            {"Key": "AppVersion", "Value": "1.0.0"},
+            {"Key": "User", "Value": uid}
         ]
     }
 
@@ -75,6 +76,6 @@ export async function createModel(
         .then((response) => { console.log('Model training launched:', response) })
         .catch((error) => { console.log(error.response)})
 
-    // // Redirect the user to this model dashboard:
-    navigate(`/offline-results/modelName/${datasetName.current + '-' + modelName.current}/projectName/${datasetName.current}`)
+    // Redirect the user to this model dashboard:
+    navigate(`/offline-results/modelName/${modelName.current}/projectName/${datasetName.current}`)
 }

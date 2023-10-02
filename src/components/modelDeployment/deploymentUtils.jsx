@@ -49,7 +49,7 @@ export async function getModelsSummary(gateway, projectName) {
 // -------------------------------------
 // Build the model details table content
 // -------------------------------------
-export function buildModelTableContent(modelsList, showModelDeployment, stopScheduler, startScheduler, deleteScheduler) {
+export function buildModelTableContent(modelsList, uid, projectName, showModelDeployment, stopScheduler, startScheduler, deleteScheduler) {
     let items = []
 
     modelsList.forEach((model) => {
@@ -75,7 +75,7 @@ export function buildModelTableContent(modelsList, showModelDeployment, stopSche
         }
 
         items.push({
-            name: model['ModelName'],
+            name: model['ModelName'].slice(uid.length + 1 + projectName.length + 1),
             status: <Badge color={badgeColor}>{model['Status']}</Badge>,
             creation: new Date(model['CreatedAt']).toISOString().substring(0,19).replace('T', ' '),
             schedulerStatus: schedulerStatus,

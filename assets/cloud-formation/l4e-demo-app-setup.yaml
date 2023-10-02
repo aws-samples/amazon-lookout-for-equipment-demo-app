@@ -1021,7 +1021,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-prepare-hourly-data-v3.zip
+            - l4e-demo-app-prepare-hourly-data-v4.zip
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1131,7 +1131,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-prepare-replay-data-v2.zip
+            - l4e-demo-app-prepare-replay-data-v3.zip
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1285,7 +1285,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-generate-inference-input-v2.zip
+            - l4e-demo-app-generate-inference-input-v3.zip
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1336,7 +1336,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-store-inference-results-v2.zip
+            - l4e-demo-app-store-inference-results-v3.zip
       Environment:
         Variables:
           STACK_ID: !Select

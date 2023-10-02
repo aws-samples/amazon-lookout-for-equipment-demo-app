@@ -22,7 +22,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
     let options = undefined
 
     useEffect(() => {
-        getModelDetails(gateway, modelName, projectName, uid)
+        getModelDetails(gateway, modelName.slice(uid.length + 1 + projectName.length + 1), projectName, uid)
         .then((x) => {
             setModelDetails(x)
             setReplayStartDate(x['evaluationStart'])

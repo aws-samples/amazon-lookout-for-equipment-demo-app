@@ -33,7 +33,7 @@ export const OnlineMonitoringProvider = ({ children, range }) => {
 
     // Loads training time series data:
     useEffect(() => {
-        getTrainingTimeseries(gateway, uid + '-' + projectName, modelName)
+        getTrainingTimeseries(gateway, uid + '-' + projectName, `${uid}-${projectName}-${modelName}`)
         .then((x) => setTrainingTimeseries(x))
     }, [gateway])
 

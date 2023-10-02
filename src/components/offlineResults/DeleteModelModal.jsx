@@ -26,7 +26,7 @@ function DeleteModelModal({ visible, onDiscard }) {
     const [ scheduler, setScheduler ] = useState(undefined)
     const [ deleteInProgress, setDeleteInProgress ] = useState(false)
     const [ deleteMessage, setDeleteMessage ] = useState(undefined)
-    const { gateway } = useContext(ApiGatewayContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const { modelName, projectName } = useParams()
     const navigate = useNavigate()
 
@@ -59,7 +59,7 @@ function DeleteModelModal({ visible, onDiscard }) {
 
         // Delete the current model:
         setDeleteMessage('Deleting model...')
-        await gateway.lookoutEquipment.deleteModel(modelName)
+        await gateway.lookoutEquipment.deleteModel(`${uid}-${projectName}-${modelName}`)
 
         // Navigate away from this page, which does not exist anymore:
         setDeleteInProgress(false)

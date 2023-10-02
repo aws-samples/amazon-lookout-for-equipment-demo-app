@@ -11,7 +11,9 @@ import { buildTimeseries2 } from '../../utils/timeseries.js'
 // This function extracts the live results coming from a deployed model
 // --------------------------------------------------------------------
 export async function getLiveResults(gateway, uid, projectName, modelName, startTime, endTime) {
-    const modelDetails = await getModelDetails(gateway, modelName)
+    if (!uid) { return undefined }
+
+    const modelDetails = await getModelDetails(gateway, uid, projectName, modelName)
     const anomalies = await getAnomalies(gateway, uid, projectName, modelName, startTime, endTime)
     const rawAnomalies = await getRawAnomalies(gateway, uid, projectName, modelName, startTime, endTime)
     const sensorContribution = await getSensorContribution(gateway, uid, projectName, modelName, startTime, endTime)
@@ -57,7 +59,7 @@ function isAssetUnhealthy(anomalies) {
 // ----------------------------------------------
 // Get some key parameters from the current model
 // ----------------------------------------------
-async function getModelDetails(gateway, modelName) {
+async function getModelDetails(gateway, uid, projectName, modelName) {
     const possibleSamplingRate = {
         'PT1S': 1, 
         'PT5S': 5,
@@ -72,7 +74,9 @@ async function getModelDetails(gateway, modelName) {
         'PT1H': 3600
     }
 
-    const modelResponse = await gateway.lookoutEquipment.describeModel(modelName)
+    const modelResponse = await gateway.lookoutEquipment
+                                       .describeModel(`${uid}-${projectName}-${modelName}`)
+                                       .catch((error) => console.log(error.response)) 
 
     let response = {
         status: modelResponse['Status'],
@@ -109,7 +113,7 @@ async function getAnomalies(gateway, uid, projectName, modelName, startTime, end
                 "#timestamp": "timestamp"
             },
             ExpressionAttributeValues: {
-                ":model": {"S": modelName},
+                ":model": {"S": `${uid}-${projectName}-${modelName}`},
                 ":startTime": {"N": startTime.toString() },
                 ":endTime": {"N": endTime.toString() }
             }
@@ -141,7 +145,7 @@ async function getRawAnomalies(gateway, uid, projectName, modelName, startTime, 
                 "#timestamp": "timestamp"
             },
             ExpressionAttributeValues: {
-                ":model": {"S": modelName},
+                ":model": {"S": `${uid}-${projectName}-${modelName}`},
                 ":startTime": {"N": startTime.toString() },
                 ":endTime": {"N": endTime.toString() }
             }
@@ -173,7 +177,7 @@ async function getSensorContribution(gateway, uid, projectName, modelName, start
                 "#timestamp": "timestamp"
             },
             ExpressionAttributeValues: {
-                ":model": {"S": modelName},
+                ":model": {"S": `${uid}-${projectName}-${modelName}`},
                 ":startTime": {"N": startTime.toString() },
                 ":endTime": {"N": endTime.toString() }
             }

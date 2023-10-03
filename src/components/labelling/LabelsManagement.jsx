@@ -105,7 +105,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
             false,                      // customDatazoomColor
             readOnly,                   // readOnly
             5,                          // showTopN,
-            selectedOption.value !== "NewGroup"
+            selectedOption.value !== "NewGroup",
+            labels.current
         )
 
         const modelTrainingLink = <Link 
@@ -133,16 +134,9 @@ function LabelsManagement({ componentHeight, readOnly }) {
                 const response = await gateway.lookoutEquipment.listLabels(currentLabelGroupName)
 
                 if (response['LabelSummaries'].length > 0) {
-                    const startTime = new Date(x[0]).getTime() / 1000
-                    const endTime = new Date(x[x.length - 1]).getTime() / 1000
-                    const totalRange = endTime - startTime
-
                     let currentRanges = []
                     response['LabelSummaries'].forEach((label) => {
                         currentRanges.push({
-                            // start: Math.floor((label['StartTime'] - startTime)/totalRange * x.length), 
-                            // end: Math.floor((label['EndTime'] - startTime)/totalRange * x.length)
-
                             start: new Date(label['StartTime'] * 1000),
                             end: new Date(label['EndTime'] * 1000)
                         })
@@ -159,7 +153,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
             }
 
             labelsTableRef.current.updateTable(labels.current)
-            redrawBrushes(eChartRef, labels)
+            if (!readOnly) { redrawBrushes(eChartRef, labels) }
         }
 
         // -------------------------------------------------
@@ -326,7 +320,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     {/***************************************************************
                      * This section is only displayed when the component is read only 
                      ***************************************************************/ }
-                    {readOnly && <FormField 
+                    { readOnly && <FormField 
                         label="Select a label group (optional)" 
                         description="You can load a group of labels previously defined using the following drop down."
                         info={
@@ -358,7 +352,6 @@ function LabelsManagement({ componentHeight, readOnly }) {
                             theme="macarons"
                             style={{ height: componentHeight, width: "100%" }}
                             ref={eChartRef}
-                            onChartReady={(e) => { redrawBrushes(eChartRef, labels) }}
                         />
 
                     </FormField> }

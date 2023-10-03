@@ -105,9 +105,35 @@ export function buildChartOptions(
     customDatazoomColor,
     readOnly,
     showTopN,
-    frozenMarkers
+    frozenMarkers,
+    existingMarkers
 ) {
     const series = []
+
+    if (existingMarkers) {
+        let data = []
+
+        existingMarkers.forEach((marker) => {
+            data.push([{xAxis: marker.start}, {xAxis: marker.end}])
+        })
+
+        series.push({
+            name: 'Labels',
+            symbol: 'none',
+            data: [],
+            type: 'line',
+            xAxisIndex: 0,
+            markArea: {
+                itemStyle: {  
+                    color: 'rgba(151, 181, 82, 0.3)',
+                    borderColor: 'rgba(151, 181, 82, 1.0)',
+                    borderWidth: 1.0
+                },
+                data: data,
+                lineStyle: { width: 0 },
+            },
+        })
+    }
 
     tagsList.forEach((tag) => {
         series.push({
@@ -219,25 +245,18 @@ export function buildChartOptions(
     else if (enableBrush && readOnly) {
         option['brush'] = {
             toolbox: ['keep'],
-            xAxisIndex: 0,
+            xAxisIndex: 'all',
             brushMode: 'multiple',
             transformable: false,
             brushStyle: {
                 color: 'rgba(151, 181, 82, 0.2)',
                 borderColor: 'rgba(151, 181, 82, 0.7)'
-            }
+            },
         }
         option['toolbox']['show'] = false
         datazoomOption['top'] = 10
         option['grid']['top'] = 65
         option['legend']['top'] = 10
-
-        if (frozenMarkers) {
-            option['brush']['transformable'] = false
-        }
-        else {
-            option['brush']['transformable'] = true
-        }
     }
 
     return option

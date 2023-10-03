@@ -56,8 +56,6 @@ export function getSignalsStatistics(signalDetails) {
 }
 
 export function buildChartOptions(tagsList, x, signals, trainingRange, evaluationRange) {
-    // console.log(trainingRange)
-    // console.log(x)
     let signalOptions = {}
     tagsList.forEach((tag) => {
         const currentSerie = [{

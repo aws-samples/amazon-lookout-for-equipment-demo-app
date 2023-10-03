@@ -16,6 +16,8 @@ export const ModelParametersProvider = ({children}) => {
     const [ selectedSignal, setSelectedSignal ] = useState({label: 'No off time detection', value: undefined})
     const [ offConditionValue, setOffConditionValue ] = useState(0.0)
     const [ selectedSamplingRate, setSelectedSamplingRate] = useState({ label: "5 minutes", value: "PT5M" })
+    const [ offtimeMin, setOfftimeMin ] = useState(undefined)
+    const [ offtimeMax, setOfftimeMax ] = useState(undefined)
 
     const trainingRange = useRef(undefined)
     const evaluationRange = useRef(undefined)
@@ -56,6 +58,8 @@ export const ModelParametersProvider = ({children}) => {
             listModels,
             selectedSamplingRate,
             defaultModelConfig,
+            offtimeMin,
+            offtimeMax,
 
             setSelectedItems,
             setCurrentPageIndex,
@@ -63,7 +67,9 @@ export const ModelParametersProvider = ({children}) => {
             setSelectedOption,
             setSelectedSignal,
             setOffConditionValue,
-            setSelectedSamplingRate
+            setSelectedSamplingRate,
+            setOfftimeMin,
+            setOfftimeMax
         }}>
             {children}
         </ModelParametersContext.Provider>

@@ -1,5 +1,5 @@
 // Imports:
-import { useContext, useRef, useState } from 'react'
+import { useContext, useRef } from 'react'
 import ReactEcharts from "echarts-for-react"
 import { graphic } from 'echarts'
 import "../../styles/chartThemeMacarons.js"
@@ -18,16 +18,27 @@ import TimeSeriesContext from '../contexts/TimeSeriesContext'
 import ModelParametersContext from '../contexts/ModelParametersContext'
 import HelpPanelContext from '../contexts/HelpPanelContext'
 
-function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, eChartRef, onConditionValueDragEnd) {
+// Utils:
+import { buildTimeseries2 } from '../../utils/timeseries'
+
+function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, eChartRef, onConditionValueDragEnd, setOfftimeMin, setOfftimeMax) {
     if (!tag) { return undefined }
 
     let y = []
     timeseries.forEach((item, index) => {
         y.push(parseFloat(item[tag]['S']))
     })
+
+    let tsData = buildTimeseries2(timeseries, tag, 'S')
+
     const yMin = Math.min(...y)
     const yMax = Math.max(...y)
     let conditionY = Array.apply(0.0, Array(y.length)).map(() => yMin)
+    let currentConditionValue = conditionValue
+    if (currentConditionValue < yMin) { currentConditionValue = yMin }
+    if (currentConditionValue > yMax) { currentConditionValue = yMax }
+    setOfftimeMin(yMin)
+    setOfftimeMax(yMax)
 
     let indexes = []
     let offsetStart = 0
@@ -50,7 +61,12 @@ function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, 
         yAxis: { 
             type: 'value', 
             min: 'dataMin',
-            max: 'dataMax'
+            max: 'dataMax',
+            axisLabel: { formatter: (value) => { 
+                if (yMax > 10) { return value.toFixed(0) }
+                else if (yMax > 1) { return value.toFixed(1) }
+                else { return value.toFixed(2) }
+            }},
         },
         series: [
             {
@@ -70,6 +86,7 @@ function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, 
                 emphasis: { disabled: true },
                 areaStyle: {
                     opacity: 0.2,
+                    origin: 'start',
                     color: new graphic.LinearGradient(0, 0, 0, 1, [
                         {
                             offset: offsetStart,
@@ -77,7 +94,6 @@ function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, 
                         },
                         {
                             offset: offsetEnd,
-                            // color: 'rgb(255, 255, 255)'
                             color: 'rgb(192, 80, 80)'
                         }
                     ])
@@ -106,7 +122,7 @@ function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, 
             chart,                      // eChartInstance
             x[0],                       // x1
             x[x.length - 1],            // x2
-            conditionValue,             // y,
+            currentConditionValue,      // y,
             onConditionValueDragEnd
         )
     }
@@ -148,9 +164,13 @@ function OffTimeSelection() {
         selectedOption,
         selectedSignal,
         offConditionValue,
+        offtimeMin,
+        offtimeMax,
         setSelectedOption,
         setSelectedSignal,
-        setOffConditionValue
+        setOffConditionValue,
+        setOfftimeMin,
+        setOfftimeMax
     } = useContext(ModelParametersContext)
     const eChartRef = useRef(null)
 
@@ -164,52 +184,66 @@ function OffTimeSelection() {
     const onConditionValueDragEnd = (e) => {
         const chart = eChartRef.current.getEchartsInstance()
         const targetCoordinates = chart.convertFromPixel('grid', [0, e.offsetY])
-        setOffConditionValue(targetCoordinates[1])
+        if (targetCoordinates[1] < offtimeMin) {
+            setOffConditionValue(offtimeMin)
+
+            chart.setOption({
+                graphic: getDraggableLineConfig(
+                    chart,                      // eChartInstance
+                    x[0],                       // x1
+                    x[x.length - 1],            // x2
+                    offtimeMin,                 // y
+                    onConditionValueDragEnd
+                )
+            })
+        }
+        else if (targetCoordinates[1] > offtimeMax) {
+            setOffConditionValue(offtimeMax)
+
+            chart.setOption({
+                graphic: getDraggableLineConfig(
+                    chart,                      // eChartInstance
+                    x[0],                       // x1
+                    x[x.length - 1],            // x2
+                    offtimeMax,                 // y
+                    onConditionValueDragEnd
+                )
+            })
+        }
+        else {
+            setOffConditionValue(targetCoordinates[1])
+        }
     }
 
-    let chart = ''
+    const onChartReady = (e) => {
+        if (eChartRef && eChartRef.current) {
+            const chart = eChartRef.current.getEchartsInstance()
+
+            chart.setOption({
+                graphic: getDraggableLineConfig(
+                    chart,                      // eChartInstance
+                    x[0],                       // x1
+                    x[x.length - 1],            // x2
+                    offConditionValue,          // y
+                    onConditionValueDragEnd
+                )
+            })
+        }
+    }
+
+    let chartOptions = undefined
     if (selectedSignal && selectedSignal['value']) {
-        let chartOptions = buildChartOptions(
+        chartOptions = buildChartOptions(
             selectedSignal['value'], 
             x, 
             data.timeseries.Items,
             selectedOption,
             offConditionValue,
             eChartRef,
-            onConditionValueDragEnd
+            onConditionValueDragEnd,
+            setOfftimeMin,
+            setOfftimeMax
         )
-
-        const onChartReady = (e) => {
-            if (eChartRef && eChartRef.current) {
-                const chart = eChartRef.current.getEchartsInstance()
-
-                chart.setOption({
-                    graphic: getDraggableLineConfig(
-                        chart,                      // eChartInstance
-                        x[0],                       // x1
-                        x[x.length - 1],            // x2
-                        offConditionValue,          // y
-                        onConditionValueDragEnd
-                    )
-                })
-            }
-        }
-
-        chart =             
-            <Box>
-                <ReactEcharts 
-                    option={chartOptions}
-                    theme="macarons"
-                    ref={eChartRef}
-                    onChartReady={onChartReady}
-                />
-            </Box>
-    }
-    else {
-        chart =             
-            <Alert>
-                Select a signal in the off time detection drop down to visualize the corresponding signal and the desired threshold.
-            </Alert>
     }
 
     // Rendering the component
@@ -254,7 +288,20 @@ function OffTimeSelection() {
                 </SpaceBetween>
             </FormField>
 
-            {chart}
+            { chartOptions && <Box>
+                <ReactEcharts 
+                    option={chartOptions}
+                    theme="macarons"
+                    ref={eChartRef}
+                    onChartReady={onChartReady}
+                />
+            </Box> }
+
+            { !chartOptions && <Alert>
+                Select a signal in the off time detection drop down to visualize the corresponding signal and the desired threshold.
+            </Alert> }
+
+            {/* {chart} */}
         </SpaceBetween>
     )
 }

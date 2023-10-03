@@ -3,6 +3,7 @@ import { forwardRef, useContext, useState, useImperativeHandle } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // Cloudscape components:
+import Alert        from "@cloudscape-design/components/alert"
 import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
 import Modal        from "@cloudscape-design/components/modal"
@@ -16,7 +17,8 @@ import ApiGatewayContext from '../contexts/ApiGatewayContext'
 // --------------------------
 const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
     const { gateway, uid } = useContext(ApiGatewayContext)
-    const [visible, setVisible] = useState(false)
+    const [ visible, setVisible ] = useState(false)
+    const [ errorMessage, setErrorMessage ] = useState(undefined)
     const dismissModelSummary = props.dismissFunction
     const modelConfig = props.modelConfig
     const navigate = useNavigate()
@@ -31,6 +33,7 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
 
     async function createModel(e) {
         e.preventDefault()
+        let currentErrorMessage = ""
 
         // Assemble the model creation request:
         let createRequest = {
@@ -52,11 +55,19 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
         // Launch the creation request:
         await gateway.lookoutEquipment.createModel(createRequest)
             .then((response) => { console.log(response) })
-            .catch((error) => { console.log(error.response)})
+            .catch((error) => { 
+                console.log(error.response)
+                currentErrorMessage = JSON.stringify(error.response)
+            })
 
-        const modelName = modelConfig['modelName'].slice(uid.length + 1 + modelConfig['projectName'].length + 1)
-        const projectName = modelConfig['projectName']
-        navigate(`/offline-results/modelName/${modelName}/projectName/${projectName}`)
+        if (currentErrorMessage === "") {
+            const modelName = modelConfig['modelName'].slice(uid.length + 1 + modelConfig['projectName'].length + 1)
+            const projectName = modelConfig['projectName']
+            navigate(`/offline-results/modelName/${modelName}/projectName/${projectName}`)
+        }
+        else {
+            setErrorMessage(currentErrorMessage)
+        }
     }
 
     // Renders the modal window:
@@ -76,8 +87,15 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
                 </Box>
             }
         >
+            <p>
                 Click <b>Create model</b> below to confirm your model creation. You will be redirected to the
                 model dashboard while training is in progress.
+            </p>
+
+            { errorMessage && <Alert type="error">
+                Error detected while creating the model:
+                <pre>{errorMessage}</pre>
+            </Alert> }
         </Modal>
     )
 })

@@ -25,6 +25,7 @@ import Wizard           from "@cloudscape-design/components/wizard"
 // --------------------
 function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
     const [ activeStepIndex, setActiveStepIndex ] = useState(0)
+    const [ errorMessage, setErrorMessage ] = useState(undefined)
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { 
@@ -114,7 +115,7 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
             description: `Review your model parameters. Fields with invalid values will be marked in 
                           red: you can navigate the other pages of this wizard to address any issue
                           before creating your model.`,
-            content: <ReviewModelConfiguration />
+            content: <ReviewModelConfiguration errorMessage={errorMessage} />
         }
     ]
 
@@ -152,7 +153,8 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
                                 selectedOption,
                                 offConditionValue,
                                 selectedLabelGroupName,
-                                navigate
+                                navigate,
+                                setErrorMessage
                             )}
         />
     )

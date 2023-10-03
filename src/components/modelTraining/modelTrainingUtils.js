@@ -15,9 +15,11 @@ export async function createModel(
     selectedOption,
     offConditionValue,
     selectedLabelGroupName,
-    navigate
+    navigate,
+    setErrorMessage
 ) {
     e.preventDefault()
+    let currentErrorMessage = ""
 
     // Computes training and evaluation date ranges:
     const trainingStartDate   = trainingRange.current.startDate.replace('T', ' ').substr(0, 19)
@@ -74,8 +76,16 @@ export async function createModel(
     // Launch the creation request:
     const response = await gateway.lookoutEquipment.createModel(createRequest)
         .then((response) => { console.log('Model training launched:', response) })
-        .catch((error) => { console.log(error.response)})
+        .catch((error) => {
+            console.log(error.response)
+            currentErrorMessage = JSON.stringify(error.response)
+        })
 
     // Redirect the user to this model dashboard:
-    navigate(`/offline-results/modelName/${modelName.current}/projectName/${datasetName.current}`)
+    if (currentErrorMessage === "") {
+        navigate(`/offline-results/modelName/${modelName.current}/projectName/${datasetName.current}`)
+    }
+    else {
+        setErrorMessage(currentErrorMessage)
+    }
 }

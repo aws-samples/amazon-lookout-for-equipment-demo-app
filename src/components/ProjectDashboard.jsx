@@ -119,7 +119,9 @@ function ProjectDashboard() {
                         }>
                             <Alert header="Error" type="error">
                                 {errorMessage}
-                                {errorDetails && <ExpandableSection headerText="Error details">{errorDetails}</ExpandableSection>}
+                                {errorDetails && <ExpandableSection headerText="Error details">
+                                    <pre>{errorDetails}</pre>
+                                </ExpandableSection>}
                             </Alert>
 
                             <DeleteProjectModal

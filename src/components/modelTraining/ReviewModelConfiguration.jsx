@@ -16,7 +16,7 @@ import TextContent  from "@cloudscape-design/components/text-content"
 // Contexts
 import ModelParametersContext from '../contexts/ModelParametersContext'
 
-function ReviewModelConfiguration() {
+function ReviewModelConfiguration({ errorMessage }) {
     const { 
         trainingRange, 
         evaluationRange, 
@@ -79,6 +79,11 @@ function ReviewModelConfiguration() {
             <Container>
                 <Form>
                     <SpaceBetween size="xl">
+                        { errorMessage && <Alert type="error">
+                            Error detected while creating the model:
+                            <pre>{errorMessage}</pre>
+                        </Alert> }
+                        
                         <FormField label="Asset">
                             <TextContent><p>{datasetName.current}</p></TextContent>
                         </FormField>

@@ -73,19 +73,53 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                                         .catch(() => { fetchError = true })
                 }
 
-                const { rowCounts, assetDescription } = await getProjectInfos(gateway, uid, projectName)
-                                                             .catch(() => { fetchError = true })
-                
-                let response = await gateway.lookoutEquipment
-                                              .describeDataset(`l4e-demo-app-${uid}-${projectName}`)
-                                              .catch(() => { fetchError = true })
-                const datasetStatus = response['Status']
+                const { 
+                    rowCounts, 
+                    assetDescription, 
+                    ingestionPipelineId 
+                } = await getProjectInfos(gateway, uid, projectName)
+                    .catch(() => { fetchError = true })
+
+                let response = await gateway.stepFunctions.describeExecution(ingestionPipelineId)
+                if (response.status === 'FAILED') {
+                    fetchError = true
+                    errorMessage = response['cause'] + '. Delete this project and try again once this problem is addressed.'
+                }
+
+                let datasetStatus = ""
+                let ingestionStatus = ""
+
+                if (!fetchError) {
+                    response = await gateway.lookoutEquipment
+                                                .describeDataset(`l4e-demo-app-${uid}-${projectName}`)
+                                                .catch(() => { fetchError = true })
+                    datasetStatus = response['Status']
+                }
 
                 // If the dataset is active, it means an ingestion was successful:
                 response = await gateway.lookoutEquipment
                                         .listDataIngestionJobs(`l4e-demo-app-${uid}-${projectName}`)
-                                        .catch(() => { fetchError = true })
-                const ingestionStatus = response['DataIngestionJobSummaries'][0]['Status']
+                                        .catch((error) => { 
+                                            fetchError = true 
+                                            if (error.response.data.__type === 'com.amazonaws.thorbrain#ServiceQuotaExceededException') {
+                                                errorMessage = `Limit exceeded for "max number pending data ingestion". Please contact
+                                                                your administrator to request a limit increase for this account.`
+                                            }
+                                            else {
+                                                errorMessage = error.response.data.Message
+                                            }
+                                        })
+
+                if (!fetchError) {
+                    if (response['DataIngestionJobSummaries'].length > 0) {
+                        ingestionStatus = response['DataIngestionJobSummaries'][0]['Status']
+                    }
+                    else {
+                        fetchError = true
+                        errorMessage = `Limit exceeded for "max number pending data ingestion". Please contact
+                                        your administrator to request a limit increase for this account.`
+                    }
+                }
 
                 if (!fetchError) {
                     return {
@@ -160,7 +194,8 @@ async function getProjectInfos(gateway, uid, projectName) {
 
     return {
         rowCounts: response.Items[0]['numRows']['N'],
-        assetDescription: response.Items[0]['assetDescription'] ? response.Items[0]['assetDescription']['S'] : "n/a"
+        assetDescription: response.Items[0]['assetDescription'] ? response.Items[0]['assetDescription']['S'] : "n/a",
+        ingestionPipelineId: response.Items[0]['executionId']['S']
     }
     
     

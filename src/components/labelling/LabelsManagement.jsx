@@ -236,7 +236,6 @@ function LabelsManagement({ componentHeight, readOnly }) {
                         else {
                             setErrorMessage(err.response.data.Message)
                         }
-                        
                     })
 
                 if (!error) {

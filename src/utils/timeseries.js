@@ -183,7 +183,7 @@ export function buildChartOptions(
         series: series,
         animation: false,
         dataZoom: [datazoomOption],
-        grid: { top: 90, bottom: 30 },
+        grid: { top: 90, bottom: 30, right: 0 },
         toolbox: {
             right: 110,
             top: 0

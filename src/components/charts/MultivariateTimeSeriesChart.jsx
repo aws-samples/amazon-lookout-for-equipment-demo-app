@@ -9,7 +9,6 @@ import ModelDataRanges from "../modelTraining/ModelDataRanges"
 import Alert        from "@cloudscape-design/components/alert"
 import Box          from "@cloudscape-design/components/box"
 import Container    from "@cloudscape-design/components/container"
-import Form         from "@cloudscape-design/components/form"
 import SpaceBetween from "@cloudscape-design/components/space-between"
 import Spinner      from "@cloudscape-design/components/spinner"
 import TextContent  from "@cloudscape-design/components/text-content"
@@ -34,10 +33,6 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
     const initialZoomEnd = useRef(10)
     const modelDataRangesRef = useRef(undefined)
     const eChartRef = useRef(null)
-
-    const { datasetName } = useContext(ModelParametersContext)
-    const queryParameters = new URLSearchParams(window.location.search)
-    datasetName.current = queryParameters.get("model_name")
 
     if (!componentHeight) { componentHeight = 700 }
 
@@ -199,11 +194,10 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
                         purpose:
                     </TextContent>
 
-                    <Container>
                     <ReactEcharts 
                         option={option}
                         theme="macarons"
-                        style={{ height: componentHeight, width: "100%" }}
+                        style={{ height: componentHeight, width: "93%" }}
                         ref={eChartRef}
                         onEvents={{
                             'datazoom': onDataZoomEnd, 
@@ -211,7 +205,6 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
                         }}
                         onChartReady={onChartReady}
                     />
-                    </Container>
 
                     <Box>
                         <ModelDataRanges ref={modelDataRangesRef} x={x} updateRanges={updateRanges} />

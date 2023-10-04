@@ -18,11 +18,12 @@ export async function getLiveResults(gateway, uid, projectName, modelName, start
     const rawAnomalies = await getRawAnomalies(gateway, uid, projectName, modelName, startTime, endTime)
     const sensorContribution = await getSensorContribution(gateway, uid, projectName, modelName, startTime, endTime)
     const isUnhealthy = isAssetUnhealthy(anomalies)
+    const anomalyStartTime = parseInt(anomalies[0].timestamp.N)
 
     const timeseries = await getAllTimeseriesWindow(
         gateway,
         uid + '-' + projectName,
-        startTime,
+        anomalyStartTime > startTime ? anomalyStartTime : startTime,
         endTime,
         "raw"
     )
@@ -205,8 +206,6 @@ async function getSensorContribution(gateway, uid, projectName, modelName, start
 export async function getAssetCondition(gateway, asset, startTime, endTime, projectName) {
     const tableName = `l4edemoapp-${projectName}-anomalies`
 
-    console.log('tableName:', tableName)
-
     if (await tableExists(gateway, tableName)) {
         const anomaliesQuery = { 
             TableName: tableName,
@@ -225,8 +224,6 @@ export async function getAssetCondition(gateway, asset, startTime, endTime, proj
         let anomalies = await gateway
             .dynamoDb.queryAll(anomaliesQuery)
             .catch((error) => console.log(error.response))
-
-        console.log(anomalies)
 
         if (anomalies.Items.length > 0) {
             let condition = { '0': 0.0, '1': 0.0 }
@@ -567,7 +564,16 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
             title: [{top: 0, text: 'Training data timeseries'}],
             grid: [{top: 40, left: 50, height: 200}],
             xAxis: [{type: 'time', minorTick: { show: true }}],
-            yAxis: [{show: true, min: yMin, max: yMax}],
+            yAxis: [{
+                show: true, 
+                min: yMin, 
+                max: yMax,
+                axisLabel: { formatter: (value) => { 
+                    if (yMax > 10) { return value.toFixed(0) }
+                    else if (yMax > 1) { return value.toFixed(1) }
+                    else { return value.toFixed(2) }
+                }}
+            }],
             series: [trainingSeries],
             animation: false,
             tooltip: {show: true, trigger: 'axis'}
@@ -578,7 +584,16 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
             grid: [{top: 40, left: 50, height: 200}],
             xAxis: {type: 'time', minorTick: { show: true }},
             yAxis: [
-                {show: true, min: yMin, max: yMax},
+                {
+                    show: true, 
+                    min: yMin, 
+                    max: yMax,
+                    axisLabel: { formatter: (value) => { 
+                        if (yMax > 10) { return value.toFixed(0) }
+                        else if (yMax > 1) { return value.toFixed(1) }
+                        else { return value.toFixed(2) }
+                    }}
+                },
                 {
                     min: 0.0, max: 1.0,
                     axisLabel: { formatter: (value) => { return (value*100).toFixed(0) + '%' }},
@@ -604,7 +619,13 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
             yAxis: {axisLabel: { show: false }},
             series: histogramsSeries,
             animation: false,
-            tooltip: {show: true, trigger: 'axis'}
+            tooltip: {show: true, trigger: 'axis'},
+            legend: {
+                show: true,
+                bottom: -5, left: 0,
+                orient: 'horizontal',
+                data: ['Training data', 'Inference data', 'Abnormal data']
+            },
         }
     })
 
@@ -690,7 +711,7 @@ function getTagInferenceTimeseries(tag, timeseries, xAnomalies, sensorContributi
         type: 'line',
         tooltip: { valueFormatter: (value) => value.toFixed(2) },
         lineStyle: { width: 0.0 },
-        itemStyle: { color: '#a32952', opacity: 0.5 },
+        itemStyle: { color: '#a32952', opacity: 1.0 },
         yAxisIndex: 0
     }
 
@@ -748,8 +769,8 @@ function getTagTrainingTimeseries(tag, timeseries) {
 
     return {
         trainingSeries: series,
-        trainingYMin: (yMin * 0.95).toFixed(2),
-        trainingYMax: (yMax * 1.05).toFixed(2)
+        trainingYMin: (yMin * 0.95), //.toFixed(2),
+        trainingYMax: (yMax * 1.05) //.toFixed(2)
     }
 }
 
@@ -770,38 +791,41 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
         const y = parseFloat(item[tag].S)
 
         inferenceData.push(y)
-        if (xAnomalies.indexOf(x)) { abnormalData.push(y) }
+        if (xAnomalies.indexOf(x) >= 0) { abnormalData.push(y) }
     })
 
     let series = [
         {
-            name: 'Training data distribution',
+            name: 'Training data',
             type: 'bar',
             barWidth: 8,
             xAxisIndex: 0,
             yAxisIndex: 0,
-            itemStyle: { color: '#529ccb', opacity: 0.5 },
+            itemStyle: { color: '#529ccb', opacity: 0.7 },
             data: normalizedHistogram(trainingData).data,
         },
         {
-            name: 'Inference data distribution',
+            name: 'Inference data',
             type: 'bar',
             barWidth: 8,
             xAxisIndex: 0,
             yAxisIndex: 0,
             itemStyle: { color: '#67a353', opacity: 0.7 },
             data: normalizedHistogram(inferenceData).data,
-        },
-        {
-            name: 'Abnormal data distribution',
+        }
+    ]
+
+    if (abnormalData.length > 0) {
+        series.push({
+            name: 'Abnormal data',
             type: 'bar',
             barWidth: 8,
             xAxisIndex: 0,
             yAxisIndex: 0,
-            itemStyle: { color: '#a32952', opacity: 0.5 },
+            itemStyle: { color: '#a32952', opacity: 0.7 },
             data: normalizedHistogram(abnormalData).data,
-        },
-    ]
+        })
+    }
 
     return series
 }

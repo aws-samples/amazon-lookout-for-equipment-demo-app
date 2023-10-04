@@ -124,7 +124,11 @@ export async function getAllTimeseriesWindow(gateway, modelName, startTime, endT
 // Get trained model information
 // -----------------------------
 export async function getModelDetails(gateway, modelName, projectName, uid) {
-    const modelResponse = await gateway.lookoutEquipment.describeModel(`${uid}-${projectName}-${modelName}`)
+    if (!uid) { return undefined }
+    
+    const modelResponse = await gateway.lookoutEquipment
+                                       .describeModel(`${uid}-${projectName}-${modelName}`)
+                                       .catch((error) => console.log(error.response))
 
     let offCondition = processOffResponse(modelResponse)
     if (offCondition) { offCondition['component'] = projectName }
@@ -178,7 +182,8 @@ export async function getModelDetails(gateway, modelName, projectName, uid) {
         samplingRate: samplingRate,
         offCondition: offCondition,
         labelGroupName: labelGroupName,
-        labels: labels
+        labels: labels,
+        schema: JSON.parse(modelResponse.Schema)
     }
 
     if (modelResponse['Status'] === 'SUCCESS') {

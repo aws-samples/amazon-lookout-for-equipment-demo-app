@@ -39,55 +39,57 @@ export const OfflineResultsProvider = ({ children }) => {
         setLoading(true)
         getModelDetails(gateway, modelName, projectName, uid)
         .then((details) => { 
-            // Loading the overall model details:
-            setModelDetails(details)
-            setLoading(false)
+            if (details) {
+                // Loading the overall model details:
+                setModelDetails(details)
+                setLoading(false)
 
-            if (details['status'] === 'SUCCESS') {
-                // Building and cleaning the tags list:
-                let tagsList = details['tagsList']
-                const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
-                tagsList = cleanList(tagsToRemove, tagsList)
-                setTagsList(tagsList)
+                if (details['status'] === 'SUCCESS') {
+                    // Building and cleaning the tags list:
+                    let tagsList = details['tagsList']
+                    const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
+                    tagsList = cleanList(tagsToRemove, tagsList)
+                    setTagsList(tagsList)
 
-                // Building training time series for each tag present in the dataset:
-                const {trainingTimeseries, trainingHistogram} = buildTrainingTimeseries(
-                    details.timeseries.Items,
-                    tagsList,
-                    new Date(details.trainingStart),
-                    new Date(details.trainingEnd)
-                )
-                setTrainingTimeseries(trainingTimeseries)
+                    // Building training time series for each tag present in the dataset:
+                    const {trainingTimeseries, trainingHistogram} = buildTrainingTimeseries(
+                        details.timeseries.Items,
+                        tagsList,
+                        new Date(details.trainingStart),
+                        new Date(details.trainingEnd)
+                    )
+                    setTrainingTimeseries(trainingTimeseries)
 
-                // Building training and evaluation time series for each tag:
-                const { 
-                    evaluationTimeseries, 
-                    anomaliesTimeseries,
-                    evaluationHistogram,
-                    anomaliesHistogram
-                } = buildEvaluationTimeSeries(
-                    details.timeseries.Items,
-                    tagsList,
-                    new Date(details.evaluationStart),
-                    new Date(details.evaluationEnd),
-                    details.events
-                )
-                setEvaluationTimeseries(evaluationTimeseries)
-                setAnomaliesTimeseries(anomaliesTimeseries)
+                    // Building training and evaluation time series for each tag:
+                    const { 
+                        evaluationTimeseries, 
+                        anomaliesTimeseries,
+                        evaluationHistogram,
+                        anomaliesHistogram
+                    } = buildEvaluationTimeSeries(
+                        details.timeseries.Items,
+                        tagsList,
+                        new Date(details.evaluationStart),
+                        new Date(details.evaluationEnd),
+                        details.events
+                    )
+                    setEvaluationTimeseries(evaluationTimeseries)
+                    setAnomaliesTimeseries(anomaliesTimeseries)
 
-                // Build the sensor contribution time series for each tag:
-                const sensorContributionTimeseries = buildSensorContributionTimeseries(
-                    details.sensorContribution.Items,
-                    tagsList
-                )
-                setSensorContributionTimeseries(sensorContributionTimeseries)
+                    // Build the sensor contribution time series for each tag:
+                    const sensorContributionTimeseries = buildSensorContributionTimeseries(
+                        details.sensorContribution.Items,
+                        tagsList
+                    )
+                    setSensorContributionTimeseries(sensorContributionTimeseries)
 
-                // Build the histogram data:
-                setHistogramData({
-                    training: trainingHistogram,
-                    evaluation: evaluationHistogram,
-                    anomalies: anomaliesHistogram
-                })
+                    // Build the histogram data:
+                    setHistogramData({
+                        training: trainingHistogram,
+                        evaluation: evaluationHistogram,
+                        anomalies: anomaliesHistogram
+                    })
+                }
             }
         })
     }, [gateway, modelName, projectName])

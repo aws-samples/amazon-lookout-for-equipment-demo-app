@@ -17,6 +17,7 @@ import Link                 from "@cloudscape-design/components/link"
 import SpaceBetween         from "@cloudscape-design/components/space-between"
 import Spinner              from '@cloudscape-design/components/spinner'
 import Table                from '@cloudscape-design/components/table'
+import Textarea             from "@cloudscape-design/components/textarea"
 import TextContent          from '@cloudscape-design/components/text-content'
 
 // Contexts:
@@ -46,6 +47,13 @@ function ModelOverview() {
 
     // Renders the component:
     if (!loading && modelDetails) {
+        let schema = []
+        const numSignalsUsed = modelDetails.schema.Components[0].Columns.length
+        modelDetails.schema.Components[0].Columns.forEach((signal) => {
+            schema.push(signal['Name'])
+        })
+        schema = '- ' + schema.join('\n- ')
+
         let offCondition = 'No off condition specified'
         if (modelDetails['offCondition']) {
             offCondition = modelDetails['offCondition']['component'] + '\\' +
@@ -133,17 +141,7 @@ function ModelOverview() {
                                     <Box variant="awsui-key-label">Creation date</Box>
                                     <div>{modelDetails['createdAt']}</div>
                                 </div>
-                            </SpaceBetween>
 
-                            <SpaceBetween size="l">
-                                <div>
-                                    <Box variant="awsui-key-label">Training data start date</Box>
-                                    <div>{modelDetails['trainingStart']}</div>
-                                </div>
-                                <div>
-                                    <Box variant="awsui-key-label">Training data end date</Box>
-                                    <div>{modelDetails['trainingEnd']}</div>
-                                </div>
                                 <div>
                                     <Box variant="awsui-key-label">Sampling rate</Box>
                                     <div>{modelDetails['samplingRate']}</div>
@@ -152,16 +150,33 @@ function ModelOverview() {
 
                             <SpaceBetween size="l">
                                 <div>
-                                    <Box variant="awsui-key-label">Evaluation data start date</Box>
-                                    <div>{modelDetails['evaluationStart']}</div>
+                                    <Box variant="awsui-key-label">Training data</Box>
+                                    <div>
+                                        From <b>{modelDetails['trainingStart']}</b> to <b>{modelDetails['trainingEnd']}</b>
+                                    </div>
                                 </div>
+
                                 <div>
-                                    <Box variant="awsui-key-label">Evaluation data end date</Box>
-                                    <div>{modelDetails['evaluationEnd']}</div>
+                                    <Box variant="awsui-key-label">Evaluation data</Box>
+                                    <div>
+                                        From <b>{modelDetails['evaluationStart']}</b> to <b>{modelDetails['evaluationEnd']}</b>
+                                    </div>
                                 </div>
+
                                 <div>
                                     <Box variant="awsui-key-label">Off time detection</Box>
                                     <div>{offCondition}</div>
+                                </div>
+                            </SpaceBetween>
+
+                            <SpaceBetween size="l">
+                                <div>
+                                    <Box variant="awsui-key-label">{numSignalsUsed} signals used to train this model</Box>
+                                    <Textarea
+                                        value={schema}
+                                        readOnly={true}
+                                        rows="10"
+                                    />
                                 </div>
                             </SpaceBetween>
                         </ColumnLayout>

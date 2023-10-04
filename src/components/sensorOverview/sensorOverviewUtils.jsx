@@ -24,7 +24,8 @@ export function buildChartOptions(items, sensorName, zoomStart, zoomEnd) {
         data: data,
         type: 'line',
         color: 'rgb(141, 152, 179)',
-        emphasis: { disabled: true }
+        emphasis: { disabled: true },
+        tooltip: { valueFormatter: (value) => value.toFixed(2) },
     }]
 
     // echart options:
@@ -43,7 +44,8 @@ export function buildChartOptions(items, sensorName, zoomStart, zoomEnd) {
                 color: 'rgba(151, 181, 82, 0.2)',
                 borderColor: 'rgba(151, 181, 82, 0.7)'
             }
-        }
+        },
+        tooltip: { show: true, trigger: 'axis' }
     }
 
     return chartOptions

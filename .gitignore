@@ -26,6 +26,7 @@ deploy.py
 *.njsproj
 *.sln
 *.sw?
+.VSCode*
 
 src/utils/ECharts.jsx
 Feedback.jsx

@@ -146,7 +146,8 @@ export function buildChartOptions(
             emphasis: {
                 disabled: false,
                 focus: "self"
-            }
+            },
+            tooltip: { valueFormatter: (value) => value.toFixed(2) },
         })
     })
 
@@ -186,7 +187,8 @@ export function buildChartOptions(
         toolbox: {
             right: 110,
             top: 0
-        }
+        },
+        tooltip: { show: true, trigger: 'axis' }
     }
 
     if (showLegend) {

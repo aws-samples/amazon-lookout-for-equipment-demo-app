@@ -44,7 +44,7 @@ export async function getLiveResults(gateway, uid, projectName, modelName, start
 
 function isAssetUnhealthy(anomalies) {
     let unhealthy = false
-    if (anomalies.length > 0) {
+    if (anomalies && anomalies.length > 0) {
         for (const item of anomalies) {
             if (parseInt(item.anomaly.N) == 1) {
                 unhealthy = true
@@ -205,6 +205,8 @@ async function getSensorContribution(gateway, uid, projectName, modelName, start
 export async function getAssetCondition(gateway, asset, startTime, endTime, projectName) {
     const tableName = `l4edemoapp-${projectName}-anomalies`
 
+    console.log('tableName:', tableName)
+
     if (await tableExists(gateway, tableName)) {
         const anomaliesQuery = { 
             TableName: tableName,
@@ -223,6 +225,8 @@ export async function getAssetCondition(gateway, asset, startTime, endTime, proj
         let anomalies = await gateway
             .dynamoDb.queryAll(anomaliesQuery)
             .catch((error) => console.log(error.response))
+
+        console.log(anomalies)
 
         if (anomalies.Items.length > 0) {
             let condition = { '0': 0.0, '1': 0.0 }
@@ -840,7 +844,7 @@ export async function getSchedulerDetails(gateway, modelName, uid, projectName) 
     }
 
     // Start by getting the direct scheduler details:
-    const response = await getSchedulerInfo(gateway, modelName)
+    const response = await getSchedulerInfo(gateway, `${uid}-${projectName}-${modelName}`)
 
     let schedulerBadgeColor = 'grey'
     switch (response['Status']) {

@@ -104,9 +104,10 @@ export function buildChartOptions(
                     {
                         name: 'Training range',
                         itemStyle: {
-                            color: 'rgb(151, 181, 82, 0.2)', 
-                            borderColor: 'rgb(151, 181, 82)', 
-                            borderWidth: 1.0
+                            color: 'rgb(151, 181, 82, 0.15)', 
+                            borderColor: 'rgb(151, 181, 82, 0.8)', 
+                            borderWidth: 1.0,
+                            borderType: 'dashed'
                         }
                     },
                     {
@@ -151,11 +152,16 @@ function getTrainingMarkAreaSeries(axis, evaluationStart) {
         symbol: 'none',
         data: [],
         type: 'line',
-        color: 'rgb(151, 181, 82, 0.1)',
+        color: 'rgb(151, 181, 82, 0.2)',
         xAxisIndex: axis,
         yAxisIndex: axis,
         markArea: {
-            itemStyle: { color: 'rgb(151, 181, 82, 0.1)' },
+            itemStyle: { 
+                color: 'rgb(151, 181, 82, 0.15)',
+                borderColor: 'rgb(151, 181, 82, 0.8)',
+                borderWidth: 1.0,
+                borderType: 'dashed'
+            },
             data: [[
                 { name: 'Training range', xAxis: 0 },
                 { xAxis: evaluationStart }

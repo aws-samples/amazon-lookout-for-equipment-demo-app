@@ -66,7 +66,12 @@ export function buildChartOptions(tagsList, x, signals, trainingRange, evaluatio
             data: signals[tag],
             type: 'line',
             markArea: {
-                itemStyle: { color: 'rgb(151, 181, 82, 0.3)' },
+                itemStyle: { 
+                    color: 'rgb(151, 181, 82, 0.15)',
+                    borderColor: 'rgb(151, 181, 82, 0.8)',
+                    borderWidth: 1.0,
+                    borderType: 'dashed'
+                },
                 data: [
                     [
                         {

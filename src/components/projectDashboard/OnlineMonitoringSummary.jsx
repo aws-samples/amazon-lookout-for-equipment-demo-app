@@ -48,15 +48,16 @@ function OnlineMonitoringSummary({ projectName }) {
         let cardItems = []
 
         modelsList.forEach((model) => {
+            const currentModel = model.slice(uid.length + 1 + projectName.length + 1)
             cardItems.push({
-                name: model,
+                name: currentModel,
                 description: <SpaceBetween size="xxxs">
                     <Box float="right">
-                        <Button onClick={ (e) => viewModelDetails(e, model) } variant="link">View details</Button>
+                        <Button onClick={ (e) => viewModelDetails(e, currentModel) } variant="link">View details</Button>
                     </Box>
                     <ConditionOverview 
                         range={range} 
-                        modelName={model}
+                        modelName={currentModel}
                         projectName={projectName}
                         height={200}
                     />

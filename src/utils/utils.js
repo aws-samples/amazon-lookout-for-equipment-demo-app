@@ -320,6 +320,7 @@ export async function getAllSchedulers(gateway, models) {
 
     // Loops through each project to list the schedulers attached to it:
     let listSchedulers = {}
+
     for (const project of Object.keys(models)) {
         if (models[project] && models[project].length > 0) {
             models[project].forEach((model) => {

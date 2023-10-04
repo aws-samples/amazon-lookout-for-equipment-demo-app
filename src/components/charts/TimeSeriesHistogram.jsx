@@ -27,7 +27,7 @@ function TimeSeriesHistograms({
         // set of values will be displayed as an histogram:
         let values = []
         let selectedValues = []
-        data.timeseries.Items.forEach((item, index) => {
+        data.timeseries.Items.forEach((item) => {
             if (item[sensorName]) {
                 const x = parseInt(item.unix_timestamp.N) * 1000
 

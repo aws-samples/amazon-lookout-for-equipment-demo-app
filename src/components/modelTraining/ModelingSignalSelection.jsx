@@ -124,10 +124,10 @@ function SignalSelectionCards({ cardItems, selectedItems, tagsList, trainingRang
                                     label: "Histogram",
                                     content: <TimeSeriesHistograms
                                         data={data}
-                                        ranges={[{start: rangeEnd + 1, end: x.length}]} 
+                                        ranges={[{start: rangeEnd + 1, end: new Date(x[x.length-1]).getTime()}]} 
                                         sensorName={e.name}
                                         height={200}
-                                        width={600}
+                                        width={550}
                                         hideTitle={true}
                                         hideAnimation={true}
                                         gridOptions={{top: 20, left: 50, right: 35, bottom: 45}}
@@ -223,7 +223,7 @@ function ModelingSignalSelection() {
             })
         })
 
-        const rangeEnd = parseInt((new Date(trainingRange.current['endDate']) - new Date(x[0])) / (new Date(x[x.length - 1]) - new Date(x[0])) * x.length)
+        const rangeEnd = new Date(trainingRange.current['endDate']).getTime()
 
         return (
             <SignalSelectionCards 

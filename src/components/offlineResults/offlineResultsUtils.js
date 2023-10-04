@@ -14,7 +14,7 @@ export function buildChartOptions(
     anomalies,
     showTopN
 ) {
-    const legendWidth = getLegendWidth(tagsList)
+    const legendWidth = getLegendWidth(['Detected events ()', ...tagsList])
 
     // Computes min and max of xAxis:
     const xMin = new Date(anomalies[0].timestamp.N * 1000)

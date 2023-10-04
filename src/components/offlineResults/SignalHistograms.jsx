@@ -18,7 +18,8 @@ import TextFilter   from "@cloudscape-design/components/text-filter"
 
 // Utils
 import { useCollection } from '@cloudscape-design/collection-hooks'
-import { getMatchesCountText, normalizedHistogram } from '../../utils/utils'
+import { getMatchesCountText, normalizedHistogram, sortDictionnary } from '../../utils/utils'
+import { buildTimeseries2 } from '../../utils/timeseries.js'
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
@@ -36,8 +37,9 @@ function SignalHistograms() {
     } = useContext(OfflineResultsContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
 
+    const sortedTags = getSortedTags(sensorContributionTimeseries, tagsList)
     const signalOptions = buildSignalBehaviorOptions(
-        tagsList, 
+        sortedTags, 
         trainingTimeseries,
         evaluationTimeseries,
         anomaliesTimeseries,
@@ -46,7 +48,7 @@ function SignalHistograms() {
     )
 
     let cardItems = []
-    tagsList.forEach((tag) => {
+    sortedTags.forEach((tag) => {
         cardItems.push({
             name: tag,
             trainingChartOptions: signalOptions[tag]['trainingTimeSeries'],
@@ -99,13 +101,13 @@ function SignalHistograms() {
                                 <ReactEcharts 
                                     option={e.trainingChartOptions}
                                     theme="macarons"
-                                    style={{height: 280, width: "100%"}}
+                                    style={{height: 300, width: "100%"}}
                                     opts={{ renderer: 'svg' }}
                                 />
                                 <ReactEcharts 
                                     option={e.histogramsChartOptions}
                                     theme="macarons"
-                                    style={{height: 280, width: "100%"}}
+                                    style={{height: 300, width: "100%"}}
                                     opts={{ renderer: 'svg' }}
                                 />
                             </Grid>
@@ -139,7 +141,7 @@ export default SignalHistograms
 // ------------------------------------------------------------------
 // Builds the eChart options object to plot the signal behavior chart
 // ------------------------------------------------------------------
-function buildSignalBehaviorOptions(tagsList, 
+function buildSignalBehaviorOptions(sortedTags, 
                                     trainingTimeseries, 
                                     evaluationTimeseries, 
                                     anomaliesTimeseries, 
@@ -148,7 +150,7 @@ function buildSignalBehaviorOptions(tagsList,
 ) {
     // We want to build a chart options for each individual tag:
     let options = {}
-    tagsList.forEach((tag) => {
+    sortedTags.forEach((tag) => {
         // Configures the time series:
         const trainingSeries = getTrainingSeries(tag, trainingTimeseries)
         const { evaluationSeries, anomaliesSeries } = getEvaluationSeries(tag, evaluationTimeseries, anomaliesTimeseries)
@@ -177,32 +179,49 @@ function buildSignalBehaviorOptions(tagsList,
             series: [trainingSeries, evaluationSeries, anomaliesSeries, sensorContributionSeries],
             animation: false,
             tooltip: {show: true, trigger: 'axis'},
+            dataZoom: { type:'slider', start: 0, end: 100, top: 270, height: 20},
             legend: {
                 show: true,
-                bottom: -5, left: 0,
+                top: 0, right: 40,
                 orient: 'horizontal',
                 data: ['Training range', 'Evaluation range', 'Detected events', 'Contribution (%)']
             },
         }
 
         options[tag]['histograms'] = {
-            title: {top: 0, text: 'Signal value distributions'},
+            title: {top: 0, text: 'Signal distributions'},
             grid: {top: 40, left: 50, height: 200},
             xAxis: {scale: true},
             yAxis: {axisLabel: { show: false }},
             series: histogramsSeries,
             animation: false,
             tooltip: {show: true, trigger: 'axis'},
+            dataZoom: { type:'slider', start: 0, end: 100, top: 270, height: 20, showDetail: false},
             legend: {
                 show: true,
-                bottom: -5, left: 0,
+                top: 0, right: 0,
                 orient: 'horizontal',
-                data: ['Training range', 'Evaluation range', 'Anomalies']
+                data: ['Training', 'Evaluation', 'Anomalies']
             },
         }
     })
 
     return options
+}
+
+function getSortedTags(sensorContribution, tagsList) {
+    let totalContribution = {}
+
+    tagsList.forEach((tag) => {
+        const sum = sensorContribution[tag].reduce((accumulator, currentValue) => {
+            return accumulator + currentValue[1]
+        }, 0)
+        totalContribution[tag] = sum
+    })
+
+    const sortedTags = sortDictionnary(totalContribution, false)
+
+    return sortedTags
 }
 
 // -----------------------------------------------
@@ -280,7 +299,7 @@ function getSensorContributionSeries(tag, sensorContributionTimeseries) {
 function getHistogramSeries(tag, histogramData) {
     let series = [
         {
-            name: 'Training range',
+            name: 'Training',
             type: 'bar',
             barWidth: 8,
             xAxisIndex: 0,
@@ -289,7 +308,7 @@ function getHistogramSeries(tag, histogramData) {
             data: normalizedHistogram(histogramData.training[tag]).data,
         },
         {
-            name: 'Evaluation range',
+            name: 'Evaluation',
             type: 'bar',
             barWidth: 8,
             xAxisIndex: 0,

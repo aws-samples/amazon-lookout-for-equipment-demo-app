@@ -44,6 +44,7 @@ CloudFormation will take a few minutes to create the resources described above o
 
 Once it is completed, you will see a green CREATE_COMPLETE message next to the name of the stack (on the left panel of the CloudFormation console), indicating that the deployment is completed.
 
+<a name="update"></a>
 ### Updating the app
 
 When a new release of this application is available in this repository, a notification will appear in the top menu bar of the app:
@@ -75,6 +76,7 @@ To update the app in your AWS account, follow these steps:
 
 10. You are brought to the `Invalidation details` page. After a couple minutes, your CloudFront distribution cache is updated and you can use your updated app.
 
+<a name="uninstall"></a>
 ### Uninstalling the demo app
 
 To uninstall the app, you can go back into the CloudFormation console, select the stack you deployed and click on `Delete`: click again on the `Delete` button in the confirmation window and most of the resources deployed will be deleted after a few minutes:

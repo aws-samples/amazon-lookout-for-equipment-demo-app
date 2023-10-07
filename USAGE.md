@@ -16,6 +16,7 @@ Your application is empty, you are now ready to create your first project!
 
 You can refer yourself to this [User Guide](USER_GUIDE.md) to learn how to make the most out of this application.
 
+<a name="manual-user-creation"></a>
 ### How to manually create user
 
 When deploying the template, you have the option to prevent user to sign up from the app. If you deploy this app behind a CloudFront distribution, anyone with the link can sign up and start creating resources in your AWS account. To prevent this, you can block the

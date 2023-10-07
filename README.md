@@ -16,13 +16,13 @@ ones are optional:
 
 ## Table of content
 
-* [Installations instructions](INSTALL.md#installation-instructions)
-* [Updating the app](INSTALL.md#updating-the-app)
-* [Uninstalling the app](INSTALL.md#uninstalling-the-demo-app)
+* [Installations instructions](INSTALL.md)
+* [Updating the app](INSTALL.md#update)
+* [Uninstalling the app](INSTALL.md#uninstall)
 * [Usage: first connection](USAGE.md)
-* [How to manually create user](USAGE.md#how-to-manually-create-user)
+* [How to manually create user](USAGE.md#manual-user-creation)
 * [Architecture overview](ARCHITECTURE.md)
-* [Costs consideration](ARCHITECTURE.md#costs-consideration)
+* [Costs consideration](ARCHITECTURE.md#costs)
 
 ## Repository structure
 This folder is structured as followed:

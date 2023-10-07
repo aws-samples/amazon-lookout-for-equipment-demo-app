@@ -8,6 +8,7 @@ import TopNavigation from "@cloudscape-design/components/top-navigation"
 // App component:
 import Settings from './topMenuBar/Settings'
 import ReleaseInfo from './topMenuBar/ReleaseInfo'
+import SignOutConfirmation from './topMenuBar/SignOutConfirmation'
 
 // Utils:
 import { isLatestVersion } from '../utils/utils'
@@ -21,6 +22,7 @@ function TopMenuBar({ user, signOut }) {
     // const { uid } = useContext(ApiGatewayContext)
     const [ showSettingsModal, setShowSettingsModal ]       = useState(false)
     const [ showReleaseInfoModal, setShowReleaseInfoModal ] = useState(false)
+    const [ showSignOutModal, setShowSignOutModal ]      = useState(false)
     const [ isLatest, setIsLatest ]                         = useState(true)
     const [ publicationDate, setPublicationDate ]           = useState("")
     const [ releaseInfo, setReleaseInfo ]                   = useState("")
@@ -76,7 +78,8 @@ function TopMenuBar({ user, signOut }) {
             {
                 type: "button",
                 text: "Sign Out",
-                onClick: () => signOut()
+                onClick: () => setShowSignOutModal(true)
+                // onClick: () => signOut()
             }
         ]
 
@@ -94,6 +97,7 @@ function TopMenuBar({ user, signOut }) {
         return (
             <>
                 <Settings visible={showSettingsModal} onDiscard={() => setShowSettingsModal(false)} user={user} />
+                <SignOutConfirmation visible={showSignOutModal} onDiscard={() => setShowSignOutModal(false)} signOut={() => signOut()} />
 
                 { !isLatest && <ReleaseInfo 
                     visible={showReleaseInfoModal} 

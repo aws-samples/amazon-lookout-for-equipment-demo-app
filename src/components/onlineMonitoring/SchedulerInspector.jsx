@@ -116,7 +116,7 @@ function SchedulerInspector() {
 
                             <Textarea
                                 value={schedulerDetails['expectedContent']}
-                                disabled={true}
+                                readOnly={true}
                                 rows="10"
                             />
                         </SpaceBetween>

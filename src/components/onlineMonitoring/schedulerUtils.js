@@ -13,10 +13,13 @@ import { buildTimeseries2 } from '../../utils/timeseries.js'
 export async function getLiveResults(gateway, uid, projectName, modelName, startTime, endTime) {
     if (!uid) { return undefined }
 
-    const modelDetails = await getModelDetails(gateway, uid, projectName, modelName)
     const anomalies = await getAnomalies(gateway, uid, projectName, modelName, startTime, endTime)
+    if (!anomalies) { return undefined }
+
+    const modelDetails = await getModelDetails(gateway, uid, projectName, modelName)
     const rawAnomalies = await getRawAnomalies(gateway, uid, projectName, modelName, startTime, endTime)
     const sensorContribution = await getSensorContribution(gateway, uid, projectName, modelName, startTime, endTime)
+    
     const isUnhealthy = isAssetUnhealthy(anomalies)
     const anomalyStartTime = parseInt(anomalies[0].timestamp.N)
 
@@ -27,6 +30,7 @@ export async function getLiveResults(gateway, uid, projectName, modelName, start
         endTime,
         "raw"
     )
+    if (!timeseries) { return undefined }
 
     const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
     let tagsList = timeseries['tagsList']

@@ -10,6 +10,7 @@ import DetectedEvents       from './onlineMonitoring/DetectedEvents'
 import SignalHistograms     from './onlineMonitoring/SignalHistograms'
 
 // CloudScape Components:
+import Alert             from "@cloudscape-design/components/alert"
 import AppLayout         from "@cloudscape-design/components/app-layout"
 import Badge             from "@cloudscape-design/components/badge"
 import Box               from "@cloudscape-design/components/box"
@@ -18,6 +19,7 @@ import ContentLayout     from "@cloudscape-design/components/content-layout"
 import ExpandableSection from "@cloudscape-design/components/expandable-section"
 import Header            from "@cloudscape-design/components/header"
 import Link              from "@cloudscape-design/components/link"
+import Spinner           from "@cloudscape-design/components/spinner"
 import SpaceBetween      from "@cloudscape-design/components/space-between"
 import Tabs              from "@cloudscape-design/components/tabs"
 import Tiles             from "@cloudscape-design/components/tiles"
@@ -76,8 +78,9 @@ function OnlineMonitoring() {
         })}>Info</Link>
     )
 
+    let tabsDefinition = undefined
     if (liveResults) {
-        let tabsDefinition = [
+        tabsDefinition = [
             {
                 label: "Condition overview",
                 id: "conditionOverview",
@@ -112,60 +115,68 @@ function OnlineMonitoring() {
                 content: <SignalHistograms />
             }
         ]
+    }
 
-        // Renders the component:
-        return (
-            <AppLayout
-                contentType="default"
+    // Renders the component:
+    return (
+        <AppLayout
+            contentType="default"
 
-                toolsOpen={helpPanelOpen.status}
-                onToolsChange={(e) => {
-                    if (!helpPanelOpen.page) {
-                        setHelpPanelOpen({
-                            status: true,
-                            page: 'onlineResults',
-                            section: 'general'
-                        })
-                    }
-                    else {
-                        setHelpPanelOpen({
-                            status: e.detail.open,
-                            page: helpPanelOpen.page,
-                            section: helpPanelOpen.section
-                        })
-                    }
-                }}
-                tools={panelContent.current}
+            toolsOpen={helpPanelOpen.status}
+            onToolsChange={(e) => {
+                if (!helpPanelOpen.page) {
+                    setHelpPanelOpen({
+                        status: true,
+                        page: 'onlineResults',
+                        section: 'general'
+                    })
+                }
+                else {
+                    setHelpPanelOpen({
+                        status: e.detail.open,
+                        page: helpPanelOpen.page,
+                        section: helpPanelOpen.section
+                    })
+                }
+            }}
+            tools={panelContent.current}
 
-                content={
-                    <ContentLayout header={
-                        <Header>
-                            <SpaceBetween size="xl" direction="horizontal">
-                                <Box variant="h1">{modelName} online monitoring</Box>
-                                {schedulerStatus && <Box><Badge color={statusColor}>{schedulerStatus}</Badge></Box>}
-                            </SpaceBetween>
-                        </Header>
-                    }>
-                        <SpaceBetween size="xl">
-                            <Container 
-                                header={<Header variant="h2">Scheduler configuration</Header>}
-                                footer={
-                                    <>
-                                        <ExpandableSection headerText="Show details" variant="footer">
-                                            <SchedulerInspector />
-                                        </ExpandableSection>
+            content={
+                <ContentLayout header={
+                    <Header>
+                        <SpaceBetween size="xl" direction="horizontal">
+                            <Box variant="h1">{modelName} online monitoring</Box>
+                            {schedulerStatus && <Box><Badge color={statusColor}>{schedulerStatus}</Badge></Box>}
+                        </SpaceBetween>
+                    </Header>
+                }>
+                    <SpaceBetween size="xl">
+                        <Container 
+                            header={<Header variant="h2">Scheduler configuration</Header>}
+                            footer={
+                                <>
+                                    <ExpandableSection headerText="Show details" variant="footer" defaultExpanded={!tabsDefinition}>
+                                        { !tabsDefinition && <><Alert>
+                                            Your scheduler has not been running long enough. Come back to this screen in at least a scheduler cycle: for
+                                            instance, if your model was trained with a sampling rate of 30 minutes, your scheduler will also wake up 
+                                            every 30 minutes to process new data. In this case, check back this screen in 30 minutes to see the first 
+                                            results generated by this scheduler.
+                                        </Alert><br /></> }
+                                        <SchedulerInspector />
+                                    </ExpandableSection>
 
-                                        {/* <ExpandableSection headerText="Latest results" variant="footer">
-                                            <div>Last run results...</div>
-                                        </ExpandableSection> */}
-                                    </>
-                                }
-                            >
-                                With Amazon Lookout for Equipment, you deploy a model by configuring an inference scheduler. The latter
-                                wakes up on a regular basis, check for new input data, run it by the trained model and store the
-                                results back into an output location on Amazon S3.
-                            </Container>
+                                    {/* <ExpandableSection headerText="Latest results" variant="footer">
+                                        <div>Last run results...</div>
+                                    </ExpandableSection> */}
+                                </>
+                            }
+                        >
+                            With Amazon Lookout for Equipment, you deploy a model by configuring an inference scheduler. The latter
+                            wakes up on a regular basis, check for new input data, run it by the trained model and store the
+                            results back into an output location on Amazon S3.
+                        </Container>
 
+                        { tabsDefinition && <>
                             <Container header={
                                 <Header 
                                     variant="h2" 
@@ -190,13 +201,13 @@ function OnlineMonitoring() {
                                     tabs={tabsDefinition}
                                 />
                             </OnlineMonitoringProvider>
-                        </SpaceBetween>
-                    </ContentLayout>
-                }
-                navigation={<NavigationBar activeHref={`/online-monitoring/modelName/${modelName}/projectName/${projectName}`} />}
-            />
-        )
-    }
+                        </> }
+                    </SpaceBetween>
+                </ContentLayout>
+            }
+            navigation={<NavigationBar activeHref={`/online-monitoring/modelName/${modelName}/projectName/${projectName}`} />}
+        />
+    )
 }
 
 export default OnlineMonitoring

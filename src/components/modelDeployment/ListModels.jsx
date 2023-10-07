@@ -152,8 +152,6 @@ function ListModels({ projectName }) {
             navigate(`/onlineMonitoring/modelName/${modelsSummary[0]['ModelName']}/ProjectName/${projectName}`)
         }}>Online monitoring</Link>
 
-        console.log(modelsSummary)
-
         return (
             <Container header={<Header variant="h1">Model overview</Header>}>
                 <DeleteSchedulerModal 

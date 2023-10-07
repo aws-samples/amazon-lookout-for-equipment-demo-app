@@ -112,11 +112,16 @@ export async function getAllTimeseriesWindow(gateway, modelName, startTime, endT
                            .queryAll(timeSeriesQuery)
                            .catch((error) => { console.log(error.response)})
 
-    return {
-        timeseries: timeseries,
-        startDate: timeseries.Items[0]['timestamp']['S'],
-        endDate: timeseries.Items[timeseries.Items.length - 1]['timestamp']['S'],
-        tagsList: Object.keys(timeseries.Items[0]),
+    if (timeseries.Items.length > 0) {
+        return {
+            timeseries: timeseries,
+            startDate: timeseries.Items[0]['timestamp']['S'],
+            endDate: timeseries.Items[timeseries.Items.length - 1]['timestamp']['S'],
+            tagsList: Object.keys(timeseries.Items[0]),
+        }
+    }
+    else {
+        return undefined
     }
 }
 

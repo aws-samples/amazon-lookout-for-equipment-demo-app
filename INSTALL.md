@@ -19,7 +19,7 @@ via CloudFormation.
 
 After you clicked on one of the `Launch stack` button above, you will be brought to the `Create stack` screen. Start by clicking `Next` at the bottom:
 
-<img src="assets/screenshots/install-create-stack.png" />
+<img src="assets/screenshots/install-create-stack.png" width="1000px" />
 
 On the parameters page, you will have to fill in:
 
@@ -32,15 +32,15 @@ On the parameters page, you will have to fill in:
 
 Once you're fine with these parameters, click `Next`:
 
-<img src="assets/screenshots/install-create-stack-parameters.png" />
+<img src="assets/screenshots/install-create-stack-parameters.png" width="1000px" />
 
 The stack configuration options page will also be fine with the default values, click `Next` to proceed to the Review page. Scroll again to the bottom, check the box to enable the template to create new IAM resources and then click on `Submit`:
 
-<img src="assets/screenshots/install-iam-capabilities.png" />
+<img src="assets/screenshots/install-iam-capabilities.png" width="1000px" />
 
 CloudFormation will take a few minutes to create the resources described above on your behalf:
 
-<img src="assets/screenshots/install-creation-events.png" />
+<img src="assets/screenshots/install-creation-events.png" width="1000px" />
 
 Once it is completed, you will see a green CREATE_COMPLETE message next to the name of the stack (on the left panel of the CloudFormation console), indicating that the deployment is completed.
 
@@ -48,7 +48,7 @@ Once it is completed, you will see a green CREATE_COMPLETE message next to the n
 
 When a new release of this application is available in this repository, a notification will appear in the top menu bar of the app:
 
-<img src="assets/screenshots/new-version-notification.png" />
+<img src="assets/screenshots/new-version-notification.png" width="1000px" />
 
 To update the app in your AWS account, follow these steps:
 
@@ -60,18 +60,18 @@ To update the app in your AWS account, follow these steps:
    - `eu-west-1`: https://lookout-equipment-content-eu-west-1.s3.eu-west-1.amazonaws.com/l4e-demo-app/v1.0.0/cloud-formation-templates/l4e-demo-app-setup.yaml
    - `ap-northeast-1`: https://lookout-equipment-content-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/l4e-demo-app/v1.0.0/cloud-formation-templates/l4e-demo-app-setup.yaml
 
-<img src="assets/screenshots/update-stack.png" />
+<img src="assets/screenshots/update-stack.png" width="1000px" />
 
 5. Click `Next`: you should be able to keep the same parameters. Click `Next` again twice to reach the Review stage of the update wizard.
 6. Scroll to the bottom of the page, check the box to enable the template to create new IAM resources and then click on `Submit`: The CloudFormation template takes a few minutes to refresh your application and the underlying resources.
 7. If you deployed your application behind a CloudFront distribution, you need to refresh the cache to reflect the latest frontend that you just deployed. To do this, navigate to the CloudFront console. Select the distribution with the following description: `The distribution for the Lookout for Equipment Demo`.
 8. Click on the `Invalidations` tab and then on the `Create invalidation` button:
 
-<img src="assets/screenshots/invalidation-home.png" />
+<img src="assets/screenshots/invalidation-home.png" width="1000px" />
 
 9. Add the following object paths: `/index.html` and `/assets/*` and then click on `Create invalidation`:
 
-<img src="assets/screenshots/invalidation-paths.png" />
+<img src="assets/screenshots/invalidation-paths.png" width="1000px" />
 
 10. You are brought to the `Invalidation details` page. After a couple minutes, your CloudFront distribution cache is updated and you can use your updated app.
 
@@ -79,7 +79,7 @@ To update the app in your AWS account, follow these steps:
 
 To uninstall the app, you can go back into the CloudFormation console, select the stack you deployed and click on `Delete`: click again on the `Delete` button in the confirmation window and most of the resources deployed will be deleted after a few minutes:
 
-<img src="assets/screenshots/delete-stack.png" />
+<img src="assets/screenshots/delete-stack.png" width="1000px" />
 
 Note that the following resources **won't be deleted**: you can continue using them after the stack is deleted or may go and manually delete them in the console of the different services:
 

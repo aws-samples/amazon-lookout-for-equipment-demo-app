@@ -2,15 +2,15 @@
 ### First connection
 Once the template is deployed, stay on the CloudFormation service page and navigate to the `Ouputs` tab:
 
-<img src="assets/screenshots/install-outputs.png" />
+<img src="assets/screenshots/install-outputs.png" width="1000px" />
 
 Click on the `ApplicationUrl` link to open the authentication page of the Lookout for Equipment demo application:
 
-<img src="assets/screenshots/login-page.png" />
+<img src="assets/screenshots/login-page.png" width="1000px" />
 
 While the CloudFormation template was deploying, you will receive an email with your one-time password to log into the app. Use it to log into the application. You will immediately be requested to change your password. After you change it, you will land on the `Welcome` page of the app:
 
-<img src="assets/screenshots/welcome-page.png" />
+<img src="assets/screenshots/welcome-page.png" width="1000px" />
 
 Your application is empty, you are now ready to create your first project!
 
@@ -23,11 +23,11 @@ user sign up feature. In this case, you will have to go and create user manually
 
 To do this, once the template is deployed, stay on the CloudFormation service page and navigate to the `Ouputs` tab:
 
-<img src="assets/screenshots/install-outputs.png" />
+<img src="assets/screenshots/install-outputs.png" width="1000px" />
 
 Click on the `UserPool` link to open the Cognito User Pool console on the configuration page of your user pool. From there, scroll to the `Users` section and click on the `Create user` button:
 
-<img src="assets/screenshots/cognito-user-pool.png" />
+<img src="assets/screenshots/cognito-user-pool.png" width="1000px" />
 
 On the user creation page, select the following options:
 * Invitation message: `Send an email invitation`
@@ -35,6 +35,6 @@ On the user creation page, select the following options:
 * Email address: needed to receive the temporary password
 * Temporary password: you can let Cognito generate it for you
 
-<img src="assets/screenshots/cognito-create-user.png" />
+<img src="assets/screenshots/cognito-create-user.png" width="700px" />
 
 The user will receive a welcome message and will be able to log into your application with these. The user will be prompted to change the account password immediately.

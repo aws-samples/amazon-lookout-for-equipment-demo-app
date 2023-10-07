@@ -1,7 +1,7 @@
 ## Architecture overview
 This template will deploy the following components in your AWS account:
 
-<img src="assets/architecture-diagram-without-legend.png" alt="Architecture diagram" />
+<img src="assets/architecture-diagram-without-legend.png" alt="Architecture diagram" width="1000px" />
 
 0. Deploy this AWS Solution into your AWS account. The React frontend is stored in S3 and distributed by CloudFront
 1. Open the App and use Amazon Cognito to authenticate.

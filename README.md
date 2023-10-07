@@ -12,7 +12,7 @@ The following diagram illustrate the workflow you will follow to train and deplo
 this application (in the red frame below). The key steps are highlighted in the green boxes while the blue 
 ones are optional:
 
-<img src="public/application-workflow-diagram.png" alt="App workflow details" />
+<img src="public/application-workflow-diagram.png" alt="App workflow details" width="1000px" />
 
 ## Table of content
 

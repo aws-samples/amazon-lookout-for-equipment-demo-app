@@ -14,7 +14,6 @@ This template will deploy the following components in your AWS account:
 8. User can deploy a model. The same page also allows the user to trigger synthetic data generation to populate the input inference bucket based on extracts from the historical data.
 9. After a model is deployed, the app will monitor new inference results and store them in DynamoDB tables. Users has access to a deep dive dashboard to understand the anomalies detected in the process or piece of equipment monitored.
 
-<a name="costs"></a>
 ### Costs consideration
 
 The main cost driver of this application is the number of Lookout for Equipment models deployed. Each running inference scheduler will cost you $0.25/hr (approx. $180 / month). Make sure you only leave the schedulers you need running and stop the others when you don't need them anymore.

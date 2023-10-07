@@ -87,16 +87,23 @@ export const buildHierarchy = async (gateway, currentProject, uid) => {
 
     // Builds the main navigation items array 
     // that will feed the side navigation bar:
-    const navItems = [
-        { type: 'link', text: 'Create project', href: '/create-project' },
-        { type: 'divider' },
-        { 
-            type: 'section',
-            text: 'Projects',
-            defaultExpanded: true,
-            items: items
-        }
-    ]
+    let navItems = undefined
+    if (items.length == 0) {
+        navItems = [
+            { type: 'link', text: 'Create project', href: '/create-project' },
+        ]
+    }
+    else {
+        navItems = [
+            { type: 'link', text: 'Create project', href: '/create-project' },
+            { type: 'divider' },
+            { 
+                type: 'section-group',
+                title: 'Projects',
+                items: items
+            }
+        ]
+    }
 
     return navItems
 }

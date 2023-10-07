@@ -42,11 +42,11 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
     // --------------------------------------------------------------------------
     function updateRanges() {
         const numDataPoints = x.length
-        const trainingDataStart = new Date(x[parseInt(initialZoomStart.current / 100 * numDataPoints)])
-        const trainingDataEnd = new Date(x[parseInt(initialZoomEnd.current / 100 * numDataPoints) - 1])
-        let evaluationDataStart = new Date(x[parseInt(initialZoomEnd.current / 100 * numDataPoints) - 1])
+        const trainingDataStart = new Date(x[parseInt(initialZoomStart.current / 100 * numDataPoints)].replace('\n', ' '))
+        const trainingDataEnd = new Date(x[parseInt(initialZoomEnd.current / 100 * numDataPoints) - 1].replace('\n', ' '))
+        let evaluationDataStart = new Date(x[parseInt(initialZoomEnd.current / 100 * numDataPoints) - 1].replace('\n', ' '))
         evaluationDataStart.setSeconds(evaluationDataStart.getSeconds() + 1)
-        const evaluationDataEnd = new Date(x[x.length - 1])
+        const evaluationDataEnd = new Date(x[x.length - 1].replace('\n', ' '))
     
         trainingRange.current = {
             type: 'absolute', 

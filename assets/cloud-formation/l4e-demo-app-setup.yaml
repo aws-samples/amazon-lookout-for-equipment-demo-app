@@ -2473,4 +2473,10 @@ Outputs:
     Description: URL for the Amazon Lookout for Equipment Demo app
   ApplicationBucket:
     Value: !Ref ApplicationBucket
-    Description: User data will be stored here. Note that this bucket will be retained should you delete this stack.
+    Description: User data will be stored here. ***Note that this bucket will be retained should you delete this stack.***
+  FrontendBucket:
+    Value: !Ref FrontendBucket
+    Description: The application frontend is stored in this bucket.
+  UserPool:
+    Value: !Ref CognitoUserPool
+    Description: You can use the Cognito console to manually add user to the app (useful if you prevent in-app sign up)

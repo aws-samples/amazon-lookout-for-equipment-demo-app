@@ -46,6 +46,20 @@ function TopMenuBar({ user, signOut }) {
     if (signOut) {
         utilities = [
             {
+                type: "button",
+                text: "Lookout for Equipment Doc",
+                href: "https://docs.aws.amazon.com/lookout-for-equipment/latest/ug/what-is.html",
+                external: true,
+                externalIconAriaLabel: " (opens in a new tab)"
+            },
+            {
+                type: "button",
+                text: "API Doc",
+                href: "https://docs.aws.amazon.com/lookout-for-equipment/latest/ug/API_Operations.html",
+                external: true,
+                externalIconAriaLabel: " (opens in a new tab)"
+            },
+            {
                 type: "menu-dropdown",
                 text: user && user.username,
                 description: `L4E Demo App v${window.version}`,

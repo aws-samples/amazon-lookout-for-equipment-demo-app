@@ -388,38 +388,6 @@ function LabelsManagement({ componentHeight, readOnly }) {
                         />
                     </FormField> }
 
-                    { selectedOption.value === "NewGroup" && !readOnly && <FormField
-                        description="Give a name to your label group"
-                        label="Label group name"
-                        constraintText={invalidNameErrorMessage !== "" ? invalidNameErrorMessage : ""}
-                        info={
-                            <Link variant="info" onFollow={() => setHelpPanelOpen({
-                                status: true,
-                                page: 'labelling',
-                                section: 'labelGroupName'
-                            })}>Info</Link>
-                        }
-                        secondaryControl={
-                            <SpaceBetween size="s" direction="horizontal">
-                                <Button 
-                                    variant="primary" 
-                                    onClick={(e) => createLabelGroup(e)}
-                                    disabled={invalidNameErrorMessage !== ""}
-                                >Create group</Button>
-                            </SpaceBetween>
-                        }
-                    >
-                        <Input 
-                            onChange={({ detail }) => {
-                                checkLabelGroupNameErrors(detail.value)
-                                setLabelGroupName(detail.value)
-                            }}
-                            value={labelGroupName}
-                            placeholder="Enter a label group name"
-                            invalid={invalidNameErrorMessage !== ""}
-                        />
-                    </FormField> }
-
                     { !readOnly && <FormField 
                         label="Signal overview" 
                         description="Use the following plot to preview the selected labels on your actual signals. Use the
@@ -472,6 +440,43 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     >
                         <LabelsTable ref={labelsTableRef} labels={labels.current} noLabelDefined={noLabelDefined} />
                     </FormField>
+
+                    {/*******************************************************************
+                     * This section is only displayed when the component is NOT read only 
+                     *******************************************************************/ }
+                    { selectedOption.value === "NewGroup" && !readOnly && <FormField
+                        description={`After you've selected some labels in the plot above, you can gGive a name 
+                                      to your label group and save it. Note that you can't modify a label group
+                                      once created.`}
+                        label="Label group name"
+                        constraintText={invalidNameErrorMessage !== "" ? invalidNameErrorMessage : ""}
+                        info={
+                            <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                status: true,
+                                page: 'labelling',
+                                section: 'labelGroupName'
+                            })}>Info</Link>
+                        }
+                        secondaryControl={
+                            <SpaceBetween size="s" direction="horizontal">
+                                <Button 
+                                    variant="primary" 
+                                    onClick={(e) => createLabelGroup(e)}
+                                    disabled={invalidNameErrorMessage !== ""}
+                                >Create group</Button>
+                            </SpaceBetween>
+                        }
+                    >
+                        <Input 
+                            onChange={({ detail }) => {
+                                checkLabelGroupNameErrors(detail.value)
+                                setLabelGroupName(detail.value)
+                            }}
+                            value={labelGroupName}
+                            placeholder="Enter a label group name"
+                            invalid={invalidNameErrorMessage !== ""}
+                        />
+                    </FormField> }
                 </SpaceBetween>
             </>
         )

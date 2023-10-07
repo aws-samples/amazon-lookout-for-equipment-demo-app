@@ -109,7 +109,7 @@ function ReviewModelConfiguration({ errorMessage }) {
                             </p></TextContent>
                         </FormField>
 
-                        <FormField label="Training duration (90 days minimum)">
+                        <FormField label="Training duration (14 days minimum)">
                             <Input 
                                 value={`${trainingDuration} day${trainingDuration > 1 ? 's' : ''}`}
                                 invalid={trainingDuration >= 14 ? false : true}

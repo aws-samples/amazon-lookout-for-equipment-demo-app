@@ -7,9 +7,11 @@ import UnivariateSignalPlotPanel from './UnivariateSignalPlotPanel'
 
 // Cloudscape components:
 import Alert        from '@cloudscape-design/components/alert'
+import Box          from '@cloudscape-design/components/box'
 import Container    from '@cloudscape-design/components/container'
 import Grid         from '@cloudscape-design/components/grid'
 import Header       from '@cloudscape-design/components/header'
+import Icon         from '@cloudscape-design/components/icon'
 import Link         from '@cloudscape-design/components/link'
 import SpaceBetween from '@cloudscape-design/components/space-between'
 import Spinner      from '@cloudscape-design/components/spinner'
@@ -58,7 +60,7 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
                                    >Signal grading</Header>}>
                     
                     <SpaceBetween size="xl">
-                        { showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                        { !showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                             <p>
                                 Once your data is ingested, Amazon Lookout for Equipment will perform a <b>grading</b> of
                                 your individual sensor data with regards to their capability to be good quality signals
@@ -71,7 +73,15 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
                         </Alert> }
 
                         <Grid gridDefinition={[{ colspan: 8 }, { colspan: 4 }]}>
-                            <SignalTable cols={cols} allItems={items} selectedItems={selectedItems} changeSelectedItems={changeSelectedItems} />
+                            <Box>
+                                <Box>
+                                    You can select additional information you'd like to see about your signals (e.g. number 
+                                    of duplicates, number of missing values) by clicking the setting icon &nbsp;
+                                    <Icon name="settings" />&nbsp;
+                                    of the table below:
+                                </Box>
+                                <SignalTable cols={cols} allItems={items} selectedItems={selectedItems} changeSelectedItems={changeSelectedItems} />
+                            </Box>
 
                             <Container>
                                 <UnivariateSignalPlotPanel projectName={projectName} selectedItems={selectedItems} />

@@ -569,6 +569,8 @@ export async function waitForPipelineStart(gateway, uid, projectName) {
 // Find an available project name
 // ------------------------------
 export async function getAvailableDefaultProjectName(gateway, uid) {
+    if (!uid) { return undefined }
+
     const projectsList = await getAllProjects(gateway, uid)
 
     let defaultProjectName = "Demo-Project"
@@ -649,29 +651,35 @@ export async function isLatestVersion() {
 // --------------------------------------------------------------------
 async function getLatestReleaseInfo() {
     const octokit = new Octokit()
-      
-    try {
-        const response = await octokit.request('GET /repos/{owner}/{repo}/releases/latest', {
-            owner: 'aws-samples',
-            repo: 'amazon-lookout-for-equipment-demo-app',
-            headers: { 'X-GitHub-Api-Version': '2022-11-28' }
-        })
 
-        return {
-            latestVersion: response.data.tag_name.split('-')[0].slice(1),
-            releaseInfo: response.data.body,
-            publicationDate: new Date(response.data.published_at).toISOString().replace('T', ' ').substring(0, 19)
-        }
+    return {
+        latestVersion: '1.0.0',
+        releaseInfo: 'First publication',
+        publicationDate: '2023-10-13 09:00:00'
     }
-    catch (error) {
-        console.error('Error checking latest version:', error)
+      
+    // try {
+    //     const response = await octokit.request('GET /repos/{owner}/{repo}/releases/latest', {
+    //         owner: 'aws-samples',
+    //         repo: 'amazon-lookout-for-equipment-demo-app',
+    //         headers: { 'X-GitHub-Api-Version': '2022-11-28' }
+    //     })
+
+    //     return {
+    //         latestVersion: response.data.tag_name.split('-')[0].slice(1),
+    //         releaseInfo: response.data.body,
+    //         publicationDate: new Date(response.data.published_at).toISOString().replace('T', ' ').substring(0, 19)
+    //     }
+    // }
+    // catch (error) {
+    //     console.error('Error checking latest version:', error)
         
-        return {
-            latestVersion: false,
-            releaseInfo: undefined,
-            publicationDate: undefined
-        }
-    }
+    //     return {
+    //         latestVersion: false,
+    //         releaseInfo: undefined,
+    //         publicationDate: undefined
+    //     }
+    // }
 }
 
 // ---------------------------

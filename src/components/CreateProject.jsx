@@ -46,7 +46,7 @@ function CreateProject() {
     const [ dataset, setDataset ]                       = useState([])
     const [ progressPercent, setProgressPercent ]       = useState(0)
     const [ bytesTransferred, setBytesTransferred ]     = useState("0 bytes loaded")
-    const [ filename, setFilename ]                     = useState("")
+    const [ filename, setFilename ]                     = useState(undefined)
     const [ uploadInProgress, setUploadInProgress ]     = useState(false)
     const [ errorMessage, setErrorMessage ]             = useState(undefined)
     const [ showFlashbar, setShowFlashbar ]             = useState(false)
@@ -152,6 +152,7 @@ function CreateProject() {
     // ---------------------
     // Render the component:
     // ---------------------
+
     return (
         <AppLayout
             contentType="default"
@@ -275,16 +276,14 @@ function CreateProject() {
                                     </FormField>
 
                                     
-                                    { filename && 
-                                        <FormField>
-                                            <ProgressBar
-                                                value={progressPercent}
-                                                additionalInfo={bytesTransferred}
-                                                description={`Uploading ${filename}`}
-                                                label="File upload in progress"
-                                            />
-                                        </FormField>
-                                    }
+                                    { filename && <FormField>
+                                        <ProgressBar
+                                            value={progressPercent}
+                                            additionalInfo={bytesTransferred}
+                                            description={`Uploading ${filename}`}
+                                            label="File upload in progress"
+                                        />
+                                    </FormField> }
                                     
                                     { errorMessage && <Alert type="error">{errorMessage}</Alert> }
 

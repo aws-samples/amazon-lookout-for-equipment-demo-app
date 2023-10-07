@@ -44,8 +44,7 @@ CloudFormation will take a few minutes to create the resources described above o
 
 Once it is completed, you will see a green CREATE_COMPLETE message next to the name of the stack (on the left panel of the CloudFormation console), indicating that the deployment is completed.
 
-<a name="updatingTheApp"></a>
-### Updating the app
+### <a name="updatingTheApp"></a>Updating the app
 
 When a new release of this application is available in this repository, a notification will appear in the top menu bar of the app:
 

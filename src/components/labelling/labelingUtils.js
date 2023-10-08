@@ -41,6 +41,7 @@ export function redrawBrushes(eChartRef, labels) {
 
         if (labels.current.length > 0) {
             labels.current.forEach((label) => {
+                // First, create the area:
                 areasList.push({
                     brushType: 'lineX',
                     coordRange: [label['start'], label['end']],
@@ -95,7 +96,7 @@ export function onBrushEndEvent(e, labels, labelsTableRef, storedRanges, eChartR
         const storedRangeEnd = storedRanges.current[index].coordRange[1]
 
         // The current area is not null and it has different coordinates: this 
-        // looks like an update range, we update its record in storedRanges:
+        // looks like an updated range, we update its record in storedRanges:
         if (start != end && (start != storedRangeStart || end != storedRangeEnd)) {
             storedRanges.current[index] = area
         }

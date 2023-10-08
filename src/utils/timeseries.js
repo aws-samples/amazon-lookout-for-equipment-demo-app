@@ -110,7 +110,7 @@ export function buildChartOptions(
 ) {
     const series = []
 
-    if (existingMarkers) {
+    if (existingMarkers && false) {
         let data = []
 
         existingMarkers.forEach((marker) => {
@@ -125,9 +125,11 @@ export function buildChartOptions(
             xAxisIndex: 0,
             markArea: {
                 itemStyle: {  
-                    color: 'rgba(151, 181, 82, 0.3)',
+                    // color: 'rgba(151, 181, 82, 0.3)',
+                    color: 'rgba(0, 0, 128, 0.5)',
                     borderColor: 'rgba(151, 181, 82, 1.0)',
-                    borderWidth: 1.0
+                    borderWidth: 0.0
+                    // borderWidth: 1.0
                 },
                 data: data,
                 lineStyle: { width: 0 },
@@ -231,7 +233,8 @@ export function buildChartOptions(
             brushMode: 'multiple',
             brushStyle: {
                 color: 'rgba(151, 181, 82, 0.2)',
-                borderColor: 'rgba(151, 181, 82, 0.7)'
+                borderColor: 'rgba(151, 181, 82, 1.0)',
+                borderWidth: 1.0
             }
         }
 

@@ -6,6 +6,7 @@ import ReactEcharts from "echarts-for-react"
 // Application components:
 import LabelsTable from "./LabelsTable"
 import DeleteLabelGroupModal from "./DeleteLabelGroupModal"
+import UpdateLabelGroupModal from "./UpdateLabelGroupModal"
 
 // Cloudscape components:
 import Alert        from "@cloudscape-design/components/alert"
@@ -53,15 +54,17 @@ function LabelsManagement({ componentHeight, readOnly }) {
     // Define component state:
     const labelsTableRef = useRef(undefined)
     const eChartRef = useRef(null)
-    const [ labelGroupName, setLabelGroupName ]                      = useState(!selectedLabelGroupName.current ? "" : selectedLabelGroupName.current)
-    const [ groupLabelOptions, setGroupLabelOptions ]                = useState([{}])
-    const [ deleteButtonDisabled, setDeleteButtonDisabled]           = useState(!selectedLabelGroupName.current ? true : false)
-    const [ showDeleteLabelGroupModal, setShowDeleteLabelGroupModal] = useState(false)
-    const [ errorMessage, setErrorMessage ]                          = useState("")
-    const [ invalidName, setInvalidName ]                            = useState(false)
-    const [ invalidNameErrorMessage, setInvalidNameErrorMessage ]    = useState("")
-    const [ noLabelDefined, setNoLabelDefined ]                      = useState(false)
-    const [ showUserGuide, setShowUserGuide ]                        = useState(true)
+    const [ labelGroupName, setLabelGroupName ]                       = useState(!selectedLabelGroupName.current ? "" : selectedLabelGroupName.current)
+    const [ groupLabelOptions, setGroupLabelOptions ]                 = useState([{}])
+    const [ deleteButtonDisabled, setDeleteButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
+    const [ updateButtonDisabled, setUpdateButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
+    const [ showDeleteLabelGroupModal, setShowDeleteLabelGroupModal ] = useState(false)
+    const [ showUpdateLabelGroupModal, setShowUpdateLabelGroupModal ] = useState(false)
+    const [ errorMessage, setErrorMessage ]                           = useState("")
+    const [ invalidName, setInvalidName ]                             = useState(false)
+    const [ invalidNameErrorMessage, setInvalidNameErrorMessage ]     = useState("")
+    const [ noLabelDefined, setNoLabelDefined ]                       = useState(false)
+    const [ showUserGuide, setShowUserGuide ]                         = useState(true)
     const [ selectedOption, setSelectedOption] = useState(
         !selectedLabelGroupName.current 
         ? {label: emptyGroupName, value: 'NewGroup'} 
@@ -96,17 +99,18 @@ function LabelsManagement({ componentHeight, readOnly }) {
         const option = buildChartOptions(
             tagsList, 
             timeseriesData, 
-            0,                          // initialZoomStart
-            100,                        // initialZoomEnd
-            true,                       // showLegend, 
-            true,                       // showToolbox, 
-            getLegendWidth(tagsList),   // Width in pixels of the legend
-            true,                       // enableBrush
-            false,                      // customDatazoomColor
-            readOnly,                   // readOnly
-            5,                          // showTopN,
-            selectedOption.value !== "NewGroup",
-            labels.current
+            0,                                      // initialZoomStart
+            100,                                    // initialZoomEnd
+            true,                                   // showLegend, 
+            true,                                   // showToolbox, 
+            getLegendWidth(tagsList),               // Width in pixels of the legend
+            true,                                   // enableBrush
+            false,                                  // customDatazoomColor
+            readOnly,                               // readOnly
+            5,                                      // showTopN,
+            false,
+            // selectedOption.value !== "NewGroup",    // frozenMarkers
+            labels.current                          // existingMarkers
         )
 
         const modelTrainingLink = <Link 
@@ -125,13 +129,17 @@ function LabelsManagement({ componentHeight, readOnly }) {
 
             if (currentLabelGroupName === 'NewGroup') {
                 labels.current = []
+                storedRanges.current = []
                 setLabelGroupName("")
                 selectedLabelGroupName.current = ""
                 selectedLabelGroupValue.current = undefined
                 setDeleteButtonDisabled(true)
+                setUpdateButtonDisabled(true)
             }
             else {
-                const response = await gateway.lookoutEquipment.listLabels(currentLabelGroupName)
+                const response = await gateway.lookoutEquipment
+                                              .listLabels(currentLabelGroupName)
+                                              .catch((error) => console.log(error.response))
 
                 if (response['LabelSummaries'].length > 0) {
                     let currentRanges = []
@@ -143,6 +151,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     })
 
                     setDeleteButtonDisabled(false)
+                    setUpdateButtonDisabled(false)
                     labels.current = currentRanges
                 }
 
@@ -153,7 +162,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
             }
 
             labelsTableRef.current.updateTable(labels.current)
-            if (!readOnly) { redrawBrushes(eChartRef, labels) }
+            if (!readOnly) { redrawBrushes(eChartRef, labels, storedRanges) }
         }
 
         // -------------------------------------------------
@@ -252,9 +261,60 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     setGroupLabelOptions(labelGroupOptions)
                     setSelectedOption({label: labelGroupName, value: uid + '-' + projectName + '-' + labelGroupName})
                     setDeleteButtonDisabled(false)
+                    setUpdateButtonDisabled(false)
                     selectedLabelGroupName.current = labelGroupName
                     selectedLabelGroupValue.current = uid + '-' + projectName + '-' + labelGroupName
                 }
+            }
+        }
+
+        // ----------------------------------------------------------------
+        // This function updates an existing label group. We delete all the
+        // labels from the current label group and recreate all of them
+        // ----------------------------------------------------------------
+        const updateLabelGroup = async (e) => {
+            // First we delete all the existing labels from this label group:
+            deleteAllLabels()
+
+            // Then we loop through all the latest labels defined by the user
+            // and we attach them to the current label group:
+            labels.current.forEach(async (label) => {
+                const labelRequest = {
+                    LabelGroupName: selectedLabelGroupValue.current,
+                    StartTime: new Date(label['start']).getTime() / 1000,
+                    EndTime: new Date(label['end']).getTime() / 1000,
+                    Rating: 'ANOMALY'
+                }
+
+                await gateway.lookoutEquipment
+                             .createLabel(labelRequest)
+                             .catch((error) => { console.log(error.response) })
+
+                // Wait to prevent label creation throttling:
+                await new Promise(r => setTimeout(r, 400))
+            })
+
+            // Dismiss the dialog box:
+            setShowUpdateLabelGroupModal(false)
+        }
+
+        // --------------------------------------------------------------
+        // This functions deletes all the labels from a given label group
+        // --------------------------------------------------------------
+        async function deleteAllLabels() {
+            const response = await gateway.lookoutEquipment
+                                    .listLabels(selectedLabelGroupValue.current)
+                                    .catch((error) => console.log(error.response))
+
+            if (response['LabelSummaries'].length > 0) {
+                response['LabelSummaries'].forEach(async (label) => {
+                    await gateway.lookoutEquipment
+                                 .deleteLabel(selectedLabelGroupValue.current, label.LabelId)
+                                 .catch((error) => console.log(error.response))
+
+                    // Wait to prevent label deletion throttling:
+                    await new Promise(r => setTimeout(r, 400))
+                })
             }
         }
 
@@ -275,12 +335,14 @@ function LabelsManagement({ componentHeight, readOnly }) {
             // Select the "NoLabel" option and clear the rest of the UI:
             setSelectedOption({label: emptyGroupName, value: 'NewGroup'})
             labels.current = []
+            storedRanges.current = []
             setLabelGroupName("")
             selectedLabelGroupName.current = ""
             selectedLabelGroupValue.current = undefined
             setDeleteButtonDisabled(true)
+            setUpdateButtonDisabled(true)
             labelsTableRef.current.updateTable(labels.current)
-            redrawBrushes(eChartRef, labels)
+            redrawBrushes(eChartRef, labels, storedRanges)
             setShowDeleteLabelGroupModal(false)
         }
 
@@ -293,6 +355,14 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     visible={showDeleteLabelGroupModal} 
                     onDiscard={() => { setShowDeleteLabelGroupModal(false) }} 
                     onDelete={async () => { await deleteLabelGroup() }}
+                    selectedLabelGroup={selectedOption ? selectedOption['value'].slice(uid.length + projectName.length + 2) : ""}
+                    internalLabelGroupName={selectedOption ? selectedOption['value'] : ""}
+                />
+
+                <UpdateLabelGroupModal 
+                    visible={showUpdateLabelGroupModal} 
+                    onDiscard={() => { setShowUpdateLabelGroupModal(false) }} 
+                    onUpdate={async () => { await updateLabelGroup() }}
                     selectedLabelGroup={selectedOption ? selectedOption['value'].slice(uid.length + projectName.length + 2) : ""}
                     internalLabelGroupName={selectedOption ? selectedOption['value'] : ""}
                 />
@@ -370,11 +440,16 @@ function LabelsManagement({ componentHeight, readOnly }) {
                                     section: 'selectLabelGroup'
                                 })}>Info</Link>
                             }
-                            secondaryControl={
-                                <Button disabled={deleteButtonDisabled} 
-                                        onClick={() => { setShowDeleteLabelGroupModal(true) }}>
-                                    Delete group
-                                </Button>
+                            secondaryControl={<SpaceBetween size="xs" direction="horizontal">
+                                    <Button disabled={deleteButtonDisabled} 
+                                            onClick={() => { setShowDeleteLabelGroupModal(true) }}>
+                                        Delete group
+                                    </Button>
+                                    <Button disabled={updateButtonDisabled} 
+                                            onClick={() => { setShowUpdateLabelGroupModal(true) }}>
+                                        Update group
+                                    </Button>
+                                </SpaceBetween>
                             }
                     >
                         <Select

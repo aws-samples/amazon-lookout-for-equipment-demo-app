@@ -191,6 +191,12 @@ export const ApiGatewayProvider = ({user, children}) => {
             },
             deleteLabelGroup(labelGroupName) {
                 return request("LookoutEquipment", "DeleteLabelGroup", {LabelGroupName: labelGroupName})
+            },
+            deleteLabel(labelGroupName, labelId) {
+                return request("LookoutEquipment", "DeleteLabel", {
+                    LabelGroupName: labelGroupName,
+                    LabelId: labelId
+                })
             }
         },
 

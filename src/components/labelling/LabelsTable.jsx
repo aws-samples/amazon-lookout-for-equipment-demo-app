@@ -11,7 +11,8 @@ import Table     from "@cloudscape-design/components/table"
 // Component main entry point
 // --------------------------
 const LabelsTable = forwardRef(function LabelsTable(props, ref) {
-    const [currentLabels, setCurrentLabels] = useState(props.labels)
+    const [ currentLabels, setCurrentLabels ] = useState(props.labels)
+    const [ selectedLabels, setSelectedLabels ] = useState([])
     const noLabelDefined = props.noLabelDefined
 
     // This function will allow the parent component (MultivariateTimeSeriesChart)
@@ -28,7 +29,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     // Loops through all the item to build the table content:
     let items = []
     if (currentLabels && currentLabels.length > 0) {
-        currentLabels.forEach((label) => {
+        currentLabels.forEach((label, index) => {
             const duration = new Date(label['end']) - new Date(label['start'])
             const durationDays = parseInt(duration / 1000 / 86400)
             const daysUnit = durationDays > 1 ? 's' : ''
@@ -36,6 +37,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
 
             // Creates the new label entry:
             items.push({
+                name: `label_${index}`,
                 startDate: new Date(label['start']).toISOString().substring(0, 19).replace('T', ' '),
                 endDate: new Date(label['end']).toISOString().substring(0, 19).replace('T', ' '),
                 duration: `${durationDays} day${daysUnit} ${durationTime}`,
@@ -61,6 +63,14 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 variant="embedded"
                 contentDensity="compact"
                 stripedRows={true}
+                
+                selectionType="multi"
+                onSelectionChange={({ detail }) =>
+                    setSelectedLabels(detail.selectedItems)
+                }
+                selectedItems={selectedLabels}
+                trackBy="name"
+
                 columnDefinitions={[
                     { id: "startDate", header: "Label start date", cell: e => <Box textAlign="right">{e.startDate}</Box> },
                     { id: "endDate", header: "Label end date", cell: e => <Box textAlign="right">{e.endDate}</Box> },

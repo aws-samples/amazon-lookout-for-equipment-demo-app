@@ -1683,6 +1683,7 @@ Resources:
             - lookoutequipment:ListLabelGroups
             - lookoutequipment:ListLabels
             - lookoutequipment:DeleteLabelGroup
+            - lookoutequipment:DeleteLabel
             Effect: Allow
             Resource: '*'
       # The authenticated user needs the following permissions to interact with

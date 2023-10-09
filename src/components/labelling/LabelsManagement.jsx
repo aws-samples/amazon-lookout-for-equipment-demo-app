@@ -11,6 +11,7 @@ import UpdateLabelGroupModal from "./UpdateLabelGroupModal"
 // Cloudscape components:
 import Alert        from "@cloudscape-design/components/alert"
 import Button       from "@cloudscape-design/components/button"
+import Flashbar     from "@cloudscape-design/components/flashbar"
 import FormField    from '@cloudscape-design/components/form-field'
 import Input        from "@cloudscape-design/components/input"
 import Link         from "@cloudscape-design/components/link"
@@ -65,6 +66,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
     const [ invalidNameErrorMessage, setInvalidNameErrorMessage ]     = useState("")
     const [ noLabelDefined, setNoLabelDefined ]                       = useState(false)
     const [ showUserGuide, setShowUserGuide ]                         = useState(true)
+    const [ showUpdateSuccess, setShowUpdateSuccess ]                 = useState(false)
+    const [ flashbarItems, setFlashbarItems ]                         = useState([])
     const [ selectedOption, setSelectedOption] = useState(
         !selectedLabelGroupName.current 
         ? {label: emptyGroupName, value: 'NewGroup'} 
@@ -126,10 +129,10 @@ function LabelsManagement({ componentHeight, readOnly }) {
         async function getLabels(selectedLabelGroup) {
             let currentLabelGroupName = selectedLabelGroup['value']
             selectedLabelGroupValue.current = selectedLabelGroup['value']
+            labels.current = []
+            storedRanges.current = []
 
             if (currentLabelGroupName === 'NewGroup') {
-                labels.current = []
-                storedRanges.current = []
                 setLabelGroupName("")
                 selectedLabelGroupName.current = ""
                 selectedLabelGroupValue.current = undefined
@@ -142,17 +145,22 @@ function LabelsManagement({ componentHeight, readOnly }) {
                                               .catch((error) => console.log(error.response))
 
                 if (response['LabelSummaries'].length > 0) {
-                    let currentRanges = []
+                    // let currentRanges = []
                     response['LabelSummaries'].forEach((label) => {
-                        currentRanges.push({
+                        labels.current.push({
                             start: new Date(label['StartTime'] * 1000),
                             end: new Date(label['EndTime'] * 1000)
+                        })
+
+                        storedRanges.current.push({
+                            brushType: 'lineX',
+                            coordRange: [label['StartTime'] * 1000, label['EndTime'] * 1000],
+                            coordRanges: [[label['StartTime'] * 1000, label['EndTime'] * 1000]]
                         })
                     })
 
                     setDeleteButtonDisabled(false)
                     setUpdateButtonDisabled(false)
-                    labels.current = currentRanges
                 }
 
                 // selectedLabelGroupValue.current = currentLabelGroupName
@@ -296,6 +304,14 @@ function LabelsManagement({ componentHeight, readOnly }) {
 
             // Dismiss the dialog box:
             setShowUpdateLabelGroupModal(false)
+            setShowUpdateSuccess(true)
+            setFlashbarItems([{
+                type: "success",
+                content: `Label group ${selectedLabelGroupValue.current.slice(uid.length + 1 + projectName.length + 1)} was updated`,
+                dismissible: true,
+                dismissLabel: "Dismiss message",
+                onDismiss: () => setFlashbarItems([])
+            }])
         }
 
         // --------------------------------------------------------------
@@ -337,13 +353,22 @@ function LabelsManagement({ componentHeight, readOnly }) {
             labels.current = []
             storedRanges.current = []
             setLabelGroupName("")
-            selectedLabelGroupName.current = ""
-            selectedLabelGroupValue.current = undefined
             setDeleteButtonDisabled(true)
             setUpdateButtonDisabled(true)
             labelsTableRef.current.updateTable(labels.current)
             redrawBrushes(eChartRef, labels, storedRanges)
             setShowDeleteLabelGroupModal(false)
+
+            setFlashbarItems([{
+                type: "success",
+                content: `Label group ${selectedLabelGroupValue.current.slice(uid.length + 1 + projectName.length + 1)} was successfully deleted`,
+                dismissible: true,
+                dismissLabel: "Dismiss message",
+                onDismiss: () => setFlashbarItems([])
+            }])
+
+            selectedLabelGroupName.current = ""
+            selectedLabelGroupValue.current = undefined
         }
 
         // ----------------------
@@ -368,6 +393,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
                 />
 
                 <SpaceBetween size="xl">
+                    <Flashbar items={flashbarItems} />
+
                     { errorMessage !== "" && <Alert type="error">{errorMessage}</Alert> }
 
                     { !readOnly && showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
@@ -501,19 +528,15 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     {/***********************************************************************************
                      * This section is always displayed whether the component is in read only mode or not
                      ***********************************************************************************/ }
-                    <FormField
-                        description="This table lists all the labels selected above"
-                        label="Labels list"
-                        info={
-                            <Link variant="info" onFollow={() => setHelpPanelOpen({
-                                status: true,
-                                page: 'labelling',
-                                section: 'labelsTable'
-                            })}>Info</Link>
-                        }
-                        stretch={true}
-                    >
-                        <LabelsTable ref={labelsTableRef} labels={labels.current} noLabelDefined={noLabelDefined} />
+                    <FormField stretch={true}>
+                        <LabelsTable 
+                            ref={labelsTableRef} 
+                            labels={labels} 
+                            noLabelDefined={noLabelDefined} 
+                            redrawBrushes={redrawBrushes} 
+                            eChartRef={eChartRef} 
+                            labelsTableRef={labelsTableRef}
+                        />
                     </FormField>
 
                     {/*******************************************************************

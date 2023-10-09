@@ -1,11 +1,18 @@
 // Imports
-import { forwardRef, useImperativeHandle, useState } from 'react'
+import { forwardRef, useContext, useImperativeHandle, useState } from 'react'
 
 // Cloudscape component
-import Alert     from "@cloudscape-design/components/alert"
-import Box       from "@cloudscape-design/components/box"
-import FormField from "@cloudscape-design/components/form-field"
-import Table     from "@cloudscape-design/components/table"
+import Alert        from "@cloudscape-design/components/alert"
+import Box          from "@cloudscape-design/components/box"
+import Button       from "@cloudscape-design/components/button"
+import FormField    from '@cloudscape-design/components/form-field'
+import Header       from "@cloudscape-design/components/header"
+import Link         from "@cloudscape-design/components/link"
+import SpaceBetween from "@cloudscape-design/components/space-between"
+import Table        from "@cloudscape-design/components/table"
+
+// Contexts:
+import HelpPanelContext from '../contexts/HelpPanelContext'
 
 // --------------------------
 // Component main entry point
@@ -13,7 +20,13 @@ import Table     from "@cloudscape-design/components/table"
 const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     const [ currentLabels, setCurrentLabels ] = useState(props.labels)
     const [ selectedLabels, setSelectedLabels ] = useState([])
+    const { setHelpPanelOpen } = useContext(HelpPanelContext)
+
     const noLabelDefined = props.noLabelDefined
+    const labels         = props.labels
+    const redrawBrushes  = props.redrawBrushes
+    const eChartRef      = props.eChartRef
+    const labelsTableRef = props.labelsTableRef
 
     // This function will allow the parent component (MultivariateTimeSeriesChart)
     // to trigger the update of the label table when the user brushes a new area
@@ -30,7 +43,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     let items = []
     if (currentLabels && currentLabels.length > 0) {
         currentLabels.forEach((label, index) => {
-            const duration = new Date(label['end']) - new Date(label['start'])
+            const duration = new Date(label.end) - new Date(label.start)
             const durationDays = parseInt(duration / 1000 / 86400)
             const daysUnit = durationDays > 1 ? 's' : ''
             const durationTime = new Date(duration).toISOString().substring(11, 19)
@@ -38,8 +51,10 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
             // Creates the new label entry:
             items.push({
                 name: `label_${index}`,
-                startDate: new Date(label['start']).toISOString().substring(0, 19).replace('T', ' '),
-                endDate: new Date(label['end']).toISOString().substring(0, 19).replace('T', ' '),
+                startDate: new Date(label.start).toISOString().substring(0, 19).replace('T', ' '),
+                endDate: new Date(label.end).toISOString().substring(0, 19).replace('T', ' '),
+                start: label.start,
+                end: label.end,
                 duration: `${durationDays} day${daysUnit} ${durationTime}`,
                 faultCode: "Fault code",
                 notes: "Notes",
@@ -56,42 +71,84 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
         noLabelText = (<b>No labels defined</b>)
     }
 
+    function deleteSelectedLabels(e) {
+        e.preventDefault()
+        let newLabels = []
+        let labelsToDelete = []
+        selectedLabels.forEach((label) => {
+            labelsToDelete.push(parseInt(label.name.split('_')[1]))
+        })
+
+        labels.current.forEach((label, index) => {
+            if (labelsToDelete.indexOf(index) == -1) {
+                newLabels.push(label)
+            }
+        })
+
+        labels.current = newLabels
+        redrawBrushes(eChartRef, labels)
+        labelsTableRef.current.updateTable(labels.current)
+        setSelectedLabels([])
+    }
+
     // Render the component:
     return (
-        <FormField stretch={true}>
-            <Table
-                variant="embedded"
-                contentDensity="compact"
-                stripedRows={true}
-                
-                selectionType="multi"
-                onSelectionChange={({ detail }) =>
-                    setSelectedLabels(detail.selectedItems)
-                }
-                selectedItems={selectedLabels}
-                trackBy="name"
+        <Table
+            variant="embedded"
+            contentDensity="compact"
+            stripedRows={true}
+            
+            selectionType="multi"
+            onSelectionChange={({ detail }) =>
+                setSelectedLabels(detail.selectedItems)
+            }
+            selectedItems={selectedLabels}
+            trackBy="name"
 
-                columnDefinitions={[
-                    { id: "startDate", header: "Label start date", cell: e => <Box textAlign="right">{e.startDate}</Box> },
-                    { id: "endDate", header: "Label end date", cell: e => <Box textAlign="right">{e.endDate}</Box> },
-                    { id: "duration", header: "Label duration", cell: e => <Box textAlign="right">{e.duration}</Box> }
-                ]}
-                items={items}
-                empty={
-                    <Box textAlign="center" color="inherit">
-                        {noLabelText}
-                        <Box
-                            padding={{ bottom: "s" }}
-                            variant="p"
-                            color="inherit"
+            header={
+                <Header
+                    variant="h4"
+                    description="This table lists all the labels selected above"
+                    info={
+                        <Link variant="info" onFollow={() => setHelpPanelOpen({
+                            status: true,
+                            page: 'labelling',
+                            section: 'labelsTable'
+                        })}>Info</Link>
+                    }
+                    actions={
+                        <Button
+                            disabled={selectedLabels.length == 0}
+                            onClick={(e) => deleteSelectedLabels(e)}
                         >
-                            No labels to display in this table. Use the <b>Labeling</b> option in the left hand menu bar to define
-                            historical events of interest (unplanned downtime, maintenance events...).
-                        </Box>
+                            Delete labels
+                        </Button>
+                    }
+                >
+                    Labels list
+                </Header>
+            }
+
+            columnDefinitions={[
+                { id: "startDate", header: "Label start date", cell: e => <Box textAlign="right">{e.startDate}</Box> },
+                { id: "endDate", header: "Label end date", cell: e => <Box textAlign="right">{e.endDate}</Box> },
+                { id: "duration", header: "Label duration", cell: e => <Box textAlign="right">{e.duration}</Box> }
+            ]}
+            items={items}
+            empty={
+                <Box textAlign="center" color="inherit">
+                    {noLabelText}
+                    <Box
+                        padding={{ bottom: "s" }}
+                        variant="p"
+                        color="inherit"
+                    >
+                        No labels to display in this table. Use the <b>Labeling</b> option in the left hand menu bar to define
+                        historical events of interest (unplanned downtime, maintenance events...).
                     </Box>
-                }
-            />
-        </FormField>
+                </Box>
+            }
+        />
     )
 }, [])
 

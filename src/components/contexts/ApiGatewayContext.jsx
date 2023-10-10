@@ -159,7 +159,7 @@ export const ApiGatewayProvider = ({user, children}) => {
                 requestArg['ClientToken'] = uuidv4()
                 requestArg['Tags'] = [
                     {"Key": "Source", "Value": "L4EDemoApp"},
-                    {"Key": "AppVersion", "Value": "1.0.0"}
+                    {"Key": "AppVersion", "Value": window.version}
                 ]
 
                 return request("LookoutEquipment", "CreateLabelGroup", requestArg)
@@ -169,7 +169,7 @@ export const ApiGatewayProvider = ({user, children}) => {
                 requestArg['ClientToken'] = uuidv4()
                 requestArg['Tags'] = [
                     {"Key": "Source", "Value": "L4EDemoApp"},
-                    {"Key": "AppVersion", "Value": "1.0.0"}
+                    {"Key": "AppVersion", "Value": window.version}
                 ]
 
                 return request("LookoutEquipment", "CreateLabel", requestArg)

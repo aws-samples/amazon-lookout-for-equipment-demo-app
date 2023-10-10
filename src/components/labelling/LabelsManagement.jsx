@@ -1,12 +1,13 @@
 // Imports
-import { useRef, useCallback, useContext, useState, useEffect } from 'react'
+import { useContext, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import ReactEcharts from "echarts-for-react"
 
 // Application components:
-import LabelsTable from "./LabelsTable"
+import LabelsTable           from "./LabelsTable"
 import DeleteLabelGroupModal from "./DeleteLabelGroupModal"
 import UpdateLabelGroupModal from "./UpdateLabelGroupModal"
+import LabelGroupSelect      from "./LabelGroupSelect"
+import LabelingChart         from "./LabelingChart"
 
 // Cloudscape components:
 import Alert        from "@cloudscape-design/components/alert"
@@ -15,7 +16,6 @@ import Flashbar     from "@cloudscape-design/components/flashbar"
 import FormField    from '@cloudscape-design/components/form-field'
 import Input        from "@cloudscape-design/components/input"
 import Link         from "@cloudscape-design/components/link"
-import Select       from "@cloudscape-design/components/select"
 import SpaceBetween from "@cloudscape-design/components/space-between"
 
 // Contexts:
@@ -23,44 +23,44 @@ import TimeSeriesContext      from '../contexts/TimeSeriesContext'
 import ModelParametersContext from '../contexts/ModelParametersContext'
 import ApiGatewayContext      from '../contexts/ApiGatewayContext'
 import HelpPanelContext       from '../contexts/HelpPanelContext'
+import LabelingContext        from '../contexts/LabelingContext'
 
 // Utils:
 import "../../styles/chartThemeMacarons.js"
-import { getLegendWidth, checkLabelGroupNameAvailability } from '../../utils/utils.js'
-import { buildChartOptions } from '../../utils/timeseries.js'
-import { 
-    redrawBrushes,
-    onBrushEndEvent,
-    onClear,
-    getLabelGroups,
-} from './labelingUtils.js'
+import { checkLabelGroupNameAvailability } from '../../utils/utils.js'
+import { redrawBrushes, onBrushEndEvent, onClear, getLabelGroups } from './labelingUtils.js'
 
 function LabelsManagement({ componentHeight, readOnly }) {
-    let emptyGroupName = 'No label'
-    if (!readOnly) {
-        emptyGroupName = 'Create a new group'
-    }
-
     // Load context variables:
+    const { 
+        showDeleteLabelGroupModal,
+        showUpdateLabelGroupModal,
+        selectedOption,
+        emptyGroupName,
+        groupLabelOptions,
+        eChartRef,
+        labelsTableRef,
+        storedRanges,
+        setDeleteButtonDisabled,
+        setShowDeleteLabelGroupModal,
+        setShowUpdateLabelGroupModal,
+        setUpdateButtonDisabled,
+        setSelectedOption,
+        setGroupLabelOptions,
+    } = useContext(LabelingContext)
+
     const { 
         labels, 
         selectedLabelGroupName, 
         selectedLabelGroupValue 
     } = useContext(ModelParametersContext)
-    const { data, tagsList, x, signals, timeseriesData } = useContext(TimeSeriesContext)
+    const { data } = useContext(TimeSeriesContext)
     const { gateway, uid, showHelp } = useContext(ApiGatewayContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { projectName } = useParams()
 
     // Define component state:
-    const labelsTableRef = useRef(undefined)
-    const eChartRef = useRef(null)
     const [ labelGroupName, setLabelGroupName ]                       = useState(!selectedLabelGroupName.current ? "" : selectedLabelGroupName.current)
-    const [ groupLabelOptions, setGroupLabelOptions ]                 = useState([{}])
-    const [ deleteButtonDisabled, setDeleteButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
-    const [ updateButtonDisabled, setUpdateButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
-    const [ showDeleteLabelGroupModal, setShowDeleteLabelGroupModal ] = useState(false)
-    const [ showUpdateLabelGroupModal, setShowUpdateLabelGroupModal ] = useState(false)
     const [ errorMessage, setErrorMessage ]                           = useState("")
     const [ invalidName, setInvalidName ]                             = useState(false)
     const [ invalidNameErrorMessage, setInvalidNameErrorMessage ]     = useState("")
@@ -68,19 +68,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
     const [ showUserGuide, setShowUserGuide ]                         = useState(true)
     const [ showUpdateSuccess, setShowUpdateSuccess ]                 = useState(false)
     const [ flashbarItems, setFlashbarItems ]                         = useState([])
-    const [ selectedOption, setSelectedOption] = useState(
-        !selectedLabelGroupName.current 
-        ? {label: emptyGroupName, value: 'NewGroup'} 
-        : {label: selectedLabelGroupName.current, value: selectedLabelGroupValue.current}
-    )
-    const storedRanges = useRef([])
 
     if (!componentHeight) { componentHeight = 350 }
-
-    useEffect(() => {
-        getLabelGroups(gateway, uid, projectName, emptyGroupName)
-        .then((x) => setGroupLabelOptions(x))
-    }, [gateway, projectName])
 
     // ----------------------------------------------------------
     // Shows an information message if the data is not loaded yet
@@ -99,23 +88,6 @@ function LabelsManagement({ componentHeight, readOnly }) {
     // Once the data is loaded, we can display the component:
     // ------------------------------------------------------
     else if (data) {
-        const option = buildChartOptions(
-            tagsList, 
-            timeseriesData, 
-            0,                                      // initialZoomStart
-            100,                                    // initialZoomEnd
-            true,                                   // showLegend, 
-            true,                                   // showToolbox, 
-            getLegendWidth(tagsList),               // Width in pixels of the legend
-            true,                                   // enableBrush
-            false,                                  // customDatazoomColor
-            readOnly,                               // readOnly
-            5,                                      // showTopN,
-            false,
-            // selectedOption.value !== "NewGroup",    // frozenMarkers
-            labels.current                          // existingMarkers
-        )
-
         const modelTrainingLink = <Link 
             href={`/model-training/ProjectName/${projectName}`}
             onFollow={(e) => { 
@@ -141,11 +113,10 @@ function LabelsManagement({ componentHeight, readOnly }) {
             }
             else {
                 const response = await gateway.lookoutEquipment
-                                              .listLabels(currentLabelGroupName)
-                                              .catch((error) => console.log(error.response))
+                                                .listLabels(currentLabelGroupName)
+                                                .catch((error) => console.log(error.response))
 
                 if (response['LabelSummaries'].length > 0) {
-                    // let currentRanges = []
                     response['LabelSummaries'].forEach((label) => {
                         labels.current.push({
                             start: new Date(label['StartTime'] * 1000),
@@ -417,113 +388,48 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     {/***************************************************************
                      * This section is only displayed when the component is read only 
                      ***************************************************************/ }
-                    { readOnly && <FormField 
-                        label="Select a label group (optional)" 
-                        description="You can load a group of labels previously defined using the following drop down."
-                        info={
-                            <Link variant="info" onFollow={() => setHelpPanelOpen({
-                                status: true,
-                                page: 'labelling',
-                                section: 'selectLabelGroupReadOnly'
-                            })}>Info</Link>
-                        }
-                    >
-                        <Select
-                            selectedOption={selectedOption}
-                            onChange={({ detail }) => {
-                                setSelectedOption(detail.selectedOption)
-                                getLabels(detail.selectedOption)
-                            }}
-                            options={groupLabelOptions}
-                            placeholder="Select an existing group to load the associated labels"
+                    { readOnly && 
+                        <LabelGroupSelect
+                            formLabel="Select a label group (optional)"
+                            formDescription="You can load a group of labels previously defined using the following drop down."
+                            showSecondaryControl={false}
+                            getLabels={getLabels} />
+                    }
+
+                    { readOnly && labels.current && labels.current.length > 0 &&
+                        <LabelingChart 
+                            chartLabel="Signal overview"
+                            chartDescription="Use the following plot to preview the selected labels on your actual signals"
+                            componentHeight={componentHeight} 
+                            interactive={false}
                         />
-                    </FormField> }
-
-                    { readOnly && labels.current && labels.current.length > 0 && <FormField 
-                        label="Signal overview" 
-                        description="Use the following plot to preview the selected labels on your actual signals"
-                        stretch={true}>
-
-                        <ReactEcharts 
-                            option={option}
-                            theme="macarons"
-                            style={{ height: componentHeight, width: "100%" }}
-                            ref={eChartRef}
-                        />
-
-                    </FormField> }
+                    }
 
                     {/*******************************************************************
                      * This section is only displayed when the component is NOT read only 
                      *******************************************************************/ }
-                    { !readOnly && groupLabelOptions.length > 1 && <FormField 
-                            label="Select an existing label group" 
-                            description="Using this drop down, you can load a group of labels previously 
-                                         defined to visualize them over your time series."
-                            info={
-                                <Link variant="info" onFollow={() => setHelpPanelOpen({
-                                    status: true,
-                                    page: 'labelling',
-                                    section: 'selectLabelGroup'
-                                })}>Info</Link>
-                            }
-                            secondaryControl={<SpaceBetween size="xs" direction="horizontal">
-                                    <Button disabled={deleteButtonDisabled} 
-                                            onClick={() => { setShowDeleteLabelGroupModal(true) }}>
-                                        Delete group
-                                    </Button>
-                                    <Button disabled={updateButtonDisabled} 
-                                            onClick={() => { setShowUpdateLabelGroupModal(true) }}>
-                                        Update group
-                                    </Button>
-                                </SpaceBetween>
-                            }
-                    >
-                        <Select
-                            selectedOption={selectedOption}
-                            onChange={({ detail }) => {
-                                setSelectedOption(detail.selectedOption)
-                                getLabels(detail.selectedOption)
-                            }}
-                            options={groupLabelOptions}
-                            placeholder="Select an existing group to load the associated labels"
+                    { !readOnly && groupLabelOptions.length > 1 && 
+                        <LabelGroupSelect
+                            formLabel="Select an existing label group"
+                            formDescription="Using this drop down, you can load a group of labels previously 
+                                             defined to visualize them over your time series."
+                            showSecondaryControl={true}
+                            getLabels={getLabels} />
+                    }
+
+                    { !readOnly && 
+                        <LabelingChart 
+                            chartLabel="Signal overview"
+                            chartDescription="Use the following plot to preview the selected labels on your actual signals. Use the
+                                              labels selection control (red icons) on the top right of the plot below to select time
+                                              ranges that will be used as labels for your model"
+                            componentHeight={componentHeight} 
+                            interactive={true}
+                            redrawBrushes={redrawBrushes}
+                            onBrushEndEvent={onBrushEndEvent}
+                            onClear={onClear}
                         />
-                    </FormField> }
-
-                    { !readOnly && <FormField 
-                        label="Signal overview" 
-                        description="Use the following plot to preview the selected labels on your actual signals. Use the
-                                    labels selection control (red icons) on the top right of the plot below to select time
-                                    ranges that will be used as labels for your model"
-                        info={
-                            <Link variant="info" onFollow={() => setHelpPanelOpen({
-                                status: true,
-                                page: 'labelling',
-                                section: 'signalOverview'
-                            })}>Info</Link>
-                        }
-                        stretch={true}>
-
-                        <ReactEcharts 
-                            option={option}
-                            theme="macarons"
-                            style={{ height: componentHeight, width: "100%" }}
-                            ref={eChartRef}
-                            onEvents={{
-                                'brushEnd': useCallback((e) => { onBrushEndEvent(e, labels, labelsTableRef, storedRanges, eChartRef) }, [labels]),
-                                'brush': useCallback((e) => {
-                                    onClear(e, eChartRef, labels, storedRanges)
-                                    if (e['command'] && e['command'] === 'clear') {
-                                        if (labelsTableRef && labelsTableRef.current) {
-                                            labelsTableRef.current.updateTable([])
-                                        }
-                                    }
-                                }, [labels])
-                            }}
-                            onChartReady={(e) => { redrawBrushes(eChartRef, labels) }}
-                        />
-
-                    </FormField> }
+                    }
 
                     {/***********************************************************************************
                      * This section is always displayed whether the component is in read only mode or not

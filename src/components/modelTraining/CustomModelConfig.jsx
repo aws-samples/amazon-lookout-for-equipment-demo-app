@@ -14,6 +14,7 @@ import LabelsManagement            from '../labelling/LabelsManagement'
 import ModelParametersContext from '../contexts/ModelParametersContext'
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
 import HelpPanelContext from '../contexts/HelpPanelContext'
+import { LabelingContextProvider } from '../contexts/LabelingContext'
 
 // CloudScape Components:
 import Link             from "@cloudscape-design/components/link"
@@ -94,7 +95,11 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
                           leverage to identify periods of time to discard from the normal operating
                           conditions of your process or asset. In addition, these labels will be
                           used to select the best model configuration for your dataset.`,
-            content: <LabelsManagement readOnly={true} />,
+            content: 
+                <LabelingContextProvider>
+                    <LabelsManagement readOnly={true} />
+                </LabelingContextProvider>
+            ,
             isOptional: true
         },
         {

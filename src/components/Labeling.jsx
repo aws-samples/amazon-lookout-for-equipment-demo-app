@@ -8,6 +8,7 @@ import LabelsManagement from './labelling/LabelsManagement'
 
 // Contexts:
 import { TimeSeriesProvider } from './contexts/TimeSeriesContext'
+import { LabelingContextProvider } from './contexts/LabelingContext'
 import { ModelParametersProvider } from './contexts/ModelParametersContext'
 import HelpPanelContext from './contexts/HelpPanelContext'
 
@@ -52,7 +53,9 @@ function Labeling() {
                     <ContentLayout header={<Header variant="h1">{projectName} labeling</Header>}>
                         <Container>
                             <TimeSeriesProvider projectName={projectName}>
-                                <LabelsManagement />
+                                <LabelingContextProvider>
+                                    <LabelsManagement />
+                                </LabelingContextProvider>
                             </TimeSeriesProvider>
                         </Container>
                     </ContentLayout>

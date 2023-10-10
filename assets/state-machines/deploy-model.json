@@ -169,7 +169,7 @@
                     },
                     {
                       "Key": "AppVersion",
-                      "Value": "1.0.0"
+                      "Value": "${l4e-demo-app-version}"
                     },
                     {
                       "Key": "Replay",

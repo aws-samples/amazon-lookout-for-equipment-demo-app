@@ -47,7 +47,7 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
             DataPreProcessingConfiguration: { TargetSamplingRate: modelConfig['samplingRate'] },
             Tags: [
                 {"Key": "Source", "Value": "L4EDemoApp"},
-                {"Key": "AppVersion", "Value": "1.0.0"},
+                {"Key": "AppVersion", "Value": window.version},
                 {"Key": "User", "Value": uid}
             ]
         }

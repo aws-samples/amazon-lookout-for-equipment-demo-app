@@ -141,7 +141,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
             }
 
             labelsTableRef.current.updateTable(labels.current)
-            if (!readOnly) { redrawBrushes(eChartRef, labels, storedRanges) }
+            redrawBrushes(eChartRef, labels)
         }
 
         // -------------------------------------------------
@@ -327,7 +327,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
             setDeleteButtonDisabled(true)
             setUpdateButtonDisabled(true)
             labelsTableRef.current.updateTable(labels.current)
-            redrawBrushes(eChartRef, labels, storedRanges)
+            redrawBrushes(eChartRef, labels)
             setShowDeleteLabelGroupModal(false)
 
             setFlashbarItems([{
@@ -401,6 +401,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                             chartLabel="Signal overview"
                             chartDescription="Use the following plot to preview the selected labels on your actual signals"
                             componentHeight={componentHeight} 
+                            redrawBrushes={redrawBrushes}
                             interactive={false}
                         />
                     }
@@ -442,6 +443,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                             redrawBrushes={redrawBrushes} 
                             eChartRef={eChartRef} 
                             labelsTableRef={labelsTableRef}
+                            readOnly={readOnly}
                         />
                     </FormField>
 

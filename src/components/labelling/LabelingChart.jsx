@@ -56,6 +56,7 @@ function LabelingChart({ chartLabel, chartDescription, componentHeight, redrawBr
                     theme="macarons"
                     style={{ height: componentHeight, width: "100%" }}
                     ref={eChartRef}
+                    onChartReady={(e) => { redrawBrushes(eChartRef, labels) }}
                 />
             }
 

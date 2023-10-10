@@ -27,6 +27,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     const redrawBrushes  = props.redrawBrushes
     const eChartRef      = props.eChartRef
     const labelsTableRef = props.labelsTableRef
+    const readOnly       = props.readOnly
 
     // This function will allow the parent component (MultivariateTimeSeriesChart)
     // to trigger the update of the label table when the user brushes a new area
@@ -91,20 +92,35 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
         setSelectedLabels([])
     }
 
+    let selectionParameters = {}
+    let actions = {}
+    if (!readOnly) {
+        selectionParameters = {
+            selectionType: "multi",
+            onSelectionChange: ({ detail }) => setSelectedLabels(detail.selectedItems),
+            selectedItems: selectedLabels,
+            trackBy: "name"
+        }
+
+        actions = {
+            actions: 
+                <Button
+                    disabled={selectedLabels.length == 0}
+                    onClick={(e) => deleteSelectedLabels(e)}
+                >
+                    Delete labels
+                </Button>
+        }
+    }
+
     // Render the component:
     return (
         <Table
+            {...selectionParameters}
+
             variant="embedded"
             contentDensity="compact"
             stripedRows={true}
-            
-            selectionType="multi"
-            onSelectionChange={({ detail }) =>
-                setSelectedLabels(detail.selectedItems)
-            }
-            selectedItems={selectedLabels}
-            trackBy="name"
-
             header={
                 <Header
                     variant="h4"
@@ -116,19 +132,11 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                             section: 'labelsTable'
                         })}>Info</Link>
                     }
-                    actions={
-                        <Button
-                            disabled={selectedLabels.length == 0}
-                            onClick={(e) => deleteSelectedLabels(e)}
-                        >
-                            Delete labels
-                        </Button>
-                    }
+                    {...actions}
                 >
                     Labels list
                 </Header>
             }
-
             columnDefinitions={[
                 { id: "startDate", header: "Label start date", cell: e => <Box textAlign="right">{e.startDate}</Box> },
                 { id: "endDate", header: "Label end date", cell: e => <Box textAlign="right">{e.endDate}</Box> },

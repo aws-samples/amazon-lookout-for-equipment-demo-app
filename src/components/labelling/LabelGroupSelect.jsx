@@ -12,7 +12,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between"
 import HelpPanelContext       from '../contexts/HelpPanelContext'
 import LabelingContext        from '../contexts/LabelingContext'
 
-function LabelGroupSelect({ formLabel, formDescription, showSecondaryControl }) {
+function LabelGroupSelect({ getLabels, formLabel, formDescription, showSecondaryControl }) {
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { 
         deleteButtonDisabled,
@@ -21,8 +21,7 @@ function LabelGroupSelect({ formLabel, formDescription, showSecondaryControl }) 
         groupLabelOptions,
         setShowDeleteLabelGroupModal,
         setShowUpdateLabelGroupModal,
-        setSelectedOption,
-        getLabels
+        setSelectedOption
     } = useContext(LabelingContext)
 
     let secondaryControl = (<></>)

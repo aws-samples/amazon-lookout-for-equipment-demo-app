@@ -259,6 +259,9 @@ export const ApiGatewayProvider = ({user, children}) => {
             query(query) {
                 return request("DynamoDB", "Query", query)
             },
+            scan(query) {
+                return request("DynamoDB", "Scan", query)
+            },
             async queryAll(query) {
                 let response = undefined
                 let overall_response = {Items: []}

@@ -124,7 +124,11 @@ export const TimeSeriesProvider = ({children, projectName}) => {
     // Context provider definition
     // ---------------------------
     // Loads the time series data
-    const { data, status } = useQuery(["timeseries", gateway, uid + '-' + projectName], fetchTimeseries)
+    const { data, status } = useQuery(
+        ["timeseries", gateway, uid + '-' + projectName], 
+        fetchTimeseries,
+        { staleTime: 30000 }
+    )
 
     if (status === 'success') {
         const tagsList = getTagsList()

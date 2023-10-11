@@ -17,9 +17,11 @@ def lambda_handler(event, context):
     asset = key.split('/')[-2]
 
     # Guessing the CSV delimiter:
-    data = s3_client.get_object(Bucket=bucket, Key=key, Range='bytes=0-4095')
+    data = s3_client.get_object(Bucket=bucket, Key=key, Range='bytes=0-10239')
     sniffer = csv.Sniffer()
-    delimiter = sniffer.sniff(data['Body'].read().decode('utf-8')).delimiter
+    data = data['Body'].read().decode('utf-8')
+    data = data.split('\n')[0]
+    delimiter = sniffer.sniff(data).delimiter
     print('Detected delimiter:', delimiter)
 
     # Reading the CSV file:

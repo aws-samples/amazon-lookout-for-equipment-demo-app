@@ -17,6 +17,7 @@ ddb_client = boto3.client('dynamodb')
 # ===================================================================
 def lambda_handler(event, context):
     print(event)
+    print('-----------------------------------------')
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
     modelName = key.split('/')[1]
@@ -28,6 +29,7 @@ def lambda_handler(event, context):
     # Inference output is in JSON lines, with last line being empty:
     inferenceData = s3_client.get_object(Bucket=bucket, Key=key)
     inferenceData = inferenceData['Body'].read().decode('utf-8')
+    
     for data in inferenceData.split('\n')[:-1]:
         data = json.loads(data)
     

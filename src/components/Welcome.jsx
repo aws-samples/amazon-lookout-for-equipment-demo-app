@@ -1,5 +1,4 @@
 // Imports:
-import { Link } from "react-router-dom"
 import NavigationBar from './NavigationBar'
 
 // Cloudscape components:
@@ -10,6 +9,7 @@ import Container         from "@cloudscape-design/components/container"
 import ContentLayout     from "@cloudscape-design/components/content-layout"
 import ExpandableSection from "@cloudscape-design/components/expandable-section"
 import Header            from "@cloudscape-design/components/header"
+import Link              from "@cloudscape-design/components/link"
 import SpaceBetween      from "@cloudscape-design/components/space-between"
 
 function Welcome() {
@@ -58,6 +58,25 @@ function Welcome() {
                                 is currently mandatory to train a relevant model. The recommended sampling rate should be in the range
                                 of <b>10 seconds</b> to <b>1 hour</b>. Once you are ready, click the button below to start your journey 
                                 and upload your data into a new project.
+                            </Box>
+
+                            <Box>
+                                You can choose your column names. We recommend using "Timestamp" as the name for the column with the 
+                                time series data.&nbsp;
+                                
+                                
+                                <Link 
+                                    href="https://docs.aws.amazon.com/lookout-for-equipment/latest/ug/formatting-data.html" 
+                                    target="_blank"
+                                    external={true}
+                                >
+                                    <b>Check the documentation</b>
+                                </Link>
+
+                                &nbsp;for the allowed formats of the timestamp column.
+                                You must have a double (numerical) as the data type for your sensor data. You can only train your model 
+                                on numeric data. The valid characters that you can use in the column names of the dataset are A-Z, a-z, 
+                                0-9, . (dot), _ (underscore) and - (hyphen).
                             </Box>
 
                             <Box float="right">

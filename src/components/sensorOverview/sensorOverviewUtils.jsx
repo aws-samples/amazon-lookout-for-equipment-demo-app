@@ -54,12 +54,19 @@ export function buildChartOptions(items, sensorName, zoomStart, zoomEnd) {
 // -------------------------------------------------------------------------------------
 // Builds the columns and items to be displayed in the signal grading table of this page
 // -------------------------------------------------------------------------------------
-export async function buildTableItems(gateway, projectName) {
-    const signalDetails = await getSignalDetails(gateway, projectName)
-
-    let tableItems = []
+export async function buildTableItems(gateway, uid, projectName) {
+    if (!uid) {
+        return {
+            signalDetails: undefined, 
+            tableColumns: undefined, 
+            tableItems: undefined
+        }
+    }
+    
+    const signalDetails = await getSignalDetails(gateway, `${uid}-${projectName}`)
 
     // Defining columns for the table:
+    let tableItems = []
     const tableColumns = [
         {id: "SensorName", header: "Sensor", cell: e => e.SensorName, sortingField: 'SensorName'},
         {id: "DataStartTime", header: "Start time", cell: e => e.DataStartTime, sortingField: 'DataStartTime'},

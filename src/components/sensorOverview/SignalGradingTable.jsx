@@ -36,7 +36,8 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
 
     useEffect(() => {
-        buildTableItems(gateway, uid + '-' + projectName)
+        setIsLoading(true)
+        buildTableItems(gateway, uid, projectName)
         .then(({signalDetails, tableColumns, tableItems}) => {
             setSignalDetails(signalDetails)
             setCols(tableColumns)

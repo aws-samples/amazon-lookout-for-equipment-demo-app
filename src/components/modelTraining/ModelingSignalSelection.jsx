@@ -116,7 +116,7 @@ function SignalSelectionCards({ cardItems, selectedItems, tagsList, trainingRang
                                     content: <ReactEcharts 
                                         option={e.chartOptions}
                                         theme="macarons"
-                                        style={{height: 200, width: 550}}
+                                        style={{height: 200, width: "100%"}}
                                         opts={{ renderer: 'svg' }}
                                     />
                                 },
@@ -127,7 +127,7 @@ function SignalSelectionCards({ cardItems, selectedItems, tagsList, trainingRang
                                         ranges={[{start: rangeEnd + 1, end: new Date(x[x.length-1]).getTime()}]} 
                                         sensorName={e.name}
                                         height={200}
-                                        width={550}
+                                        width={"100%"}
                                         hideTitle={true}
                                         hideAnimation={true}
                                         gridOptions={{top: 20, left: 50, right: 35, bottom: 45}}

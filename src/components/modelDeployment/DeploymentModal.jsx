@@ -36,6 +36,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     const [ replayDataChecked, setReplayDataChecked ] = useState(false);
     const [ replayStartDate, setReplayStartDate ] = useState(undefined)
     const [ replayDuration, setReplayDuration ] = useState({ label: "1 day", value: "1day" })
+    const [ invalidReplayStartDate, setInvalidReplayStartDate ] = useState(false)
 
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const { stateMachinesList, setStateMachinesList } = useContext(ModelDeploymentContext)
@@ -75,31 +76,36 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
             uid: uid
         }
 
-        // Start the state machine and gets its ARN:
-        let response = {}
-        await gateway.stepFunctions.startExecution(sfnArn, inputPayload)
-            .then((x) => response = x)
-            .catch((error) => console.log(error.response))
-        const executionArn = response['executionArn']
+        if (!replayStartDate) {
+            setInvalidReplayStartDate(true)
+        }
+        else {
+            // Start the state machine and gets its ARN:
+            let response = {}
+            await gateway.stepFunctions.startExecution(sfnArn, inputPayload)
+                .then((x) => response = x)
+                .catch((error) => console.log(error.response))
+            const executionArn = response['executionArn']
 
-        // Update the current state machine list in the model deployment context:
-        let currentStateMachinesList = stateMachinesList
-        currentStateMachinesList[modelName] = executionArn
-        setStateMachinesList(currentStateMachinesList)
+            // Update the current state machine list in the model deployment context:
+            let currentStateMachinesList = stateMachinesList
+            currentStateMachinesList[modelName] = executionArn
+            setStateMachinesList(currentStateMachinesList)
 
-        // Wait for the scheduler to be running to close the modal 
-        // window: replace the Deploy button by a Spinner while the 
-        // scheduler is not running. Also triggers a refresh of the
-        // initial models list component to update the scheduler status:
-        setDeployInProgress(true)
-        await checkSchedulerStatus(modelName)
+            // Wait for the scheduler to be running to close the modal 
+            // window: replace the Deploy button by a Spinner while the 
+            // scheduler is not running. Also triggers a refresh of the
+            // initial models list component to update the scheduler status:
+            setDeployInProgress(true)
+            await checkSchedulerStatus(modelName)
 
-        // This forces a refresh of the side bar navigation
-        // so we can see the new project name popping up:
-        setNavbarCounter(navbarCounter + 1)
-        onConfirm()
-        onDeployDismiss()
-        setDeployInProgress(false)
+            // This forces a refresh of the side bar navigation
+            // so we can see the new project name popping up:
+            setNavbarCounter(navbarCounter + 1)
+            onConfirm()
+            onDeployDismiss()
+            setDeployInProgress(false)
+        }
     }
 
     // ----------------------------------------
@@ -137,7 +143,11 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
                             <Button variant="link" onClick={onDeployDismiss}>
                                 Cancel
                             </Button>
-                            <Button variant="primary" onClick={ () => onDeployConfirm() } disabled={deployInProgress}>
+                            <Button 
+                                variant="primary" 
+                                onClick={ () => onDeployConfirm() } 
+                                disabled={deployInProgress}
+                            >
                                 {!deployInProgress ? 'Deploy' : <Spinner />}
                             </Button>
                         </SpaceBetween>
@@ -145,10 +155,15 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
                 }
             >
                 <SpaceBetween size="l">
+                    { invalidReplayStartDate && <Alert type="error">You must set a valid start date before deploying this model</Alert> }
+
                     <Container>
                         <SpaceBetween size="s">
                             <Checkbox
-                                onChange={({ detail }) => setReplayDataChecked(detail.checked)}
+                                onChange={({ detail }) => {
+                                    if (detail.checked) { setDeployInProgress(true) }
+                                    setReplayDataChecked(detail.checked) 
+                                }}
                                 checked={replayDataChecked}
                             >
                                 Generate replay data from historical data
@@ -159,28 +174,33 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
                                 data initially used to evaluate this model.
                             </Alert>
 
-                            <FormField label="Replay duration" description="How much replay data do you want to generate?">
-                                <Select
-                                    selectedOption={replayDuration}
-                                    onChange={({ detail }) =>setReplayDuration(detail.selectedOption) }
-                                    options={[
-                                        { label: "1 day", value: "1day" },
-                                        { label: "1 week", value: "1week" },
-                                        { label: "1 month", value: "1month" }
-                                    ]}
-                                    disabled={!replayDataChecked}
-                                />
-                            </FormField>
+                            { replayDataChecked && <>
 
-                            <StartDateSelection 
-                                projectName={projectName} 
-                                modelName={modelName} 
-                                gateway={gateway} 
-                                replayDuration={replayDuration['value']}
-                                disabled={!replayDataChecked}
-                                setParentReplayStartDate={setReplayStartDate}
-                                uid={uid}
-                            />
+                                <FormField label="Replay duration" description="How much replay data do you want to generate?">
+                                    <Select
+                                        selectedOption={replayDuration}
+                                        onChange={({ detail }) =>setReplayDuration(detail.selectedOption) }
+                                        options={[
+                                            { label: "1 day", value: "1day" },
+                                            { label: "1 week", value: "1week" },
+                                            { label: "1 month", value: "1month" }
+                                        ]}
+                                        disabled={!replayDataChecked}
+                                    />
+                                </FormField>
+
+                                <StartDateSelection 
+                                    projectName={projectName} 
+                                    modelName={modelName} 
+                                    gateway={gateway} 
+                                    replayDuration={replayDuration['value']}
+                                    disabled={!replayDataChecked}
+                                    setParentReplayStartDate={setReplayStartDate}
+                                    uid={uid}
+                                    setDeployInProgress={setDeployInProgress}
+                                />
+
+                            </>}
                         </SpaceBetween>
                     </Container>
 

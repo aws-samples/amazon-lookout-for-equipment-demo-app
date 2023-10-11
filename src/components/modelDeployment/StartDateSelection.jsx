@@ -4,25 +4,35 @@ import ReactEcharts from "echarts-for-react"
 import "../../styles/chartThemeMacarons.js"
 
 // Cloudscape components:
-import DatePicker from "@cloudscape-design/components/date-picker"
-import FormField  from "@cloudscape-design/components/form-field"
-import Spinner from "@cloudscape-design/components/spinner"
+import DatePicker   from "@cloudscape-design/components/date-picker"
+import FormField    from "@cloudscape-design/components/form-field"
+import Spinner      from "@cloudscape-design/components/spinner"
+import SpaceBetween from "@cloudscape-design/components/space-between"
 
 // Utils:
-import { getModelDetails } from '../../utils/dataExtraction'
+import { getModelAnomalies } from '../../utils/dataExtraction'
 import { buildTimeseries } from '../../utils/timeseries.js'
 import { getIndex } from '../../utils/utils'
 
 // ------------------------------------------------------
 // Replay data start date selection component entry point
 // ------------------------------------------------------
-function StartDateSelection({ projectName, modelName, gateway, replayDuration, disabled, setParentReplayStartDate, uid }) {
+function StartDateSelection({ 
+    projectName, 
+    modelName, 
+    gateway, 
+    replayDuration, 
+    disabled, 
+    setParentReplayStartDate, 
+    uid, 
+    setDeployInProgress
+}) {
     const [ replayStartDate, setReplayStartDate ] = useState(undefined)
     const [ modelDetails, setModelDetails ] = useState(undefined)
     let options = undefined
 
     useEffect(() => {
-        getModelDetails(gateway, modelName.slice(uid.length + 1 + projectName.length + 1), projectName, uid)
+        getModelAnomalies(gateway, modelName.slice(uid.length + 1 + projectName.length + 1), projectName, uid)
         .then((x) => {
             setModelDetails(x)
             setReplayStartDate(x['evaluationStart'])
@@ -41,6 +51,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
         // Send the replay start date back to the parent component (the 
         // modal window where the model deploymend is configured):
         setParentReplayStartDate(replayStartDate)
+        setDeployInProgress(false)
 
         // Computes the replay end index based on the
         // start date and the desired replay length:
@@ -63,7 +74,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
             grid: [{ left: 30, right: 30, top: 30, height: 30 }],
             xAxis: [{ type: 'category', data: results['x'], show: true, min: evaluationStartIndex }],
             yAxis: [{ show: false }],
-            dataZoom: { start: 0, end: 20, type: 'slider', height: 15, bottom: 10},
+            dataZoom: { start: 0, end: 100, type: 'slider', height: 15, bottom: 10},
             series: [{
                 symbol: 'none',
                 data: results['y'],
@@ -79,7 +90,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
                 markArea: {
                     itemStyle: { color: 'rgb(151, 181, 82, 0.3)' },
                     data: [[
-                        { name: 'Replay range', xAxis: replayStartIndex },
+                        { name: 'Replay\nrange', xAxis: replayStartIndex },
                         { xAxis: replayEndIndex }
                     ]]
                 }
@@ -97,7 +108,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
     // Renders the component:
     return (
         <FormField label="Replay start date" description="When do you want the replay data to start?">
-            { modelDetails && <>
+            { modelDetails && <SpaceBetween size="xs">
                     <DatePicker 
                         onChange={({ detail }) => setReplayStartDate(detail.value)}
                         value={replayStartDate}
@@ -110,7 +121,7 @@ function StartDateSelection({ projectName, modelName, gateway, replayDuration, d
                         theme="macarons"
                         style={{height: 120, width: "100%"}}
                     />
-                </>
+                </SpaceBetween>
             }
 
             { !modelDetails && <Spinner /> }

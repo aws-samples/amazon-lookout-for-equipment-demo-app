@@ -216,6 +216,32 @@ export async function getModelDetails(gateway, modelName, projectName, uid) {
     return response
 }
 
+// --------------------------------
+// Get trained model anomalies data
+// --------------------------------
+export async function getModelAnomalies(gateway, modelName, projectName, uid) {
+    if (!uid) { return undefined }
+    
+    const modelResponse = await gateway.lookoutEquipment
+                                       .describeModel(`${uid}-${projectName}-${modelName}`)
+                                       .catch((error) => console.log(error.response))
+
+    let response = {
+        evaluationStart: new Date(modelResponse['EvaluationDataStartTime']*1000).toISOString().replace('T', ' ').substring(0,19)
+    }
+
+    if (modelResponse['Status'] === 'SUCCESS') {
+        const modelEvaluationInfos = await getModelEvaluationInfos(gateway, modelName, projectName, modelResponse['EvaluationDataEndTime'], uid)
+        response['anomalies'] = modelEvaluationInfos['anomalies']
+    }
+
+    if (modelResponse['Status'] === 'FAILED') {
+        response['failedReason'] = modelResponse['FailedReason']
+    }
+
+    return response
+}
+
 // -------------------------------------------------
 // Builds the offCondition object based on the 
 // OffCondition string present in the model response

@@ -97,7 +97,7 @@ export const OfflineResultsProvider = ({ children }) => {
     // --------------------------------------
     // Renders the provider and its children:
     // --------------------------------------
-    if (modelDetails && modelDetails['status'] === 'IN_PROGRESS') {
+    if (!loading && modelDetails && modelDetails['status'] === 'IN_PROGRESS') {
         return (
             <Container header={<Header variant="h1">Model overview</Header>}>
                 <Alert>

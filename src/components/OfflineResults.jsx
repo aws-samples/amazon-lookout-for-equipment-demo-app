@@ -1,5 +1,5 @@
 // Imports:
-import { useContext } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
@@ -17,11 +17,28 @@ import Tabs             from "@cloudscape-design/components/tabs"
 
 // Contexts:
 import HelpPanelContext from './contexts/HelpPanelContext'
+import ApiGatewayContext from './contexts/ApiGatewayContext'
 import { OfflineResultsProvider } from './contexts/OfflineResultsContext'
+
+async function getModelStatus(gateway, uid, projectName, modelName) {
+    if (!uid) { return undefined }
+    const modelResponse = await gateway.lookoutEquipment
+                                       .describeModel(`${uid}-${projectName}-${modelName}`)
+                                       .catch((error) => console.log(error.response))
+
+    return modelResponse.Status
+}
 
 function OfflineResults() {
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
+    const { gateway, uid } = useContext(ApiGatewayContext)
     const { modelName, projectName } = useParams()
+    const [ modelStatus, setModelStatus ] = useState(undefined)
+
+    useEffect(() => {
+        getModelStatus(gateway, uid, projectName, modelName)
+        .then((x) => setModelStatus(x))
+    }, [gateway, projectName, modelName])
 
     return (
         <AppLayout
@@ -52,7 +69,7 @@ function OfflineResults() {
                         <SpaceBetween size='xl'>
                             <ModelOverview />
 
-                            <Tabs
+                            { modelStatus === 'SUCCESS' && <Tabs
                                 tabs={[
                                     {
                                         label: "Detected events",
@@ -65,7 +82,7 @@ function OfflineResults() {
                                         content: <SignalHistograms />
                                     }
                                 ]} 
-                            />
+                            /> }
                         </SpaceBetween>
                     </OfflineResultsProvider>
                 </ContentLayout>

@@ -13,9 +13,9 @@ import { ModelParametersProvider } from './contexts/ModelParametersContext'
 import HelpPanelContext from './contexts/HelpPanelContext'
 
 // CloudScape Components:
-import AppLayout     from "@cloudscape-design/components/app-layout"
-import ContentLayout from "@cloudscape-design/components/content-layout"
-import Header        from "@cloudscape-design/components/header"
+import AppLayout        from "@cloudscape-design/components/app-layout"
+import ContentLayout    from "@cloudscape-design/components/content-layout"
+import Header           from "@cloudscape-design/components/header"
 import SegmentedControl from "@cloudscape-design/components/segmented-control"
 
 // ---------------------

@@ -1,5 +1,5 @@
 // Imports:
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
@@ -22,6 +22,14 @@ function SensorOverview() {
     const { projectName } = useParams()
     const [ selectedItems, setSelectedItems ] = useState([])
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
+
+    useEffect(() => {
+        setHelpPanelOpen({
+            status: helpPanelOpen.status,
+            page: 'sensorOverview',
+            section: 'general'
+        })
+    }, [])
 
     const changeSelectedItems = (newSelection) => {
         setSelectedItems(newSelection)

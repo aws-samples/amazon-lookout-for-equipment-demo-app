@@ -36,6 +36,14 @@ function OfflineResults() {
     const [ modelStatus, setModelStatus ] = useState(undefined)
 
     useEffect(() => {
+        setHelpPanelOpen({
+            status: helpPanelOpen.status,
+            page: 'offlineResults',
+            section: 'modelOverview'
+        })
+    }, [])
+
+    useEffect(() => {
         getModelStatus(gateway, uid, projectName, modelName)
         .then((x) => setModelStatus(x))
     }, [gateway, projectName, modelName])

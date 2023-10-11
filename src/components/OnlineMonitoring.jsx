@@ -46,6 +46,14 @@ function OnlineMonitoring() {
     const [ schedulerStatus, setSchedulerStatus ] = useState(undefined)
     const [ statusColor, setStatusColor ] = useState('grey')
     const [ liveResults, setLiveResults ] = useState(undefined)
+
+    useEffect(() => {
+        setHelpPanelOpen({
+            status: helpPanelOpen.status,
+            page: 'onlineResults',
+            section: 'general'
+        })
+    }, [])
     
     // Get the current status of the scheduler to be displayed:
     useEffect(() => {
@@ -74,7 +82,7 @@ function OnlineMonitoring() {
         <Link variant="info" onFollow={() => setHelpPanelOpen({
             status: true,
             page: 'onlineResults',
-            section: 'detectedEvents'
+            section: 'general'
         })}>Info</Link>
     )
 

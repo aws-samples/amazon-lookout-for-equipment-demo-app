@@ -1,5 +1,5 @@
 // Imports
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
@@ -25,6 +25,14 @@ function ModelTraining() {
     const { projectName } = useParams()
     const [ trainingConfig, setTrainingConfig ] = useState("default")
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
+
+    useEffect(() => {
+        setHelpPanelOpen({
+            status: helpPanelOpen.status,
+            page: 'modelTraining',
+            section: 'general'
+        })
+    }, [])
 
     return (
         <ModelParametersProvider>

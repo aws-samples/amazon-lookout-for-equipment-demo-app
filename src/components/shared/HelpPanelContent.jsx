@@ -566,6 +566,20 @@ export const helpPanelContent = {
     },
 
     // ---------------------------------------------------------------------------------------------------------------------------------
+    modelDeployment: {
+        general: {
+            header: (<div>Model deployment</div>),
+            footer: "",
+            body: (
+                <div>
+                    After you've trained a model you can deploy it so that it can process live data and detect anomalies in it. Use 
+                    this screen to deploy model that you have previously trained within this project.
+                </div>
+            )
+        }
+    },
+
+    // ---------------------------------------------------------------------------------------------------------------------------------
     onlineResults: {
         general: {
             header: (<div>Online monitoring</div>),

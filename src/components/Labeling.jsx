@@ -1,5 +1,5 @@
 // Imports
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
@@ -24,6 +24,14 @@ import Header        from "@cloudscape-design/components/header"
 function Labeling() {
     const { projectName } = useParams()
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
+
+    useEffect(() => {
+        setHelpPanelOpen({
+            status: helpPanelOpen.status,
+            page: 'labelling',
+            section: 'general'
+        })
+    }, [])
 
     return (
         <ModelParametersProvider>

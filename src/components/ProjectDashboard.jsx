@@ -45,6 +45,14 @@ function ProjectDashboard() {
     const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
 
     useEffect(() => {
+        setHelpPanelOpen({
+            status: helpPanelOpen.status,
+            page: 'projectDashboard',
+            section: 'summary'
+        })
+    }, [])
+
+    useEffect(() => {
         uid && getProjectDetails(gateway, uid, projectName)
         .then(({projectDetails, errorMessage, errorDetails}) => { 
             setModelDetails(projectDetails)

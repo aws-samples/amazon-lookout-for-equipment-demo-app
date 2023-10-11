@@ -54,22 +54,16 @@ function Welcome() {
                             </Box>
 
                             <Box>
-                                Ideally, you need to <b>collect between 6 months and 1 year</b> of data, but a minimum of 3 months
-                                is currently mandatory to train a relevant model. Your sampling rate should be in the range
-                                of <b>1 minute</b> to <b>1 hour</b>. Once you are ready, click the button below to start your journey 
+                                Ideally, you need to <b>collect between 6 months and 1 year</b> of data, but a minimum of 14 days
+                                is currently mandatory to train a relevant model. The recommended sampling rate should be in the range
+                                of <b>10 seconds</b> to <b>1 hour</b>. Once you are ready, click the button below to start your journey 
                                 and upload your data into a new project.
                             </Box>
 
                             <Box float="right">
-                                <SpaceBetween direction="horizontal" size="xs">
-                                    {/* <Link to='/model-dashboard?model-name=pretrained_model'>
-                                        <Button variant="primary" disabled={true}>Pretrained model demonstration</Button>
-                                     </Link> */}
-                
-                                    <Link to='/create-project'>
-                                        <Button variant="primary">Load data and build your first model</Button>
-                                    </Link>
-                                </SpaceBetween>
+                                <Link to='/create-project'>
+                                    <Button variant="primary">Load data and build your first model</Button>
+                                </Link>
                             </Box>
 
                             <ExpandableSection headerText="Click here to learn more...">

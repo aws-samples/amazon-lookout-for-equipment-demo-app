@@ -163,7 +163,7 @@ function ListModels({ projectName }) {
                 <SpaceBetween size="xl">
                     <Container>
                         <SpaceBetween size="xl">
-                            { showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                            { showHelp && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                                 After you've trained a model you can deploy it so that it can process live data and detect
                                 anomalies in it. Use this screen to deploy model that you have previously trained within this
                                 project.

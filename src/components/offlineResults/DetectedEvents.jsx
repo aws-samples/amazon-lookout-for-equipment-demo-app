@@ -79,7 +79,7 @@ function DetectedEvents() {
                     >Detected events</Header>
                 }>
                     <SpaceBetween size="xl">
-                        { showHelp.current && <Alert>
+                        { showHelp && <Alert>
                             This section shows the evaluation results of your model when applied on historical data you
                             selected at training time. To learn more about how to interpret these plots, click on
                             the <b>{infoLink}</b> link above.

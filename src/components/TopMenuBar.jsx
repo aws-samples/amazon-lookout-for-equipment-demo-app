@@ -79,7 +79,6 @@ function TopMenuBar({ user, signOut }) {
                 type: "button",
                 text: "Sign Out",
                 onClick: () => setShowSignOutModal(true)
-                // onClick: () => signOut()
             }
         ]
 

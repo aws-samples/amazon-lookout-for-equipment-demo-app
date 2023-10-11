@@ -16,13 +16,13 @@ import ApiGatewayContext from '../contexts/ApiGatewayContext'
 // Components used to configure the application
 // --------------------------------------------
 function Settings({ visible, onDiscard, user }) {
-    const { gateway, uid, showHelp, isAdmin } = useContext(ApiGatewayContext)
-    const [ checked, setChecked ] = useState(showHelp.current)
+    const { gateway, uid, showHelp, setShowHelp, isAdmin } = useContext(ApiGatewayContext)
+    const [ checked, setChecked ] = useState(showHelp)
     
     useEffect(() => {
-        getUserSettings(gateway, user, uid, showHelp, isAdmin)
+        getUserSettings(gateway, user, uid, showHelp, setShowHelp, isAdmin)
         .then((x) => setChecked(x.showHelp) )
-    }, [gateway, uid])
+    }, [gateway, uid, showHelp])
 
     // Save current settings:
     async function onSaveSettings(e) {
@@ -32,11 +32,12 @@ function Settings({ visible, onDiscard, user }) {
             `l4edemoapp-users-${window.stackId}`,
             {
                 'user_id': {'S': uid},
-                'show_help': {'BOOL': showHelp.current},
+                'show_help': {'BOOL': checked},
                 'is_admin': {'BOOL': isAdmin.current}
             }
         ).catch((error) => console.log(error.response))
         
+        setShowHelp(checked)
         onDiscard()
     }
 
@@ -68,7 +69,7 @@ function Settings({ visible, onDiscard, user }) {
             >
                 <Checkbox
                     onChange={({ detail }) => {
-                        showHelp.current = detail.checked
+                        // setShowHelp(detail.checked)
                         setChecked(detail.checked)
                     }}
                     checked={checked}
@@ -83,7 +84,7 @@ function Settings({ visible, onDiscard, user }) {
 // ------------------------------------
 // Collects user settings from DynamoDB
 // ------------------------------------
-async function getUserSettings(gateway, user, uid, showHelp, isAdmin) {
+async function getUserSettings(gateway, user, uid, showHelp, setShowHelp, isAdmin) {
     if (!user) {
         return {
             showHelp: false,
@@ -106,22 +107,23 @@ async function getUserSettings(gateway, user, uid, showHelp, isAdmin) {
                         .catch((error) => console.log(error.response))
 
         if (response.Items.length == 0) {
-            await createUser(gateway, uid, showHelp, user.attributes.email)
+            await createUser(gateway, uid, showHelp, setShowHelp, user.attributes.email)
             isAdmin.current = false
         }
         else {
-            showHelp.current = response.Items[0].show_help.BOOL
+            setShowHelp(response.Items[0].show_help.BOOL)
             isAdmin.current = response.Items[0].is_admin.BOOL
         }
 
         return {
-            showHelp: showHelp.current,
+            showHelp: showHelp,
             isAdmin: isAdmin.current
         }
     }
 
     // If the user authentication is not through yet, we skip this function:
     catch (error) {
+        console.log(error)
         console.log(userQuery)
 
         return {
@@ -135,7 +137,7 @@ async function getUserSettings(gateway, user, uid, showHelp, isAdmin) {
 // A user connects for the first time to the app: we 
 // create his/her record in the users DynamoDB table
 // -------------------------------------------------
-async function createUser(gateway, uid, showHelp, email) {
+async function createUser(gateway, uid, showHelp, setShowHelp, email) {
     await gateway.dynamoDb.putItem(
         `l4edemoapp-users-${window.stackId}`,
         {
@@ -146,7 +148,7 @@ async function createUser(gateway, uid, showHelp, email) {
         }
     ).catch((error) => console.log(error.response))
 
-    showHelp.current = true
+    setShowHelp(true)
 }
 
 export default Settings

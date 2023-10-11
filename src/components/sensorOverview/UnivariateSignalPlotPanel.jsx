@@ -1,18 +1,23 @@
+// Imports
+import { useContext, useState } from 'react'
+
 // App components:
 import UnivariateTimeSeriesChart from './UnivariateTimeSeriesChart'
 
 // Contexts
 import { TimeSeriesProvider  } from '../contexts/TimeSeriesContext'
 import { SensorOverviewProvider } from '../contexts/SensorOverviewContext'
+import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 // CloudScape Components:
-import Alert        from "@cloudscape-design/components/alert"
-import SplitPanel   from "@cloudscape-design/components/split-panel"
+import Alert from "@cloudscape-design/components/alert"
 
 // ------------------------------------------
 // Get the actual content of the split panel:
 // ------------------------------------------
-const getPanelContent = (sensorName) => {
+const getPanelContent = (sensorName, showHelp) => {
+    const [ showUserGuide, setShowUserGuide ] = useState(true)
+
     if (sensorName) {
         return {
             header: "Details for signal: " + sensorName,
@@ -23,7 +28,7 @@ const getPanelContent = (sensorName) => {
         return {
             header: "Select a row in the signal grading table",
             body:
-                <Alert>
+                (showHelp && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                     <p>
                         You can <b>visually review</b> each signal data by clicking on the radio button next to the name
                         of each signal in the table on the left. When selected, this section will be updated with the
@@ -39,7 +44,7 @@ const getPanelContent = (sensorName) => {
                             and the distribution of the remaining values (in blue).
                         </li>
                     </ul>
-                </Alert>
+                </Alert>) || <Alert>Select a signal on the left to plot it here</Alert>
         }
     }
 }
@@ -49,12 +54,14 @@ const getPanelContent = (sensorName) => {
 // the time series of a selected signal is shown
 // ---------------------------------------------
 function UnivariateSignalPlotPanel({ projectName, selectedItems }) {
+    const { showHelp } = useContext(ApiGatewayContext)
+
     let sensorName = undefined
     if (selectedItems.length > 0) {
         sensorName = selectedItems[0]['SensorName']
     }
 
-    const { header: panelHeader, body: panelBody } = getPanelContent(sensorName)
+    const { header: panelHeader, body: panelBody } = getPanelContent(sensorName, showHelp)
     return (
         <TimeSeriesProvider projectName={projectName}>
             <SensorOverviewProvider>

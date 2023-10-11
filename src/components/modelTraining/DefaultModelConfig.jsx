@@ -131,7 +131,7 @@ function DefaultModelConfig() {
         // Renders the component:
         return (
             <SpaceBetween size="l">
-                { showHelp.current && showUserGuide && <Container><Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                { showHelp && showUserGuide && <Container><Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                     <p>
                         Now that your data is ingested, you can train an anomaly detection model using 
                         this page. After training, a model can be deployed to receive fresh data and 

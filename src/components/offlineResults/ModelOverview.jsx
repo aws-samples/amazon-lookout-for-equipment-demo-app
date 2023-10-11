@@ -105,7 +105,7 @@ function ModelOverview() {
                     </Header>
                 }>
                     <SpaceBetween size="xl">
-                        { showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                        { showHelp && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                             Once a model is trained you can use the <b>Model overview</b> section to visualize the parameters 
                             used for training. At training time, you can optionnally specify an evaluation range that Lookout
                             for Equipment will use to help you assess if your model was able to capture any event of interest 
@@ -183,7 +183,7 @@ function ModelOverview() {
 
                         {/* Only shows this section if some labels were defined for this model  */}
                         {!modelDetails['labels'] ? '' : <ExpandableSection headerText="Defined labels"><SpaceBetween size="xxs">
-                            {showHelp.current && <Alert>
+                            {showHelp && <Alert>
                                 Some labels were defined to train this model: this labeled data indicates periods 
                                 when your equipment or process did not function propertly. When training a model
                                 with labels, Lookout for Equipment will discard these time ranges to increase its

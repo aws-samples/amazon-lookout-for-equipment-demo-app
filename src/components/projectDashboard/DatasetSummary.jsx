@@ -70,7 +70,7 @@ function DatasetSummary({ modelDetails }) {
     // Render the component:
     return (
         <SpaceBetween size="l">
-            { showHelp.current && showUserGuide && modelDetails['ingestionStatus'] !== 'FAILED' && <Container>
+            { showHelp && showUserGuide && modelDetails['ingestionStatus'] !== 'FAILED' && <Container>
                 <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                     <p>
                         You can use this screen to verify that your dataset was correctly ingested and that 

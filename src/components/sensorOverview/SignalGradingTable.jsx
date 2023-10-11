@@ -60,7 +60,7 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
                                    >Signal grading</Header>}>
                     
                     <SpaceBetween size="xl">
-                        { !showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                        { showHelp && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                             <p>
                                 Once your data is ingested, Amazon Lookout for Equipment will perform a <b>grading</b> of
                                 your individual sensor data with regards to their capability to be good quality signals

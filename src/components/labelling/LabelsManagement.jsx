@@ -368,7 +368,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
 
                     { errorMessage !== "" && <Alert type="error">{errorMessage}</Alert> }
 
-                    { !readOnly && showHelp.current && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                    { !readOnly && showHelp && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
                         <p>
                             If you don't know about any historical events of interest in your dataset, feel free to
                             skip this step and go to <b>{modelTrainingLink}</b>.

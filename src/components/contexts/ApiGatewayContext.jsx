@@ -38,8 +38,8 @@ export const ApiGatewayProvider = ({user, children}) => {
     }
 
     const [ navbarCounter, setNavbarCounter ] = useState(0)
-    const showHelp = useRef(true)
     const isAdmin = useRef(false)
+    const [ showHelp, setShowHelp ] = useState(true)
 
     // Define all the API request we need for this app:
     const gateway = {
@@ -295,7 +295,8 @@ export const ApiGatewayProvider = ({user, children}) => {
             showHelp,
             isAdmin,
             
-            setNavbarCounter
+            setNavbarCounter,
+            setShowHelp
         }}>
             {children}
         </ApiGatewayContext.Provider>

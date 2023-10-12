@@ -188,7 +188,7 @@ function DeleteProjectModal({ visible, onDiscard }) {
                             onChange={({ detail }) => setValue(detail.value)}
                             value={listSchedulers.length > 0 ? listSchedulers.map((scheduler) => (
                                 `${scheduler.model} (${scheduler.status})`
-                            )) : 'No scheduler configured within this project'}
+                            )).join('\n') : 'No scheduler configured within this project'}
                             disabled={true}
                             rows={listSchedulers.length == 0 ? 1 : listSchedulers.length > 5 ? 5 : listSchedulers.length}
                         />

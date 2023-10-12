@@ -212,15 +212,15 @@ export async function getProjectData(gateway, projectName) {
     if (models && models.length > 0) {
         models.forEach((model) => {
             if (model['Status'] !== 'SUCCESS') {
-                listModels.push(model['ModelName'] + ` (${model['Status']})`)
+                listModels.push(model['ModelName'].slice(projectName.length + 1) + ` (${model['Status']})`)
             }
             else {
-                listModels.push(model['ModelName'])
+                listModels.push(model['ModelName'].slice(projectName.length + 1))
             }
 
             if (model['Scheduler']) {
                 listSchedulers.push({
-                    model: model['ModelName'],
+                    model: model['ModelName'].slice(projectName.length + 1),
                     status: model['Scheduler']['Status']
                 })
             }

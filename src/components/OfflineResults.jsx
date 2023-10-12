@@ -49,57 +49,28 @@ function OfflineResults() {
     }, [gateway, projectName, modelName])
 
     return (
-        <AppLayout
-            contentType="default"
+        <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
+            <OfflineResultsProvider>
+                <SpaceBetween size='xl'>
+                    <ModelOverview />
 
-            toolsOpen={helpPanelOpen.status}
-            onToolsChange={(e) => {
-                if (!helpPanelOpen.page) {
-                    setHelpPanelOpen({
-                        status: true,
-                        page: 'offlineResults',
-                        section: 'modelOverview'
-                    })
-                }
-                else {
-                    setHelpPanelOpen({
-                        status: e.detail.open,
-                        page: helpPanelOpen.page,
-                        section: helpPanelOpen.section
-                    })
-                }
-            }}
-            tools={panelContent.current}
-
-            content={
-                <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
-                    <OfflineResultsProvider>
-                        <SpaceBetween size='xl'>
-                            <ModelOverview />
-
-                            { modelStatus === 'SUCCESS' && <Tabs
-                                tabs={[
-                                    {
-                                        label: "Detected events",
-                                        id: "detectedEvents",
-                                        content: <DetectedEvents />
-                                    },
-                                    {
-                                        label: "Signal deep dive",
-                                        id: "signalDeepDive",
-                                        content: <SignalHistograms />
-                                    }
-                                ]} 
-                            /> }
-                        </SpaceBetween>
-                    </OfflineResultsProvider>
-                </ContentLayout>
-            }
-            navigation={
-                <NavigationBar
-                    activeHref={`/offline-results/modelName/${modelName}/projectName/${projectName}`}
-                />}
-        />
+                    { modelStatus === 'SUCCESS' && <Tabs
+                        tabs={[
+                            {
+                                label: "Detected events",
+                                id: "detectedEvents",
+                                content: <DetectedEvents />
+                            },
+                            {
+                                label: "Signal deep dive",
+                                id: "signalDeepDive",
+                                content: <SignalHistograms />
+                            }
+                        ]} 
+                    /> }
+                </SpaceBetween>
+            </OfflineResultsProvider>
+        </ContentLayout>
     )
 }
 

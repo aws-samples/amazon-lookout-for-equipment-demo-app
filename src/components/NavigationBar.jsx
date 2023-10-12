@@ -1,6 +1,6 @@
 // Imports:
 import { useContext, useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useHref } from 'react-router-dom'
 
 // CloudScape components:
 import SideNavigation from '@cloudscape-design/components/side-navigation'
@@ -15,12 +15,13 @@ import { buildHierarchy } from './navigationBar/navbarUtils'
 // ==========================
 // Component main entry point
 // ==========================
-function NavigationBar({ activeHref }) {
+function NavigationBar() {
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const [navItems, setNavItems] = useState(undefined)
     const navigate = useNavigate()
     const { projectName } = useParams()
     const [time, setTime] = useState(Date.now())
+    const url = useHref()
 
     // This effect will trigger a refresh of the menu bar every 60 seconds:
     useEffect(() => {
@@ -42,7 +43,7 @@ function NavigationBar({ activeHref }) {
                     <SideNavigation 
                         items={navItems} 
                         header={{ text: 'Home', href: '/' }} 
-                        activeHref={activeHref}
+                        activeHref={url}
                         onFollow={event => {
                             event.preventDefault()
                             navigate(event['detail']['href'])

@@ -13,6 +13,9 @@ import Header            from "@cloudscape-design/components/header"
 import SpaceBetween      from "@cloudscape-design/components/space-between"
 import TextContent       from "@cloudscape-design/components/text-content"
 
+// Contexts:
+import { HelpPanelProvider } from './components/contexts/HelpPanelContext'
+
 function App() {
   const { authStatus, user, signOut } = useAuthenticator(context => [context.authStatus])
 
@@ -58,7 +61,10 @@ function App() {
                 }
             />
         </ThemeProvider>
-        : <Home user={user} signOut={signOut} />
+        : 
+        <HelpPanelProvider>
+            <Home user={user} signOut={signOut} />
+        </HelpPanelProvider>
       }
       
     </div>

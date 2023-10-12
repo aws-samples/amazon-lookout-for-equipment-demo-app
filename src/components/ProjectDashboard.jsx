@@ -3,7 +3,6 @@ import { useState, useEffect, useContext } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
-import NavigationBar from './NavigationBar'
 import DatasetSummary from './projectDashboard/DatasetSummary'
 import OnlineMonitoringSummary from './projectDashboard/OnlineMonitoringSummary'
 import DeleteProjectModal from './projectDashboard/DeleteProjectModal'
@@ -16,7 +15,6 @@ import HelpPanelContext from './contexts/HelpPanelContext'
 import Alert             from "@cloudscape-design/components/alert"
 import Box               from "@cloudscape-design/components/box"
 import Button            from "@cloudscape-design/components/button"
-import AppLayout         from "@cloudscape-design/components/app-layout"
 import Container         from "@cloudscape-design/components/container"
 import ContentLayout     from "@cloudscape-design/components/content-layout"
 import ExpandableSection from "@cloudscape-design/components/expandable-section"
@@ -42,7 +40,7 @@ function ProjectDashboard() {
     const [ time, setTime]                                      = useState(Date.now())
 
     const { gateway, uid } = useContext(ApiGatewayContext)
-    const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
+    const { helpPanelOpen, setHelpPanelOpen } = useContext(HelpPanelContext)
 
     useEffect(() => {
         setHelpPanelOpen({
@@ -149,38 +147,11 @@ function ProjectDashboard() {
 
     // Render the component:
     return (
-        <AppLayout
-            contentType="default"
-
-            toolsOpen={helpPanelOpen.status}
-            onToolsChange={(e) => {
-                if (!helpPanelOpen.page) {
-                    setHelpPanelOpen({
-                        status: true,
-                        page: 'projectDashboard',
-                        section: 'summary'
-                    })
-                }
-                else {
-                    setHelpPanelOpen({
-                        status: e.detail.open,
-                        page: helpPanelOpen.page,
-                        section: helpPanelOpen.section
-                    })
-                }
-            }}
-            tools={panelContent.current}
-
-            content={
-                <ContentLayout header={<Header variant="h1">{projectName} overview</Header>}>
-                    <SpaceBetween size="xl">
-                        {children}
-                    </SpaceBetween>
-                </ContentLayout>
-            }
-            
-            navigation={<NavigationBar activeHref={"/project-dashboard/projectName/" + projectName} />}
-        />
+        <ContentLayout header={<Header variant="h1">{projectName} overview</Header>}>
+            <SpaceBetween size="xl">
+                {children}
+            </SpaceBetween>
+        </ContentLayout>
     )
 }
 

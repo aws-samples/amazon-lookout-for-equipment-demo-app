@@ -30,6 +30,7 @@ export async function getLiveResults(gateway, uid, projectName, modelName, start
         endTime,
         "raw"
     )
+
     if (!timeseries) { return undefined }
 
     const tagsToRemove = ['asset', 'sampling_rate', 'timestamp', 'unix_timestamp']
@@ -862,6 +863,8 @@ export function getSortedKeys(tagsList, sensorContribution) {
 // Get the scheduler details
 // -------------------------
 export async function getSchedulerDetails(gateway, modelName, uid, projectName) {
+    if (!uid) { return undefined }
+
     const bucket = window.appS3Bucket
     const possibleFrequency = {
         'PT5M': 5,

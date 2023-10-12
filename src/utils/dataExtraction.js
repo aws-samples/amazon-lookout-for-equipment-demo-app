@@ -86,31 +86,51 @@ export async function getAllTimeseries(gateway, modelName) {
 // model but within a certain time window only
 // -------------------------------------------
 export async function getAllTimeseriesWindow(gateway, modelName, startTime, endTime, samplingRate) {
+    const numSegments = 10
+    const segmentDuration = (endTime - startTime) / numSegments
+    let timeSeriesQueries = []
+    let timeseries = {Items: []}
+
     // Training data are stored at a 1 hour sampling rate whereas
     // live inference data are stored raw (e.g. 5 minutes):
-    let currentSamplingRate = ""
-    if (!samplingRate) {
-        currentSamplingRate = "1h"
-    }
-    else {
-        currentSamplingRate = samplingRate
-    }
+    let currentSamplingRate = "1h"
+    if (samplingRate) { currentSamplingRate = samplingRate }
 
-    const targetTableName = 'l4edemoapp-' + modelName
-    const timeSeriesQuery = { 
-        TableName: targetTableName,
-        KeyConditionExpression: "#sr = :sr AND #timestamp BETWEEN :startTime AND :endTime",
-        ExpressionAttributeNames: {"#sr": "sampling_rate", "#timestamp": "unix_timestamp"},
-        ExpressionAttributeValues: { 
-            ":sr": {"S": currentSamplingRate}, 
-            ":startTime": {"N": startTime.toString()},
-            ":endTime": {"N": endTime.toString()}
+    // Looping through all the segments we 
+    // are going to query in parallel:
+    for (var i = 0; i < numSegments; i++) {
+        // Start and end time of the current segment to collect data for:
+        const currentStart = startTime + i*segmentDuration
+        const currentEnd = currentStart + segmentDuration
+
+        // Preparing the query for this segment:
+        let currentQuery = { 
+            TableName: `l4edemoapp-${modelName}`,
+            KeyConditionExpression: "#sr = :sr AND #timestamp BETWEEN :startTime AND :endTime",
+            ExpressionAttributeNames: {"#sr": "sampling_rate", "#timestamp": "unix_timestamp"},
+            ExpressionAttributeValues: { 
+                ":sr": {"S": currentSamplingRate}, 
+                ":startTime": {"N": currentStart.toString()},
+                ":endTime": {"N": currentEnd.toString()}
+            }
         }
+
+        currentQuery = gateway.dynamoDb
+                              .queryAll(currentQuery)
+                              .catch((error) => { console.log(error.response)})
+
+        timeSeriesQueries.push(currentQuery)
     }
 
-    let timeseries = await gateway.dynamoDb
-                           .queryAll(timeSeriesQuery)
-                           .catch((error) => { console.log(error.response)})
+    // Run all the promises in parallel and assemble the results:
+    const results = await Promise.all(timeSeriesQueries)
+    results.forEach((chunk) => {
+        timeseries.Items = [...timeseries.Items, ...chunk.Items]
+    })
+
+    timeseries.Items.sort((a, b) => {
+        return a.unix_timestamp.N - b.unix_timestamp.N
+    })
 
     if (timeseries.Items.length > 0) {
         return {

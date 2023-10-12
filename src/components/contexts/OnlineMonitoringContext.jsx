@@ -17,25 +17,20 @@ const OnlineMonitoringContext = createContext()
 export const OnlineMonitoringProvider = ({ children, range }) => {
     const [ liveResults, setLiveResults ] = useState(undefined)
     const [ trainingTimeseries, setTrainingTimeseries ] = useState(undefined)
-
     const { projectName, modelName } = useParams()
     const { gateway, uid } = useContext(ApiGatewayContext)
-
-    // Loads live data processed by the current model
     const endTime = parseInt(Date.now() / 1000)
     const startTime = parseInt((endTime - range * 86400))
+
+    // Loads training time series data and live 
+    // data processed by the current model
     useEffect(() => {
-        getLiveResults(gateway, uid, projectName, modelName, startTime, endTime)
-        .then((x) => { 
-            setLiveResults(x)
+        loadLiveData(gateway, uid, projectName, modelName, startTime, endTime)
+        .then((x) => {
+            setLiveResults(x[0])
+            setTrainingTimeseries(x[1])
         })
     }, [gateway, modelName, projectName, range])
-
-    // Loads training time series data:
-    useEffect(() => {
-        getTrainingTimeseries(gateway, uid + '-' + projectName, `${uid}-${projectName}-${modelName}`)
-        .then((x) => setTrainingTimeseries(x))
-    }, [gateway])
 
     // Renders the provider and its children:
     return (
@@ -49,6 +44,17 @@ export const OnlineMonitoringProvider = ({ children, range }) => {
         </OnlineMonitoringContext.Provider>
     )
 }
+
+// ----------------------------------------
+// Loads live data and training time series
+// ----------------------------------------
+async function loadLiveData(gateway, uid, projectName, modelName, startTime, endTime) {
+    const liveResults = getLiveResults(gateway, uid, projectName, modelName, startTime, endTime)
+    const timeseries = getTrainingTimeseries(gateway, uid + '-' + projectName, `${uid}-${projectName}-${modelName}`)
+
+    return await Promise.all([liveResults, timeseries])
+}
+
 
 // ---------------------------------------------
 // This function extract the signal time series

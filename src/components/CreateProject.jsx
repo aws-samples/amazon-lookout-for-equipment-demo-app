@@ -27,6 +27,7 @@ import Input            from "@cloudscape-design/components/input"
 import Link             from "@cloudscape-design/components/link"
 import ProgressBar      from "@cloudscape-design/components/progress-bar"
 import SpaceBetween     from "@cloudscape-design/components/space-between"
+import Spinner          from "@cloudscape-design/components/spinner"
 
 // Context:
 import ApiGatewayContext from './contexts/ApiGatewayContext.jsx'
@@ -126,6 +127,7 @@ function CreateProject() {
             setErrorMessage("")
             await uploadFileToS3(projectName, dataset[0])
             setShowFlashbar(true)
+            setUploadInProgress(false)
             await waitForPipelineStart(gateway, uid, projectName)
 
             // This forces a refresh of the side bar navigation
@@ -249,13 +251,17 @@ function CreateProject() {
                             </FormField>
 
                             
-                            { filename && <FormField>
-                                <ProgressBar
+                            { filename && uploadInProgress && <FormField>
+                                {/* <ProgressBar
                                     value={progressPercent}
                                     additionalInfo={bytesTransferred}
                                     description={`Uploading ${filename}`}
                                     label="File upload in progress"
-                                />
+                                /> */}
+
+                                <Alert>
+                                    File upload in progress&nbsp;<Spinner />
+                                </Alert>
                             </FormField> }
                             
                             { errorMessage && <Alert type="error">{errorMessage}</Alert> }

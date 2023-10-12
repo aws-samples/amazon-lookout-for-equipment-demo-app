@@ -6,4 +6,4 @@ var region = "eu-west-1";
 var deployModelArn = "arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-deploy-model";
 var stackId = "stackid";
 var appS3Bucket = "l4e-demo-app-storage212931-dev";
-var allowUserSignUp = "true";
+var allowUserSignUp = "false";

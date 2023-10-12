@@ -16,7 +16,7 @@ ones are optional:
 
 ## Table of content
 
-* [Installations instructions](INSTALL.md)
+* [Installation instructions](INSTALL.md)
 * [Updating the app](INSTALL.md#update)
 * [Uninstalling the app](INSTALL.md#uninstall)
 * [Usage: first connection](USAGE.md)

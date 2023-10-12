@@ -182,7 +182,8 @@ function buildSchedulersSection(currentSchedulers, uid, project) {
         {
             type: 'expandable-link-group',
             text: 'Online monitoring',
-            items: onlineMonitoringItems
+            items: onlineMonitoringItems,
+            href: `/online-monitoring/modelName/${currentSchedulers[0].slice(uid.length + 1 + project.length + 1)}/projectName/${project}`
         }
     ]
 

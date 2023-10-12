@@ -46,6 +46,7 @@ function OnlineMonitoring() {
     const [ schedulerStatus, setSchedulerStatus ] = useState(undefined)
     const [ statusColor, setStatusColor ] = useState('grey')
     const [ liveResults, setLiveResults ] = useState(undefined)
+    const [ loading, setLoading ] = useState(true)
 
     useEffect(() => {
         setHelpPanelOpen({
@@ -74,6 +75,7 @@ function OnlineMonitoring() {
         getLiveResults(gateway, uid, projectName, modelName, startTime, endTime)
         .then((x) => { 
             setLiveResults(x)
+            if (x) { setLoading(false) }
         })
     }, [gateway, modelName, projectName, range])
 
@@ -82,7 +84,7 @@ function OnlineMonitoring() {
         <Link variant="info" onFollow={() => setHelpPanelOpen({
             status: true,
             page: 'onlineResults',
-            section: 'general'
+            section: 'detectedEvents'
         })}>Info</Link>
     )
 
@@ -163,8 +165,8 @@ function OnlineMonitoring() {
                             header={<Header variant="h2">Scheduler configuration</Header>}
                             footer={
                                 <>
-                                    <ExpandableSection headerText="Show details" variant="footer" defaultExpanded={!tabsDefinition}>
-                                        { !tabsDefinition && <><Alert>
+                                    <ExpandableSection headerText="Show details" variant="footer" defaultExpanded={!loading && !tabsDefinition}>
+                                        { !loading && !tabsDefinition && <><Alert>
                                             Your scheduler has not been running long enough. Come back to this screen in at least a scheduler cycle: for
                                             instance, if your model was trained with a sampling rate of 30 minutes, your scheduler will also wake up 
                                             every 30 minutes to process new data. In this case, check back this screen in 30 minutes to see the first 

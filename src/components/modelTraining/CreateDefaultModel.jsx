@@ -16,7 +16,7 @@ import ApiGatewayContext from '../contexts/ApiGatewayContext'
 // Component main entry point
 // --------------------------
 const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
-    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const [ visible, setVisible ] = useState(false)
     const [ errorMessage, setErrorMessage ] = useState(undefined)
     const dismissModelSummary = props.dismissFunction
@@ -61,6 +61,10 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
             })
 
         if (currentErrorMessage === "") {
+            // This forces a refresh of the side bar navigation
+            // so we can see the new project name popping up:
+            setNavbarCounter(navbarCounter + 1)
+
             const modelName = modelConfig['modelName'].slice(uid.length + 1 + modelConfig['projectName'].length + 1)
             const projectName = modelConfig['projectName']
             navigate(`/offline-results/modelName/${modelName}/projectName/${projectName}`)

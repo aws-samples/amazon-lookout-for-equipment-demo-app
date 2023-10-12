@@ -3,10 +3,13 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 // Cloudscape components:
-import Alert     from '@cloudscape-design/components/alert'
-import Container from '@cloudscape-design/components/container'
-import Header    from '@cloudscape-design/components/header'
-import Spinner   from '@cloudscape-design/components/spinner'
+import Alert        from '@cloudscape-design/components/alert'
+import Box          from "@cloudscape-design/components/box"
+import Container    from '@cloudscape-design/components/container'
+import Header       from '@cloudscape-design/components/header'
+import Icon         from "@cloudscape-design/components/icon"
+import SpaceBetween from "@cloudscape-design/components/space-between"
+import Spinner      from '@cloudscape-design/components/spinner'
 
 // Utils:
 import { getModelDetails } from '../../utils/dataExtraction'
@@ -21,7 +24,7 @@ const OfflineResultsContext = createContext()
 // ========================================
 export const OfflineResultsProvider = ({ children }) => {
     const { projectName, modelName } = useParams()
-    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
 
     const [ loading, setLoading ] = useState(true)
     const [ modelDetails, setModelDetails ] = useState(undefined)
@@ -31,6 +34,8 @@ export const OfflineResultsProvider = ({ children }) => {
     const [ anomaliesTimeseries, setAnomaliesTimeseries ] = useState(undefined)
     const [ sensorContributionTimeseries, setSensorContributionTimeseries ] = useState(undefined)
     const [ histogramData, setHistogramData ] = useState(undefined)
+    const [ progressBar, setProgressBar ] = useState('.')
+    const [ time, setTime] = useState(Date.now())
 
     // ------------------------
     // Loads the model details:
@@ -92,7 +97,24 @@ export const OfflineResultsProvider = ({ children }) => {
                 }
             }
         })
-    }, [gateway, modelName, projectName])
+    }, [gateway, modelName, projectName, time])
+
+    // This effect will trigger a refresh of the model
+    // dashboard every 30s until model training is done:
+    useEffect(() => {
+        const startTime = Date.now()
+        if (!modelDetails) {
+            const interval = setInterval(() => {
+                setTime(Date.now()) 
+                setProgressBar('.'.repeat(parseInt((Date.now() - startTime)/(30 * 1000)) + 1))
+
+                // This forces a refresh of the side bar navigation
+                // so we can see the new project name popping up:
+                setNavbarCounter(navbarCounter + 1)
+            }, 30 * 1000)
+            return () => { clearInterval(interval) }
+        }
+    }, [])
 
     // --------------------------------------
     // Renders the provider and its children:
@@ -101,8 +123,17 @@ export const OfflineResultsProvider = ({ children }) => {
         return (
             <Container header={<Header variant="h1">Model overview</Header>}>
                 <Alert>
-                    Model training in progress&nbsp;
-                    <Spinner />
+                    <SpaceBetween size="l">
+                        Model training in progress&nbsp;
+
+                        <Box>
+                            {Array.from(
+                                { length: progressBar.length }, 
+                                (_, i) => <Icon name="drag-indicator" size="normal" variant="link" />
+                            )}
+                            <Spinner />
+                        </Box>
+                    </SpaceBetween>
                 </Alert>
             </Container>
         )

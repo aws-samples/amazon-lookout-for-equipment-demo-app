@@ -53,16 +53,44 @@ export async function getAllTimeseries(gateway, modelName) {
         tableStatus = tableStatus['Table']['TableStatus']
 
         if (tableStatus === 'ACTIVE') {
-            const timeSeriesQuery = { 
-                TableName: targetTableName,
-                KeyConditionExpression: "#sr = :sr",
-                ExpressionAttributeNames: {"#sr": "sampling_rate"},
-                ExpressionAttributeValues: { ":sr": {"S": "1h"}}
+            const { startTime, endTime } = await getTimeseriesRange(gateway, targetTableName)
+            const numSegments = 10
+            const segmentDuration = (endTime - startTime) / numSegments
+            let timeSeriesQueries = []
+            let timeseries = { Items: [] }
+
+            // Looping through all the segments we 
+            // are going to query in parallel:
+            for (var i = 0; i < numSegments; i++) {
+                // Start and end time of the current segment to collect data for:
+                const currentStart = startTime + i*segmentDuration
+                const currentEnd = currentStart + segmentDuration - 1 * (i < numSegments - 1)
+
+                // Preparing the query for this segment:
+                let currentQuery = { 
+                    TableName: targetTableName,
+                    KeyConditionExpression: "#sr = :sr AND #timestamp BETWEEN :startTime AND :endTime",
+                    ExpressionAttributeNames: {"#sr": "sampling_rate", "#timestamp": "unix_timestamp"},
+                    ExpressionAttributeValues: { 
+                        ":sr": {"S": '1h'}, 
+                        ":startTime": {"N": currentStart.toString()},
+                        ":endTime": {"N": currentEnd.toString()}
+                    }
+                }
+
+                currentQuery = gateway.dynamoDb
+                                    .queryAll(currentQuery)
+                                    .catch((error) => { console.log(error.response)})
+
+                timeSeriesQueries.push(currentQuery)
             }
 
-            let timeseries = await gateway.dynamoDb
-                                   .queryAll(timeSeriesQuery)
-                                   .catch((error) => console.log(error.response))
+            // Run all the promises in parallel, assemble and sort the results:
+            const results = await Promise.all(timeSeriesQueries)
+            results.forEach((chunk) => {
+                timeseries.Items = [...timeseries.Items, ...chunk.Items]
+            })
+            timeseries.Items.sort((a, b) => { return a.unix_timestamp.N - b.unix_timestamp.N })
 
             return {
                 timeseries: timeseries,
@@ -81,6 +109,35 @@ export async function getAllTimeseries(gateway, modelName) {
     }
 }
 
+// Get the time extent of a given time series table:
+async function getTimeseriesRange(gateway, targetTableName) {
+    let contentHead = gateway.dynamoDb.query({ 
+                           TableName: targetTableName,
+                           KeyConditionExpression: "sampling_rate = :sr",
+                           ExpressionAttributeValues: { ":sr": {"S": "1h"} },
+                           ProjectionExpression: "unix_timestamp",
+                           Limit: 1
+                       })
+                       .catch((error) => console.log(error.response))
+
+    let contentTail = gateway.dynamoDb.query({ 
+                        TableName: targetTableName,
+                        KeyConditionExpression: "sampling_rate = :sr",
+                        ExpressionAttributeValues: { ":sr": {"S": "1h"} },
+                        ProjectionExpression: "unix_timestamp",
+                        Limit: 1,
+                        ScanIndexForward: false
+                    })
+                    .catch((error) => console.log(error.response))
+
+    const results = await Promise.all([contentHead, contentTail])
+
+    return {
+        startTime: parseInt(results[0].Items[0].unix_timestamp.N),
+        endTime: parseInt(results[1].Items[0].unix_timestamp.N)
+    }
+}
+
 // -------------------------------------------
 // Extract all the sensor data for a given 
 // model but within a certain time window only
@@ -89,7 +146,7 @@ export async function getAllTimeseriesWindow(gateway, modelName, startTime, endT
     const numSegments = 10
     const segmentDuration = (endTime - startTime) / numSegments
     let timeSeriesQueries = []
-    let timeseries = {Items: []}
+    let timeseries = { Items: [] }
 
     // Training data are stored at a 1 hour sampling rate whereas
     // live inference data are stored raw (e.g. 5 minutes):
@@ -101,7 +158,7 @@ export async function getAllTimeseriesWindow(gateway, modelName, startTime, endT
     for (var i = 0; i < numSegments; i++) {
         // Start and end time of the current segment to collect data for:
         const currentStart = startTime + i*segmentDuration
-        const currentEnd = currentStart + segmentDuration
+        const currentEnd = currentStart + segmentDuration - 1 * (i < numSegments - 1)
 
         // Preparing the query for this segment:
         let currentQuery = { 

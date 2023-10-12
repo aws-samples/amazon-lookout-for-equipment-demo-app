@@ -322,13 +322,22 @@ export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContr
         ],
         yAxis: [
             { show: false, gridIndex: 0, min: 0.0, max: 1.0 },
-            { show: true, gridIndex: 1, min: 0.0, max: 1.0 },
-            { show: true, gridIndex: 2, min: 0.0, max: 1.0 },
+            { 
+                show: true, gridIndex: 1, min: 0.0, max: 1.0,
+                axisLabel: { formatter: (value) => { return value.toFixed(1) }}
+            },
+            { 
+                show: true, gridIndex: 2, min: 0.0, max: 1.0,
+                axisLabel: { formatter: (value) => { return (value*100).toFixed(0) + '%' }}
+            },
             { show: true, gridIndex: 3 },
         ],
         series: series,
         animation: false,
-        dataZoom: [{ type:'slider', start: 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 90, height: 30, left: gridLeft }],
+        dataZoom: [
+            { type:'slider', start: 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 90, height: 30, left: gridLeft },
+            { type:'slider', start: 0, end: 100, yAxisIndex: 3, right: legendWidth-40, showDataShadow: false, showDetail: false }
+        ],
         legend: {
             type: 'scroll',
             right: 10,
@@ -566,7 +575,7 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
 
         options[tag] = {}
         options[tag]['trainingTimeSeries'] = {
-            title: [{top: 0, text: 'Training data timeseries'}],
+            title: [{top: 0, text: 'Training data'}],
             grid: [{top: 40, left: 50, height: 200}],
             xAxis: [{type: 'time', minorTick: { show: true }}],
             yAxis: [{
@@ -585,7 +594,7 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
         }
 
         options[tag]['inferenceTimeSeries'] = {
-            title: [{top: 0, text: 'Live data timeseries'}],
+            title: [{top: 0, text: 'Live data'}],
             grid: [{top: 40, left: 50, height: 200}],
             xAxis: {type: 'time', minorTick: { show: true }},
             yAxis: [
@@ -611,14 +620,14 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
             tooltip: {show: true, trigger: 'axis'},
             legend: {
                 show: true,
-                bottom: -5, left: 0,
+                top: 0, right: 0,
                 orient: 'horizontal',
-                data: ['Time series', 'Anomalies', 'Contribution (%)']
+                data: ['Live data', 'Detected events', 'Contribution (%)']
             },
         },
 
         options[tag]['histograms'] = {
-            title: {top: 0, text: 'Signal value distributions'},
+            title: {top: 0, text: 'Histograms'},
             grid: {top: 40, left: 50, height: 200},
             xAxis: {scale: true},
             yAxis: {axisLabel: { show: false }},
@@ -627,9 +636,9 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
             tooltip: {show: true, trigger: 'axis'},
             legend: {
                 show: true,
-                bottom: -5, left: 0,
+                top: 0, right: 0,
                 orient: 'horizontal',
-                data: ['Training data', 'Inference data', 'Abnormal data']
+                data: ['Training', 'Live data', 'Detected events']
             },
         }
     })
@@ -696,27 +705,27 @@ function getTagInferenceTimeseries(tag, timeseries, xAnomalies, sensorContributi
     })
 
     const series = {
-        name: 'Time series',
+        name: 'Live data',
         symbol: 'none',
         sampling: 'lttb',
         data: data,
         type: 'line',
         tooltip: { valueFormatter: (value) => value.toFixed(2) },
-        lineStyle: { color: '#67a353', width: 2.0 },
-        itemStyle: { color: '#67a353' },
+        lineStyle: { color: '#67a353', width: 2.0, opacity: 0.7 },
+        itemStyle: { color: '#67a353', opacity: 0.7 },
         yAxisIndex: 0
     }
 
     const anomaliesSeries = {
-        name: 'Anomalies',
+        name: 'Detected events',
         symbol: 'circle',
         symbolSize: 3.0,
         sampling: 'lttb',
         data: dataAnomalies,
         type: 'line',
         tooltip: { valueFormatter: (value) => value.toFixed(2) },
-        lineStyle: { width: 0.0 },
-        itemStyle: { color: '#a32952', opacity: 1.0 },
+        lineStyle: { width: 0.0, color: '#a32952', opacity: 0.7 },
+        itemStyle: { color: '#a32952', opacity: 0.7 },
         yAxisIndex: 0
     }
 
@@ -801,7 +810,7 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
 
     let series = [
         {
-            name: 'Training data',
+            name: 'Training',
             type: 'bar',
             barWidth: 8,
             xAxisIndex: 0,
@@ -810,7 +819,7 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
             data: normalizedHistogram(trainingData).data,
         },
         {
-            name: 'Inference data',
+            name: 'Live data',
             type: 'bar',
             barWidth: 8,
             xAxisIndex: 0,
@@ -822,7 +831,7 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
 
     if (abnormalData.length > 0) {
         series.push({
-            name: 'Abnormal data',
+            name: 'Detected events',
             type: 'bar',
             barWidth: 8,
             xAxisIndex: 0,

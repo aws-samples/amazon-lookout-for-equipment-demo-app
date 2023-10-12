@@ -76,14 +76,17 @@ export function buildChartOptions(
         yAxis: [
             { show: false, gridIndex: 0, min: 0.0, max: 1.0 },
             { type: 'value', show: true, gridIndex: 1 },
-            { type: 'value', show: true, gridIndex: 2, min: 0.0, max: 1.0 },
+            { 
+                type: 'value', show: true, gridIndex: 2, min: 0.0, max: 1.0, 
+                axisLabel: { formatter: (value) => { return (value*100).toFixed(0) + '%' }}
+            },
             { type: 'value', show: true, gridIndex: 3 },
         ],
         series: series,
         animation: false,
         dataZoom: [
             { type:'slider', start: 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 100, height: 30 },
-            { type:'slider', start: 0, end: 100, yAxisIndex: 3, right: legendWidth-40, showDetail: false }
+            { type:'slider', start: 0, end: 100, yAxisIndex: 3, right: legendWidth-40, showDataShadow: false, showDetail: false }
         ],
         legend: [
             // Signal time series legend, located on the bottom. Command

@@ -110,32 +110,32 @@ export function buildChartOptions(
 ) {
     const series = []
 
-    if (existingMarkers && false) {
-        let data = []
+    // if (existingMarkers && false) {
+    //     let data = []
 
-        existingMarkers.forEach((marker) => {
-            data.push([{xAxis: marker.start}, {xAxis: marker.end}])
-        })
+    //     existingMarkers.forEach((marker) => {
+    //         data.push([{xAxis: marker.start}, {xAxis: marker.end}])
+    //     })
 
-        series.push({
-            name: 'Labels',
-            symbol: 'none',
-            data: [],
-            type: 'line',
-            xAxisIndex: 0,
-            markArea: {
-                itemStyle: {  
-                    // color: 'rgba(151, 181, 82, 0.3)',
-                    color: 'rgba(0, 0, 128, 0.5)',
-                    borderColor: 'rgba(151, 181, 82, 1.0)',
-                    borderWidth: 0.0
-                    // borderWidth: 1.0
-                },
-                data: data,
-                lineStyle: { width: 0 },
-            },
-        })
-    }
+    //     series.push({
+    //         name: 'Labels',
+    //         symbol: 'none',
+    //         data: [],
+    //         type: 'line',
+    //         xAxisIndex: 0,
+    //         markArea: {
+    //             itemStyle: {  
+    //                 // color: 'rgba(151, 181, 82, 0.3)',
+    //                 color: 'rgba(0, 0, 128, 0.5)',
+    //                 borderColor: 'rgba(151, 181, 82, 1.0)',
+    //                 borderWidth: 0.0
+    //                 // borderWidth: 1.0
+    //             },
+    //             data: data,
+    //             lineStyle: { width: 0 },
+    //         },
+    //     })
+    // }
 
     tagsList.forEach((tag) => {
         series.push({
@@ -158,15 +158,25 @@ export function buildChartOptions(
         top = 40
     }
 
-    const datazoomOption = { 
-        start: initialZoomStart, 
-        end: initialZoomEnd, 
-        top: top,
-        left: 60,
-        right: legendWidth,
-        xAxisIndex: 0,
-        type: 'slider'
-    }
+    const datazoomOption = [
+        { 
+            start: initialZoomStart, 
+            end: initialZoomEnd, 
+            top: top,
+            left: 60,
+            right: legendWidth,
+            xAxisIndex: 0,
+            type: 'slider'
+        },
+        { 
+            left: 0,
+            yAxisIndex: 0,
+            type: 'slider',
+            showDetail: false,
+            showDataShadow: false,
+            width: 15,
+        }
+    ]
 
     if (customDatazoomColor) {
         datazoomOption['dataBackground'] = { 
@@ -184,8 +194,8 @@ export function buildChartOptions(
         yAxis: { type: 'value' },
         series: series,
         animation: false,
-        dataZoom: [datazoomOption],
-        grid: { top: 90, bottom: 30, right: 0 },
+        dataZoom: datazoomOption,
+        grid: { top: 90, bottom: 30, right: 0, left: 70 },
         toolbox: {
             right: 110,
             top: 0
@@ -207,7 +217,7 @@ export function buildChartOptions(
             ],
             data: tagsList
         }
-        option['grid'] = { top: 55 + top, left: 60, bottom: 30, right: legendWidth }
+        option['grid'] = { top: 55 + top, left: 70, bottom: 30, right: legendWidth }
         option['toolbox'] = {
             right: legendWidth,
             top: 0

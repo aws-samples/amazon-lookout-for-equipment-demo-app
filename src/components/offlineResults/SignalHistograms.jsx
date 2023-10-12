@@ -157,11 +157,6 @@ function buildSignalBehaviorOptions(sortedTags,
         const sensorContributionSeries = getSensorContributionSeries(tag, sensorContributionTimeseries)
         const histogramsSeries = getHistogramSeries(tag, histogramData)
         
-        evaluationSeries['lineStyle'] = { color: '#67a353', width: 2.0 }
-        evaluationSeries['color'] = '#67a353'
-        evaluationSeries['name'] = 'Evaluation range'
-        trainingSeries['name'] = 'Training range'
-
         options[tag] = {}
         options[tag]['trainingTimeSeries'] = {
             title: {top: 0, text: 'Training data timeseries'},
@@ -184,24 +179,24 @@ function buildSignalBehaviorOptions(sortedTags,
                 show: true,
                 top: 0, right: 40,
                 orient: 'horizontal',
-                data: ['Training range', 'Evaluation range', 'Detected events', 'Contribution (%)']
+                data: ['Training', 'Evaluation', 'Detected events', 'Contribution (%)']
             },
         }
 
         options[tag]['histograms'] = {
-            title: {top: 0, text: 'Signal distributions'},
+            title: {top: 0, text: 'Histograms'},
             grid: {top: 40, left: 50, height: 200},
             xAxis: {scale: true},
             yAxis: {axisLabel: { show: false }},
             series: histogramsSeries,
             animation: false,
             tooltip: {show: true, trigger: 'axis'},
-            dataZoom: { type:'slider', start: 0, end: 100, top: 270, height: 20, showDetail: false},
+            dataZoom: { type:'slider', start: 0, end: 100, top: 270, height: 20, showDataShadow: false},
             legend: {
                 show: true,
                 top: 0, right: 0,
                 orient: 'horizontal',
-                data: ['Training', 'Evaluation', 'Anomalies']
+                data: ['Training', 'Evaluation', 'Detected events']
             },
         }
     })
@@ -229,14 +224,15 @@ function getSortedTags(sensorContribution, tagsList) {
 // -----------------------------------------------
 function getTrainingSeries(tag, timeseries) {
     const series = {
-        name: tag,
+        name: 'Training',
         symbol: 'none',
         sampling: 'lttb',
         data: timeseries[tag],
         type: 'line',
         emphasis: { disabled: true },
         tooltip: { valueFormatter: (value) => value.toFixed(2) },
-        lineStyle: { width: 2.0 }
+        lineStyle: { width: 2.0, color: '#529ccb', opacity: 0.7 },
+        itemStyle: { color: '#529ccb', opacity: 0.7 }
     }
 
     return series
@@ -247,14 +243,15 @@ function getTrainingSeries(tag, timeseries) {
 // --------------------------------------------------------------
 function getEvaluationSeries(tag, evaluationTimeseries, anomaliesTimeseries) {
     const evaluationSeries = {
-        name: tag,
+        name: 'Evaluation',
         symbol: 'none',
         sampling: 'lttb',
         data: evaluationTimeseries[tag],
         type: 'line',
         emphasis: { disabled: true },
         tooltip: { valueFormatter: (value) => value.toFixed(2) },
-        lineStyle: { width: 2.0 }
+        lineStyle: { width: 2.0, color: '#67a353', opacity: 0.7 },
+        itemStyle: { color: '#67a353', opacity: 0.7 }
     }
 
     const anomaliesSeries = {
@@ -266,7 +263,8 @@ function getEvaluationSeries(tag, evaluationTimeseries, anomaliesTimeseries) {
         type: 'line',
         emphasis: { disabled: true },
         tooltip: { valueFormatter: (value) => value.toFixed(2) },
-        lineStyle: { width: 0.0 }
+        lineStyle: { width: 0.0, color: '#a32952', opacity: 0.7 },
+        itemStyle: { color: '#a32952', opacity: 0.7 }
     }
 
     return {evaluationSeries, anomaliesSeries}
@@ -282,11 +280,11 @@ function getSensorContributionSeries(tag, sensorContributionTimeseries) {
         sampling: 'lttb',
         data: sensorContributionTimeseries[tag],
         type: 'line',
-        color: '#e07941',
         step: true,
         tooltip: { valueFormatter: (value) => (value*100).toFixed(0) + '%' },
-        areaStyle: { opacity: 0.2 },
-        lineStyle: { width: 0.5 },
+        areaStyle: { color: '#e07941', opacity: 0.2 },
+        lineStyle: { color: '#e07941', width: 0.5 },
+        itemStyle: { color: '#e07941', opacity: 0.5 },
         yAxisIndex: 1
     }
 
@@ -304,7 +302,7 @@ function getHistogramSeries(tag, histogramData) {
             barWidth: 8,
             xAxisIndex: 0,
             yAxisIndex: 0,
-            itemStyle: { color: '#529ccb', opacity: 0.5 },
+            itemStyle: { color: '#529ccb', opacity: 0.7 },
             data: normalizedHistogram(histogramData.training[tag]).data,
         },
         {
@@ -317,12 +315,12 @@ function getHistogramSeries(tag, histogramData) {
             data: normalizedHistogram(histogramData.evaluation[tag]).data,
         },
         {
-            name: 'Anomalies',
+            name: 'Detected events',
             type: 'bar',
             barWidth: 8,
             xAxisIndex: 0,
             yAxisIndex: 0,
-            itemStyle: { color: '#a32952', opacity: 0.5 },
+            itemStyle: { color: '#a32952', opacity: 0.7 },
             data: normalizedHistogram(histogramData.anomalies[tag]).data,
         },
     ]

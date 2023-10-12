@@ -1,5 +1,6 @@
 // Imports:
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import ReactEcharts from "echarts-for-react"
 import "../../styles/chartThemeMacarons.js"
 
@@ -14,21 +15,23 @@ import { getModelAnomalies } from '../../utils/dataExtraction'
 import { buildTimeseries } from '../../utils/timeseries.js'
 import { getIndex } from '../../utils/utils'
 
+// Contexts:
+import ApiGatewayContext from '../contexts/ApiGatewayContext'
+
 // ------------------------------------------------------
 // Replay data start date selection component entry point
 // ------------------------------------------------------
 function StartDateSelection({ 
-    projectName, 
     modelName, 
-    gateway, 
     replayDuration, 
     disabled, 
     setParentReplayStartDate, 
-    uid, 
-    setDeployInProgress
+    setStartDateSelectionLoading
 }) {
     const [ replayStartDate, setReplayStartDate ] = useState(undefined)
     const [ modelDetails, setModelDetails ] = useState(undefined)
+    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
+    const { projectName } = useParams()
     let options = undefined
 
     useEffect(() => {
@@ -51,7 +54,7 @@ function StartDateSelection({
         // Send the replay start date back to the parent component (the 
         // modal window where the model deploymend is configured):
         setParentReplayStartDate(replayStartDate)
-        setDeployInProgress(false)
+        setStartDateSelectionLoading(false)
 
         // Computes the replay end index based on the
         // start date and the desired replay length:

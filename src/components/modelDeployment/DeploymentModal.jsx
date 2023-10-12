@@ -37,6 +37,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     const [ replayStartDate, setReplayStartDate ] = useState(undefined)
     const [ replayDuration, setReplayDuration ] = useState({ label: "1 day", value: "1day" })
     const [ invalidReplayStartDate, setInvalidReplayStartDate ] = useState(false)
+    const [ startDateSelectionLoading, setStartDateSelectionLoading ] = useState(false)
 
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const { stateMachinesList, setStateMachinesList } = useContext(ModelDeploymentContext)
@@ -76,7 +77,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
             uid: uid
         }
 
-        if (!replayStartDate) {
+        if (replayDataChecked && !replayStartDate) {
             setInvalidReplayStartDate(true)
         }
         else {
@@ -104,6 +105,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
             setNavbarCounter(navbarCounter + 1)
             onConfirm()
             onDeployDismiss()
+            setReplayDataChecked(false)
             setDeployInProgress(false)
         }
     }
@@ -146,9 +148,9 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
                             <Button 
                                 variant="primary" 
                                 onClick={ () => onDeployConfirm() } 
-                                disabled={deployInProgress}
+                                disabled={deployInProgress || startDateSelectionLoading}
                             >
-                                {!deployInProgress ? 'Deploy' : <Spinner />}
+                                {!deployInProgress && !startDateSelectionLoading ? 'Deploy' : <Spinner />}
                             </Button>
                         </SpaceBetween>
                     </Box>
@@ -161,7 +163,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
                         <SpaceBetween size="s">
                             <Checkbox
                                 onChange={({ detail }) => {
-                                    if (detail.checked) { setDeployInProgress(true) }
+                                    if (detail.checked) { setStartDateSelectionLoading(true) }
                                     setReplayDataChecked(detail.checked) 
                                 }}
                                 checked={replayDataChecked}
@@ -190,14 +192,11 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
                                 </FormField>
 
                                 <StartDateSelection 
-                                    projectName={projectName} 
                                     modelName={modelName} 
-                                    gateway={gateway} 
                                     replayDuration={replayDuration['value']}
                                     disabled={!replayDataChecked}
                                     setParentReplayStartDate={setReplayStartDate}
-                                    uid={uid}
-                                    setDeployInProgress={setDeployInProgress}
+                                    setStartDateSelectionLoading={setStartDateSelectionLoading}
                                 />
 
                             </>}

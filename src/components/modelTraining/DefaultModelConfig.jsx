@@ -191,7 +191,7 @@ function DefaultModelConfig() {
                                     {modelDetails && <>
                                         <div>{samplingRateTable[calculatedSR][0]}</div>
                                         <div>
-                                            <i>Note: the average sampling rate from your dataset is:&nbsp;
+                                            <i>Note: the average sampling rate from your dataset is&nbsp;
                                             {Math.round(getSamplingRate(
                                                 modelDetails['rowCounts'],
                                                 modelDetails['startDate'],

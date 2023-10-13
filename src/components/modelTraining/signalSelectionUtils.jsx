@@ -96,7 +96,7 @@ export function buildChartOptions(tagsList, x, signals, trainingRange, evaluatio
                 max: new Date(evaluationRange.current['endDate']).toISOString().substring(0, 19).replace('T', '\n'),
             },
             yAxis: { type: 'value' },
-            grid: { top: 15, left: 40, right: 10, bottom: 35 },
+            grid: { top: 20, left: 40, right: 10, bottom: 35, backgroundColor: '#FFFFFF', show: true },
             series: currentSerie,
             animation: false,
         }

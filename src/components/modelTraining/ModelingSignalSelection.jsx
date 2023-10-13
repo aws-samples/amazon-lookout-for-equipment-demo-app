@@ -11,11 +11,11 @@ import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
 import Cards        from "@cloudscape-design/components/cards"
 import Checkbox     from "@cloudscape-design/components/checkbox"
+import Container    from "@cloudscape-design/components/container"
 import Header       from "@cloudscape-design/components/header"
 import Pagination   from "@cloudscape-design/components/pagination"
 import SpaceBetween from "@cloudscape-design/components/space-between"
 import Spinner      from "@cloudscape-design/components/spinner"
-import Tabs         from "@cloudscape-design/components/tabs"
 import TextFilter   from "@cloudscape-design/components/text-filter"
 
 // App components:
@@ -103,26 +103,22 @@ function SignalSelectionCards({ cardItems, selectedItems, tagsList, trainingRang
             cardDefinition={{
                 header: e => e.name,
                 sections: [
-                    { id: 'issues', header: 'Issues', content: e => e.issues },
-                    { id: 'startTime', header: 'Start time', content: e => e.startTime, width: 50 },
-                    { id: 'endTime', header: 'End time', content: e => e.endTime, width: 50 },
+                    { id: 'issues', header: 'Issues', content: e => e.issues, width: 34 },
+                    { id: 'startTime', header: 'Start time', content: e => e.startTime, width: 33 },
+                    { id: 'endTime', header: 'End time', content: e => e.endTime, width: 33 },
                     { 
-                        id: 'chart', 
-                        content: e => <Tabs
-                            tabs={[
-                                {
-                                    label: "Time series",
-                                    id: "timeSeries",
-                                    content: <ReactEcharts 
+                        id: 'timeseries',
+                        width: 50,
+                        content: e => <ReactEcharts 
                                         option={e.chartOptions}
                                         theme="macarons"
                                         style={{height: 200, width: "100%"}}
-                                        opts={{ renderer: 'svg' }}
                                     />
-                                },
-                                {
-                                    label: "Histogram",
-                                    content: <TimeSeriesHistograms
+                    },
+                    { 
+                        id: 'timeseries',
+                        width: 50,
+                        content: e => <TimeSeriesHistograms
                                         data={data}
                                         ranges={[{start: rangeEnd + 1, end: new Date(x[x.length-1]).getTime()}]} 
                                         sensorName={e.name}
@@ -130,21 +126,18 @@ function SignalSelectionCards({ cardItems, selectedItems, tagsList, trainingRang
                                         width={"100%"}
                                         hideTitle={true}
                                         hideAnimation={true}
-                                        gridOptions={{top: 20, left: 50, right: 35, bottom: 45}}
-                                        colors={['rgb(82, 156, 203, 0.5)', 'rgb(151, 181, 82, 0.5)']}
-                                        legend={{top: 0, right: 40, orient: 'vertical'}}
+                                        gridOptions={{top: 30, left: 50, right: 35, bottom: 25, backgroundColor: '#FFFFFF', show: true}}
+                                        colors={['rgb(151, 181, 82, 0.5)', 'rgb(82, 156, 203, 0.5)']}
+                                        legend={{top: 0, right: 40, orient: 'horizontal'}}
                                         unselectedTitle={'Evaluation'}
                                         selectedTitle={'Training'}
                                     />
-                                }
-                            ]}
-                        />
-                    }
+                    },
                 ]
             }}
             cardsPerRow={[
                 { cards: 1 }, 
-                { minWidth: 800, cards: 2 }
+                { minWidth: 800, cards: 1 }
             ]}
             items={items}
             selectionType="multi"

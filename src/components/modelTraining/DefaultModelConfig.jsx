@@ -27,6 +27,7 @@ import { getAvailableDefaultModelName } from '../../utils/utils'
 
 const samplingRateTable = {
     1: ['1 second', 'PT1S'],
+    5: ['5 seconds', 'PT5S'],
     10: ['10 seconds', 'PT10S'],
     15: ['15 seconds', 'PT15S'],
     30: ['30 seconds', 'PT30S'],

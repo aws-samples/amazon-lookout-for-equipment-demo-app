@@ -16,7 +16,9 @@ export async function createModel(
     offConditionValue,
     selectedLabelGroupName,
     navigate,
-    setErrorMessage
+    setErrorMessage,
+    setNavbarCounter,
+    navbarCounter
 ) {
     e.preventDefault()
     let currentErrorMessage = ""
@@ -83,6 +85,10 @@ export async function createModel(
 
     // Redirect the user to this model dashboard:
     if (currentErrorMessage === "") {
+        // This forces a refresh of the side bar navigation
+        // so we can see the new model name popping up:
+        setNavbarCounter(navbarCounter + 1)
+
         navigate(`/offline-results/modelName/${modelName.current}/projectName/${datasetName.current}`)
     }
     else {

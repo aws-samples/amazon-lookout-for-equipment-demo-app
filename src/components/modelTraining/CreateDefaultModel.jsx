@@ -62,7 +62,7 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
 
         if (currentErrorMessage === "") {
             // This forces a refresh of the side bar navigation
-            // so we can see the new project name popping up:
+            // so we can see the new model name popping up:
             setNavbarCounter(navbarCounter + 1)
 
             const modelName = modelConfig['modelName'].slice(uid.length + 1 + modelConfig['projectName'].length + 1)

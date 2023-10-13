@@ -27,7 +27,7 @@ import Wizard           from "@cloudscape-design/components/wizard"
 function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
     const [ activeStepIndex, setActiveStepIndex ] = useState(0)
     const [ errorMessage, setErrorMessage ] = useState(undefined)
-    const { gateway, uid } = useContext(ApiGatewayContext)
+    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { 
         trainingRange, 
@@ -159,7 +159,9 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
                                 offConditionValue,
                                 selectedLabelGroupName,
                                 navigate,
-                                setErrorMessage
+                                setErrorMessage,
+                                setNavbarCounter,
+                                navbarCounter
                             )}
         />
     )

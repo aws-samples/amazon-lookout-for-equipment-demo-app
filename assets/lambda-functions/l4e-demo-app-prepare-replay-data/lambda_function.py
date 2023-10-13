@@ -50,6 +50,7 @@ def lambda_handler(event, context):
     projectName = event['projectName']
     generateReplayData = event['generateReplayData']
     replayDuration = event['replayDuration']
+    dataUploadFrequency = event['dataUploadFrequency']
     uid = event['uid']
     
     if generateReplayData:
@@ -63,8 +64,6 @@ def lambda_handler(event, context):
         
         df, timestampCol, bucket = getDataframe(projectName)
         df = df.loc[replayStartTime:replayEndTime, tagsList].resample(samplingRate).mean().ffill()
-
-        
         targetBucket = s3.Bucket(bucket)
     
         start = datetime.datetime.now()
@@ -117,6 +116,7 @@ def lambda_handler(event, context):
             'generateReplayData': True,
             'replayStartTime': str(replayStartTime),
             'replayEndTime': str(replayEndTime),
+            'dataUploadFrequency': dataUploadFrequency,
             'uid': uid
         }
         
@@ -141,6 +141,7 @@ def lambda_handler(event, context):
             'inputPrefix': f'inference-data/{modelName}/input/',
             'outputPrefix': f'inference-data/{modelName}/output/',
             'generateReplayData': False,
+            'dataUploadFrequency': dataUploadFrequency,
             'uid': uid
         }
         

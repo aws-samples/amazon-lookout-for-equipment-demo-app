@@ -57,7 +57,7 @@
               "Prefix.$": "$.outputPrefix"
             }
           },
-          "DataUploadFrequency": "PT5M",
+          "DataUploadFrequency.$": "$.dataUploadFrequency",
           "InferenceSchedulerName.$": "$.name",
           "ModelName.$": "$.modelName",
           "RoleArn": "${role-step-function-deploy-model}",
@@ -158,7 +158,7 @@
                       "Prefix.$": "$.outputPrefix"
                     }
                   },
-                  "DataUploadFrequency": "PT5M",
+                  "DataUploadFrequency.$": "$.dataUploadFrequency",
                   "InferenceSchedulerName.$": "$.name",
                   "ModelName.$": "$.modelName",
                   "RoleArn": "${role-step-function-deploy-model}",

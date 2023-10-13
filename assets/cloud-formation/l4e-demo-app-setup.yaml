@@ -1131,7 +1131,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-prepare-replay-data-v3.zip
+            - l4e-demo-app-prepare-replay-data-v4.zip
       Environment:
         Variables:
           STACK_ID: !Select

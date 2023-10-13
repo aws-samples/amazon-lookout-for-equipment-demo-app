@@ -136,8 +136,8 @@ async function buildOfflineResultsSection(currentModels, gateway, uid, project) 
             type: 'link', 
             text: <>
                 <Icon 
-                    name={model['status'] === 'SUCCESS' ? 'status-positive' : 'status-in-progress'} 
-                    variant={model['status'] === 'SUCCESS' ? 'success': 'error'} />
+                    name={model['status'] === 'SUCCESS' ? 'status-positive' : model['status'] === 'FAILED' ? 'status-negative' : 'status-in-progress'} 
+                    variant={model['status'] === 'SUCCESS' ? 'success': model['status'] === 'IN_PROGRESS' ? 'subtle' : 'error'} />
                 &nbsp;&nbsp;
                 {model['name'].slice(uid.length + 1 + project.length + 1)}
             </>,

@@ -125,6 +125,37 @@ export function getHumanReadableSize(filesize) {
     return filesizeString
 }
 
+// ---------------------------
+// Get human readable duration
+// ---------------------------
+export function getHumanReadableTime(milliseconds) {
+    let hours = 0
+    let minutes = 0
+    let seconds = 0
+    let remainingTime = milliseconds
+    let timeString = ''
+
+    if (remainingTime > 3600*1000) {
+        hours = parseInt(remainingTime / (3600*1000))
+        remainingTime -= hours * 3600*1000
+        timeString += `${hours}h `
+    }
+
+    if (remainingTime > 60*1000) {
+        minutes = parseInt(remainingTime / (60*1000))
+        remainingTime -= minutes * 60*1000
+        timeString += `${minutes}mn `
+    }
+
+    if (remainingTime > 1000) {
+        seconds = parseInt(remainingTime / (1000))
+        remainingTime -= seconds * 1000
+        timeString += `${seconds}s`
+    }
+
+    return timeString
+}
+
 // ---------------------------------------------------------------------------
 // Takes a list and some items to remove. Returns the list without the latters
 // ---------------------------------------------------------------------------

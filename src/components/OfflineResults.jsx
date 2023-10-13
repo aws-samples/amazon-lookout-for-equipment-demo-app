@@ -22,11 +22,21 @@ import { OfflineResultsProvider } from './contexts/OfflineResultsContext'
 
 async function getModelStatus(gateway, uid, projectName, modelName) {
     if (!uid) { return undefined }
-    const modelResponse = await gateway.lookoutEquipment
-                                       .describeModel(`${uid}-${projectName}-${modelName}`)
-                                       .catch((error) => console.log(error.response))
 
-    return modelResponse.Status
+    let listModels = []
+    let response = await gateway.lookoutEquipment.listModels()
+    response = response['ModelSummaries']
+    response.forEach((model) => { listModels.push(model.ModelName) })
+
+    if (listModels.indexOf(modelName) >= 0) {
+        const modelResponse = await gateway.lookoutEquipment
+                                        .describeModel(`${uid}-${projectName}-${modelName}`)
+                                        .catch((error) => console.log(error.response))
+
+        return modelResponse.Status
+    }
+    
+    return undefined
 }
 
 function OfflineResults() {

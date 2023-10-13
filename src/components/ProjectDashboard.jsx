@@ -1,5 +1,5 @@
 // Imports:
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
@@ -13,18 +13,17 @@ import HelpPanelContext from './contexts/HelpPanelContext'
 
 // CloudScape Components:
 import Alert             from "@cloudscape-design/components/alert"
-import Box               from "@cloudscape-design/components/box"
 import Button            from "@cloudscape-design/components/button"
 import Container         from "@cloudscape-design/components/container"
 import ContentLayout     from "@cloudscape-design/components/content-layout"
 import ExpandableSection from "@cloudscape-design/components/expandable-section"
 import Header            from "@cloudscape-design/components/header"
-import Icon              from "@cloudscape-design/components/icon"
 import SpaceBetween      from "@cloudscape-design/components/space-between"
 import Spinner           from "@cloudscape-design/components/spinner"
 
 // Utils:
 import { getProjectDetails } from './projectDashboard/projectDashboardUtils'
+import Refresh from './shared/Refresh'
 
 // --------------------------
 // Main component entry point
@@ -36,11 +35,14 @@ function ProjectDashboard() {
     const [ errorDetails, setErrorDetails ]                     = useState(undefined)
     const [ isLoading, setIsLoading ]                           = useState(true)
     const [ showDeleteProjectModal, setShowDeleteProjectModal ] = useState(false)
-    const [ progressBar, setProgressBar ]                       = useState('.')
-    const [ time, setTime]                                      = useState(Date.now())
 
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { helpPanelOpen, setHelpPanelOpen } = useContext(HelpPanelContext)
+
+    // Refresh component state definition:
+    const [ refreshTimer, setRefreshTimer] = useState(Date.now())
+    const refreshStartTime  = useRef(Date.now())
+    const progressBar = useRef('.')
 
     useEffect(() => {
         setHelpPanelOpen({
@@ -58,26 +60,13 @@ function ProjectDashboard() {
             setErrorDetails(errorDetails)
             setIsLoading(false)
         })
-    }, [gateway, projectName, time])
-
-    // This effect will trigger a refresh of the project
-    // dashboard every 30s until dataset ingestion is done:
-    useEffect(() => {
-        const startTime = Date.now()
-        if (!modelDetails) {
-            const interval = setInterval(() => { 
-                setTime(Date.now()) 
-                setProgressBar('.'.repeat(parseInt((Date.now() - startTime)/(30 * 1000)) + 1))
-            }, 30 * 1000)
-            return () => { clearInterval(interval) }
-        }
-    }, [])
+    }, [gateway, projectName, refreshTimer])
 
     // When data loads successfully, we render the full component:
     let children = ""
     if (!isLoading && modelDetails) {
         children = <>
-            <DatasetSummary modelDetails={modelDetails} />
+            <DatasetSummary modelDetails={modelDetails} setRefreshTimer={setRefreshTimer} />
             <OnlineMonitoringSummary projectName={projectName} />
         </>
     }
@@ -93,13 +82,12 @@ function ProjectDashboard() {
                                     to optimize visualization speed. This step usually takes 5 to 20 minutes depending
                                     on the size of the dataset you uploaded.
 
-                                    <Box>
-                                        {Array.from(
-                                            { length: progressBar.length }, 
-                                            (_, i) => <Icon name="drag-indicator" size="normal" variant="link" />
-                                        )}
-                                        <Spinner />
-                                    </Box>
+                                    <Refresh 
+                                        refreshTimer={setRefreshTimer} 
+                                        refreshInterval={30} 
+                                        refreshStartTime={refreshStartTime.current} 
+                                        progressBar={progressBar}
+                                    />
                                 </SpaceBetween>
                             </Alert>
                         </Container>

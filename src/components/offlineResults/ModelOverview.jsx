@@ -29,7 +29,7 @@ import OfflineResultsContext from '../contexts/OfflineResultsContext'
 // Component main entry point
 // --------------------------
 function ModelOverview() {
-    const { modelDetails, loading } = useContext(OfflineResultsContext)
+    const { modelDetails, loading, setDeleteInProgress } = useContext(OfflineResultsContext)
 
     const [ showDeleteModelModal, setShowDeleteModelModal ] = useState(false)
     const [ showUserGuide, setShowUserGuide ] = useState(true)
@@ -213,6 +213,7 @@ function ModelOverview() {
                     <DeleteModelModal
                         visible={showDeleteModelModal}
                         onDiscard={() => { setShowDeleteModelModal(false) }}
+                        setDeleteInProgress={setDeleteInProgress}
                     />
                 </Container>
             </SpaceBetween>

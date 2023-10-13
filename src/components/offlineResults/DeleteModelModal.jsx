@@ -22,9 +22,9 @@ import { stopAndDeleteScheduler, deleteScheduler } from '../../utils/utils'
 // ==========================
 // Component main entry point
 // ==========================
-function DeleteModelModal({ visible, onDiscard }) {
+function DeleteModelModal({ visible, onDiscard, setDeleteInProgress }) {
     const [ scheduler, setScheduler ] = useState(undefined)
-    const [ deleteInProgress, setDeleteInProgress ] = useState(false)
+    const [ deletionTriggered, setDeletionTriggered ] = useState(false)
     const [ deleteMessage, setDeleteMessage ] = useState(undefined)
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const { modelName, projectName } = useParams()
@@ -39,6 +39,7 @@ function DeleteModelModal({ visible, onDiscard }) {
     // Delete a given model and the associated scheduler if it was deployed
     // --------------------------------------------------------------------
     const onDeleteModel = async (gateway, modelName) => {
+        setDeletionTriggered(true)
         setDeleteInProgress(true)
 
         // Delete the scheduler first: a model with an attached
@@ -66,8 +67,8 @@ function DeleteModelModal({ visible, onDiscard }) {
         setNavbarCounter(navbarCounter + 1)
 
         // Navigate away from this page, which does not exist anymore:
-        setDeleteInProgress(false)
-        navigate(`/project-dashboard/projectName/${projectName}`)
+        setDeletionTriggered(false)
+        navigate(`/model-training/projectName/${projectName}`)
     }
 
     // ---------------------
@@ -84,8 +85,8 @@ function DeleteModelModal({ visible, onDiscard }) {
                         <Button variant="link" onClick={onDiscard}>
                             Cancel
                         </Button>
-                        <Button variant="primary" onClick={() => onDeleteModel(gateway, modelName)} disabled={deleteInProgress}>
-                            {deleteInProgress ? <Spinner /> : "Delete"}
+                        <Button variant="primary" onClick={() => onDeleteModel(gateway, modelName)} disabled={deletionTriggered}>
+                            {deletionTriggered ? <Spinner /> : "Delete"}
                         </Button>
                     </SpaceBetween>
                 </Box>

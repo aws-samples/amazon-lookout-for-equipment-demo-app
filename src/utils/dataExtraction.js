@@ -205,8 +205,9 @@ export async function getAllTimeseriesWindow(gateway, modelName, startTime, endT
 // -----------------------------
 // Get trained model information
 // -----------------------------
-export async function getModelDetails(gateway, modelName, projectName, uid) {
+export async function getModelDetails(gateway, modelName, projectName, uid, deleteInProgress) {
     if (!uid) { return undefined }
+    if (deleteInProgress) { return undefined }
     
     const modelResponse = await gateway.lookoutEquipment
                                        .describeModel(`${uid}-${projectName}-${modelName}`)

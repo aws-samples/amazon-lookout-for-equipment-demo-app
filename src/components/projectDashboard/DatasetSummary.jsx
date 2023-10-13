@@ -1,5 +1,5 @@
 // Imports:
-import { useContext, useState } from 'react'
+import { useContext, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 
 // Cloudscape components:
@@ -25,17 +25,22 @@ import ApiGatewayContext from '../contexts/ApiGatewayContext'
 
 // Utils:
 import { SamplingRate } from './projectDashboardUtils'
+import Refresh from '../shared/Refresh'
 
 // --------------------------
 // Component main entry point
 // --------------------------
-function DatasetSummary({ modelDetails }) {
+function DatasetSummary({ modelDetails, setRefreshTimer }) {
     const [ showDeleteProjectModal, setShowDeleteProjectModal ] = useState(false)
     const [ showUserGuide, setShowUserGuide ] = useState(true)
     const { projectName } = useParams()
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { showHelp } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
+
+    // Refresh component state definition:
+    const refreshStartTime  = useRef(Date.now())
+    const progressBar = useRef('.')
 
     // Links to other pages of the app:
     const sensorOverviewLink = <Link 
@@ -176,6 +181,15 @@ function DatasetSummary({ modelDetails }) {
                         <div>
                             <Box variant="awsui-key-label">Lookout for Equipment ingestion status</Box>
                             {<Badge color={color}>{modelDetails['ingestionStatus'].replace('_',' ')}</Badge>}
+
+                            { modelDetails['ingestionStatus'] === 'IN_PROGRESS' &&
+                                <>&nbsp;<Refresh 
+                                    refreshTimer={setRefreshTimer} 
+                                    refreshInterval={30} 
+                                    refreshStartTime={refreshStartTime.current} 
+                                /></>
+                            }
+
                         </div>
                     </SpaceBetween>
                 </ColumnLayout> }

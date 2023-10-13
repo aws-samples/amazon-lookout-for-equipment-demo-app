@@ -62,10 +62,10 @@ export function buildChartOptions(
             { top: 610, left: 50, text: 'Sensor time series' }
         ],
         grid: [
-            { left: 50, right: legendWidth, top: 45, height: 30, tooltip: { show: true } },
-            { left: 50, right: legendWidth, top: 195, height: 150 },
-            { left: 50, right: legendWidth, top: 425, height: 150 },
-            { left: 50, right: legendWidth, top: 655, height: 150 }
+            { left: 50, right: legendWidth+10, top: 45, height: 30, tooltip: { show: true } },
+            { left: 50, right: legendWidth+10, top: 195, height: 150 },
+            { left: 50, right: legendWidth+10, top: 425, height: 150 },
+            { left: 50, right: legendWidth+10, top: 655, height: 150 }
         ],
         xAxis: [
             { type: 'time', gridIndex: 0, min: xMin, max: xMax, minorTick: { show: true } },
@@ -86,7 +86,7 @@ export function buildChartOptions(
         animation: false,
         dataZoom: [
             { type:'slider', start: 0, end: 100, xAxisIndex: [0, 1, 2, 3], top: 100, height: 30 },
-            { type:'slider', start: 0, end: 100, yAxisIndex: 3, right: legendWidth-40, showDataShadow: false, showDetail: false }
+            { type:'slider', start: 0, end: 100, yAxisIndex: 3, right: legendWidth-20, showDataShadow: false, showDetail: false, width: 20 }
         ],
         legend: [
             // Signal time series legend, located on the bottom. Command

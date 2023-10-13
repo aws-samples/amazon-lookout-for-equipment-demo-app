@@ -28,7 +28,7 @@ async function getModelStatus(gateway, uid, projectName, modelName) {
     response = response['ModelSummaries']
     response.forEach((model) => { listModels.push(model.ModelName) })
 
-    if (listModels.indexOf(modelName) >= 0) {
+    if (listModels.indexOf(`${uid}-${projectName}-${modelName}`) >= 0) {
         const modelResponse = await gateway.lookoutEquipment
                                         .describeModel(`${uid}-${projectName}-${modelName}`)
                                         .catch((error) => console.log(error.response))

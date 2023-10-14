@@ -79,13 +79,14 @@ function CreateProject() {
             setFilename(file.name)
             setUploadInProgress(true)
 
-            await Storage.put(
+            const upload = Storage.put(
                 prefix + '/' + prefix + '/sensors.csv', 
                 file,
                 { 
                     contentType: file.type,
                     level: "private",
                     tagging: `L4EDemoAppUser=${uid}&AssetDescription=${assetDescription}`,
+                    resumable: true,
                     progressCallback
                 }
             )
@@ -127,8 +128,8 @@ function CreateProject() {
             setErrorMessage("")
             await uploadFileToS3(projectName, dataset[0])
             setShowFlashbar(true)
-            setUploadInProgress(false)
             await waitForPipelineStart(gateway, uid, projectName)
+            setUploadInProgress(false)
 
             // This forces a refresh of the side bar navigation
             // so we can see the new project name popping up:
@@ -251,17 +252,13 @@ function CreateProject() {
                             </FormField>
 
                             
-                            { filename && uploadInProgress && <FormField>
-                                {/* <ProgressBar
+                            { filename && <FormField>
+                                <ProgressBar
                                     value={progressPercent}
                                     additionalInfo={bytesTransferred}
                                     description={`Uploading ${filename}`}
                                     label="File upload in progress"
-                                /> */}
-
-                                <Alert>
-                                    File upload in progress&nbsp;<Spinner />
-                                </Alert>
+                                />
                             </FormField> }
                             
                             { errorMessage && <Alert type="error">{errorMessage}</Alert> }

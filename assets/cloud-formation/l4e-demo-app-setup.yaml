@@ -1021,7 +1021,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-prepare-hourly-data-v4.zip
+            - l4e-demo-app-prepare-hourly-data-v5.zip
       Environment:
         Variables:
           STACK_ID: !Select

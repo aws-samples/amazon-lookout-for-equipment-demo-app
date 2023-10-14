@@ -30,8 +30,15 @@ def lambda_handler(event, context):
     timestampCol = list(df.columns)[0]
     df[timestampCol] = pd.to_datetime(df[timestampCol])
     df = df.set_index(timestampCol)
+    df = df.sort_index()
     df.index.name = "timestamp"
     df.index = df.index.tz_localize('utc').tz_convert(None)
+    
+    print('Original data ingested in L4E:')
+    print(df.shape)
+    print(df.head())
+    print(df.tail())
+    print('-----------------------------------')
 
     # Reading tags on the object
     tags = s3_client.get_object_tagging(Bucket=bucket, Key=key)['TagSet']
@@ -47,7 +54,13 @@ def lambda_handler(event, context):
     df_hourly = df.resample('1H').mean().ffill(limit=24)
     df_hourly = df_hourly.dropna(axis='index', how='all')
     df_hourly = df_hourly.fillna(value=0.0)
-    
+
+    print('Hourly data stored in DynamoDB')
+    print(df_hourly.shape)
+    print(df_hourly.head())
+    print(df_hourly.tail())
+    print('-----------------------------------')
+
     # Adding columns:
     df_hourly['asset'] = asset
     df_hourly['sampling_rate'] = '1h'

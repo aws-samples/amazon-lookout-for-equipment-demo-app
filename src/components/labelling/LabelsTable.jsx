@@ -22,7 +22,7 @@ import UploadLabelsModal from "./UploadLabelsModal"
 const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     const [ currentLabels, setCurrentLabels ] = useState(props.labels)
     const [ selectedLabels, setSelectedLabels ] = useState([])
-    const [ showUploadLabels, setShowUploadLabels ] = useState(true)
+    const [ showUploadLabels, setShowUploadLabels ] = useState(false)
     const [ uploadedLabelData, setUploadedLabelData ] = useState(undefined)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
 

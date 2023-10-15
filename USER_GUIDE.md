@@ -1,2 +1,3 @@
 # Lookout for Equipment Demo Application User Guide
-To do.
+
+Coming soon as a ReadTheDoc package.

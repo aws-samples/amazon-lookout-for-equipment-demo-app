@@ -5,7 +5,6 @@ import { forwardRef, useContext, useImperativeHandle, useState } from 'react'
 import Alert        from "@cloudscape-design/components/alert"
 import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
-import FormField    from '@cloudscape-design/components/form-field'
 import Header       from "@cloudscape-design/components/header"
 import Link         from "@cloudscape-design/components/link"
 import SpaceBetween from "@cloudscape-design/components/space-between"
@@ -14,12 +13,17 @@ import Table        from "@cloudscape-design/components/table"
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
 
+// App components:
+import UploadLabelsModal from "./UploadLabelsModal"
+
 // --------------------------
 // Component main entry point
 // --------------------------
 const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     const [ currentLabels, setCurrentLabels ] = useState(props.labels)
     const [ selectedLabels, setSelectedLabels ] = useState([])
+    const [ showUploadLabels, setShowUploadLabels ] = useState(true)
+    const [ uploadedLabelData, setUploadedLabelData ] = useState(undefined)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
 
     const noLabelDefined = props.noLabelDefined
@@ -103,60 +107,96 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
         }
 
         actions = {
-            actions: 
-                <Button
-                    disabled={selectedLabels.length == 0}
-                    onClick={(e) => deleteSelectedLabels(e)}
-                >
-                    Delete labels
-                </Button>
+            actions:
+                <SpaceBetween size="xl" direction="horizontal">
+                    <Button
+                        disabled={selectedLabels.length == 0}
+                        onClick={(e) => deleteSelectedLabels(e)}
+                    >
+                        Delete labels
+                    </Button>
+
+                    <Button 
+                        iconAlign="left"
+                        iconName="upload"
+                        onClick={(e) => setShowUploadLabels(true )}
+                    >
+                        Upload CSV
+                    </Button>
+                </SpaceBetween>
         }
     }
 
     // Render the component:
     return (
-        <Table
-            {...selectionParameters}
+        <>
+            <UploadLabelsModal 
+                visible={showUploadLabels} 
+                onDiscard={() => { setShowUploadLabels(false) }} 
+                onUpload={async () => { 
+                    console.log('Upload the selected file!')
+                    console.log(uploadedLabelData)
+                    console.log(labels)
 
-            variant="embedded"
-            contentDensity="compact"
-            stripedRows={true}
-            header={
-                <Header
-                    variant="h4"
-                    description="This table lists all the labels selected above"
-                    info={
-                        <Link variant="info" onFollow={() => setHelpPanelOpen({
-                            status: true,
-                            page: 'labelling',
-                            section: 'labelsTable'
-                        })}>Info</Link>
-                    }
-                    {...actions}
-                >
-                    Labels list
-                </Header>
-            }
-            columnDefinitions={[
-                { id: "startDate", header: "Label start date", cell: e => <Box textAlign="right">{e.startDate}</Box> },
-                { id: "endDate", header: "Label end date", cell: e => <Box textAlign="right">{e.endDate}</Box> },
-                { id: "duration", header: "Label duration", cell: e => <Box textAlign="right">{e.duration}</Box> }
-            ]}
-            items={items}
-            empty={
-                <Box textAlign="center" color="inherit">
-                    {noLabelText}
-                    <Box
-                        padding={{ bottom: "s" }}
-                        variant="p"
-                        color="inherit"
+                    uploadedLabelData.forEach((label) => {
+                        labels.current.push({
+                            start: new Date(label[0]),
+                            end: new Date(label[1])
+                        })
+                    })
+
+                    redrawBrushes(eChartRef, labels)
+                    labelsTableRef.current.updateTable(labels.current)
+                    setShowUploadLabels(false)
+
+                    // await deleteLabelGroup() 
+                }}
+                setLabelData={setUploadedLabelData}
+            />
+
+            <Table
+                {...selectionParameters}
+
+                variant="embedded"
+                contentDensity="compact"
+                stripedRows={true}
+                header={
+                    <Header
+                        variant="h4"
+                        description="This table lists all the labels selected above"
+                        info={
+                            <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                status: true,
+                                page: 'labelling',
+                                section: 'labelsTable'
+                            })}>Info</Link>
+                        }
+                        {...actions}
                     >
-                        No labels to display in this table. Use the <b>Labeling</b> option in the left hand menu bar to define
-                        historical events of interest (unplanned downtime, maintenance events...).
+                        Labels list
+                    </Header>
+                }
+                columnDefinitions={[
+                    { id: "startDate", header: "Label start date", cell: e => <Box textAlign="right">{e.startDate}</Box> },
+                    { id: "endDate", header: "Label end date", cell: e => <Box textAlign="right">{e.endDate}</Box> },
+                    { id: "duration", header: "Label duration", cell: e => <Box textAlign="right">{e.duration}</Box> }
+                ]}
+                items={items}
+                empty={
+                    <Box textAlign="center" color="inherit">
+                        {noLabelText}
+                        <Box
+                            padding={{ bottom: "s" }}
+                            variant="p"
+                            color="inherit"
+                        >
+                            No labels to display in this table. Use the <b>Labeling</b> option in the left hand menu bar to define
+                            historical events of interest (unplanned downtime, maintenance events...).
+                        </Box>
                     </Box>
-                </Box>
-            }
-        />
+                }
+            />
+        </>
     )
 }, [])
 

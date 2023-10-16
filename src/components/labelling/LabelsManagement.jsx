@@ -16,6 +16,7 @@ import Flashbar     from "@cloudscape-design/components/flashbar"
 import FormField    from '@cloudscape-design/components/form-field'
 import Input        from "@cloudscape-design/components/input"
 import Link         from "@cloudscape-design/components/link"
+import ProgressBar  from "@cloudscape-design/components/progress-bar"
 import SpaceBetween from "@cloudscape-design/components/space-between"
 
 // Contexts:
@@ -68,6 +69,10 @@ function LabelsManagement({ componentHeight, readOnly }) {
     const [ showUserGuide, setShowUserGuide ]                         = useState(true)
     const [ showUpdateSuccess, setShowUpdateSuccess ]                 = useState(false)
     const [ flashbarItems, setFlashbarItems ]                         = useState([])
+    const [ labelCreationProgress, setLabelCreationProgress ]         = useState(0)
+    const [ labelUpdateProgress, setLabelUpdateProgress ]             = useState(0)
+    const [ progressBarVisible, setProgressBarVisible ]               = useState(false)
+    const [ updateProgressBarVisible, setUpdateProgressBarVisible ]   = useState(false)
 
     if (!componentHeight) { componentHeight = 350 }
 
@@ -110,6 +115,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
                 selectedLabelGroupValue.current = undefined
                 setDeleteButtonDisabled(true)
                 setUpdateButtonDisabled(true)
+                setLabelCreationProgress(0)
+                setProgressBarVisible(false)
             }
             else {
                 const response = await gateway.lookoutEquipment
@@ -221,7 +228,9 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     })
 
                 if (!error) {
-                    labels.current.forEach(async (label) => {
+                    setProgressBarVisible(true)
+                    let index = 0
+                    for (const label of labels.current) {
                         const labelRequest = {
                             LabelGroupName: uid + '-' + projectName + '-' + labelGroupName,
                             StartTime: new Date(label['start']).getTime() / 1000,
@@ -232,15 +241,20 @@ function LabelsManagement({ componentHeight, readOnly }) {
                         await gateway.lookoutEquipment.createLabel(labelRequest)
                             .catch((error) => { console.log(error.response) })
 
-                        // Wait to prevent label creation throttling:
-                        await new Promise(r => setTimeout(r, 400))
-                    })
+                        // Wait 100-300 ms to prevent label creation throttling:
+                        const timeout = 200 + Math.floor(Math.random() * 200)
+                        await new Promise(r => setTimeout(r, timeout))
+
+                        index += 1
+                        setLabelCreationProgress(Math.floor(index / labels.current.length * 100))
+                    }
 
                     const labelGroupOptions = await getLabelGroups(gateway, uid, projectName)
                     setGroupLabelOptions(labelGroupOptions)
                     setSelectedOption({label: labelGroupName, value: uid + '-' + projectName + '-' + labelGroupName})
                     setDeleteButtonDisabled(false)
                     setUpdateButtonDisabled(false)
+                    setProgressBarVisible(false)
                     selectedLabelGroupName.current = labelGroupName
                     selectedLabelGroupValue.current = uid + '-' + projectName + '-' + labelGroupName
                 }
@@ -253,11 +267,15 @@ function LabelsManagement({ componentHeight, readOnly }) {
         // ----------------------------------------------------------------
         const updateLabelGroup = async (e) => {
             // First we delete all the existing labels from this label group:
+            setLabelUpdateProgress(0)
+            setUpdateProgressBarVisible(true)
             deleteAllLabels()
 
             // Then we loop through all the latest labels defined by the user
             // and we attach them to the current label group:
-            labels.current.forEach(async (label) => {
+            // labels.current.forEach(async (label) => {
+            let index = 0
+            for (const label of labels.current) {
                 const labelRequest = {
                     LabelGroupName: selectedLabelGroupValue.current,
                     StartTime: new Date(label['start']).getTime() / 1000,
@@ -269,13 +287,19 @@ function LabelsManagement({ componentHeight, readOnly }) {
                              .createLabel(labelRequest)
                              .catch((error) => { console.log(error.response) })
 
-                // Wait to prevent label creation throttling:
-                await new Promise(r => setTimeout(r, 400))
-            })
+                // Wait 100-300 ms to prevent label creation throttling:
+                const timeout = 200 + Math.floor(Math.random() * 200)
+                await new Promise(r => setTimeout(r, timeout))
+
+                index += 1
+                setLabelUpdateProgress(Math.floor(index / labels.current.length * 100))
+            }
 
             // Dismiss the dialog box:
             setShowUpdateLabelGroupModal(false)
             setShowUpdateSuccess(true)
+            setUpdateProgressBarVisible(false)
+            setLabelUpdateProgress(100)
             setFlashbarItems([{
                 type: "success",
                 content: `Label group ${selectedLabelGroupValue.current.slice(uid.length + 1 + projectName.length + 1)} was updated`,
@@ -300,9 +324,12 @@ function LabelsManagement({ componentHeight, readOnly }) {
                                  .catch((error) => console.log(error.response))
 
                     // Wait to prevent label deletion throttling:
-                    await new Promise(r => setTimeout(r, 400))
+                    await new Promise(r => setTimeout(r, 300))
                 })
             }
+
+            setLabelCreationProgress(0)
+            setProgressBarVisible(false)
         }
 
         // ------------------------------------------------------------
@@ -361,6 +388,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     onUpdate={async () => { await updateLabelGroup() }}
                     selectedLabelGroup={selectedOption ? selectedOption['value'].slice(uid.length + projectName.length + 2) : ""}
                     internalLabelGroupName={selectedOption ? selectedOption['value'] : ""}
+                    labelUpdateProgress={labelUpdateProgress}
+                    updateProgressBarVisible={updateProgressBarVisible}
                 />
 
                 <SpaceBetween size="xl">
@@ -439,6 +468,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                         <LabelsTable 
                             ref={labelsTableRef} 
                             labels={labels} 
+                            storedRanges={storedRanges}
                             noLabelDefined={noLabelDefined} 
                             redrawBrushes={redrawBrushes} 
                             eChartRef={eChartRef} 
@@ -450,39 +480,49 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     {/*******************************************************************
                      * This section is only displayed when the component is NOT read only 
                      *******************************************************************/ }
-                    { selectedOption.value === "NewGroup" && !readOnly && <FormField
-                        description={`After you've selected some labels in the plot above, you can gGive a name 
-                                      to your label group and save it. Note that you can't modify a label group
-                                      once created.`}
-                        label="Label group name"
-                        constraintText={invalidNameErrorMessage !== "" ? invalidNameErrorMessage : ""}
-                        info={
-                            <Link variant="info" onFollow={() => setHelpPanelOpen({
-                                status: true,
-                                page: 'labelling',
-                                section: 'labelGroupName'
-                            })}>Info</Link>
-                        }
-                        secondaryControl={
-                            <SpaceBetween size="s" direction="horizontal">
-                                <Button 
-                                    variant="primary" 
-                                    onClick={(e) => createLabelGroup(e)}
-                                    disabled={invalidNameErrorMessage !== ""}
-                                >Create group</Button>
-                            </SpaceBetween>
-                        }
-                    >
-                        <Input 
-                            onChange={({ detail }) => {
-                                checkLabelGroupNameErrors(detail.value)
-                                setLabelGroupName(detail.value)
-                            }}
-                            value={labelGroupName}
-                            placeholder="Enter a label group name"
-                            invalid={invalidNameErrorMessage !== ""}
-                        />
-                    </FormField> }
+                    { selectedOption.value === "NewGroup" && !readOnly && <SpaceBetween size="xl">
+                        <FormField
+                            description={`After you've selected some labels in the plot above, you can gGive a name 
+                                        to your label group and save it. Note that you can't modify a label group
+                                        once created.`}
+                            label="Label group name"
+                            constraintText={invalidNameErrorMessage !== "" ? invalidNameErrorMessage : ""}
+                            info={
+                                <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                    status: true,
+                                    page: 'labelling',
+                                    section: 'labelGroupName'
+                                })}>Info</Link>
+                            }
+                            secondaryControl={
+                                <SpaceBetween size="s" direction="horizontal">
+                                    <Button 
+                                        variant="primary" 
+                                        onClick={(e) => createLabelGroup(e)}
+                                        disabled={invalidNameErrorMessage !== ""}
+                                    >Create group</Button>
+                                </SpaceBetween>
+                            }
+                        >
+                            <Input 
+                                onChange={({ detail }) => {
+                                    checkLabelGroupNameErrors(detail.value)
+                                    setLabelGroupName(detail.value)
+                                }}
+                                value={labelGroupName}
+                                placeholder="Enter a label group name"
+                                invalid={invalidNameErrorMessage !== ""}
+                            />
+                        </FormField> 
+
+                        { progressBarVisible && <FormField>
+                            <ProgressBar
+                                value={labelCreationProgress}
+                                label="Creating labels"
+                            />
+                        </FormField> }
+                    </SpaceBetween>
+                    }
                 </SpaceBetween>
             </>
         )

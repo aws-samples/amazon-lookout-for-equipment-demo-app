@@ -1,17 +1,21 @@
 // Imports
 import { forwardRef, useContext, useImperativeHandle, useState } from 'react'
+import { useCollection } from '@cloudscape-design/collection-hooks'
 
 // Cloudscape component
 import Alert        from "@cloudscape-design/components/alert"
 import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
+import Container    from "@cloudscape-design/components/container"
 import Header       from "@cloudscape-design/components/header"
 import Link         from "@cloudscape-design/components/link"
+import Pagination   from "@cloudscape-design/components/pagination"
 import SpaceBetween from "@cloudscape-design/components/space-between"
 import Table        from "@cloudscape-design/components/table"
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
+import LabelingContext from '../contexts/LabelingContext'
 
 // App components:
 import UploadLabelsModal from "./UploadLabelsModal"
@@ -25,9 +29,11 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     const [ showUploadLabels, setShowUploadLabels ] = useState(false)
     const [ uploadedLabelData, setUploadedLabelData ] = useState(undefined)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
+    const { setUpdateButtonDisabled } = useContext(LabelingContext)
 
     const noLabelDefined = props.noLabelDefined
     const labels         = props.labels
+    const storedRanges   = props.storedRanges
     const redrawBrushes  = props.redrawBrushes
     const eChartRef      = props.eChartRef
     const labelsTableRef = props.labelsTableRef
@@ -40,12 +46,18 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
         return {
             updateTable(labels) {
                 setCurrentLabels(labels)
+                if (labels.length > 0) {
+                    setUpdateButtonDisabled(false)
+                }
+                else {
+                    setUpdateButtonDisabled(true)
+                }
             }
         };
     }, [])
 
     // Loops through all the item to build the table content:
-    let items = []
+    let tableItems = []
     if (currentLabels && currentLabels.length > 0) {
         currentLabels.forEach((label, index) => {
             const duration = new Date(label.end) - new Date(label.start)
@@ -54,7 +66,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
             const durationTime = new Date(duration).toISOString().substring(11, 19)
 
             // Creates the new label entry:
-            items.push({
+            tableItems.push({
                 name: `label_${index}`,
                 startDate: new Date(label.start).toISOString().substring(0, 19).replace('T', ' '),
                 endDate: new Date(label.end).toISOString().substring(0, 19).replace('T', ' '),
@@ -80,6 +92,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
         e.preventDefault()
         let newLabels = []
         let labelsToDelete = []
+        storedRanges.current = []
         selectedLabels.forEach((label) => {
             labelsToDelete.push(parseInt(label.name.split('_')[1]))
         })
@@ -87,6 +100,9 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
         labels.current.forEach((label, index) => {
             if (labelsToDelete.indexOf(index) == -1) {
                 newLabels.push(label)
+                storedRanges.current.push({
+                    coordRange: [new Date(label[0]), new Date(label[1])]
+                })
             }
         })
 
@@ -94,10 +110,13 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
         redrawBrushes(eChartRef, labels)
         labelsTableRef.current.updateTable(labels.current)
         setSelectedLabels([])
+        if (newLabels.length == 0) {
+            setUpdateButtonDisabled(true)
+        }
     }
 
     let selectionParameters = {}
-    let actions = {}
+    let tableActions = {}
     if (!readOnly) {
         selectionParameters = {
             selectionType: "multi",
@@ -106,7 +125,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
             trackBy: "name"
         }
 
-        actions = {
+        tableActions = {
             actions:
                 <SpaceBetween size="xl" direction="horizontal">
                     <Button
@@ -127,6 +146,9 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
         }
     }
 
+    // Add filtering and pagination to the table:
+    const { items, paginationProps } = useCollection(tableItems, {pagination: { pageSize: 10 }})
+
     // Render the component:
     return (
         <>
@@ -134,68 +156,72 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 visible={showUploadLabels} 
                 onDiscard={() => { setShowUploadLabels(false) }} 
                 onUpload={async () => { 
-                    console.log('Upload the selected file!')
-                    console.log(uploadedLabelData)
-                    console.log(labels)
-
                     uploadedLabelData.forEach((label) => {
-                        labels.current.push({
-                            start: new Date(label[0]),
-                            end: new Date(label[1])
-                        })
+                        // Discard empty lines:
+                        if (!(label.length == 1 && label[0] === '')) {
+                            labels.current.push({
+                                start: new Date(label[0]),
+                                end: new Date(label[1])
+                            })
+
+                            storedRanges.current.push({
+                                coordRange: [new Date(label[0]), new Date(label[1])]
+                            })
+                        }
                     })
 
                     redrawBrushes(eChartRef, labels)
                     labelsTableRef.current.updateTable(labels.current)
                     setShowUploadLabels(false)
-
-                    // await deleteLabelGroup() 
                 }}
                 setLabelData={setUploadedLabelData}
             />
 
-            <Table
-                {...selectionParameters}
+            <Container>
+                <Table
+                    {...selectionParameters}
+                    pagination={<Pagination {...paginationProps} />}
 
-                variant="embedded"
-                contentDensity="compact"
-                stripedRows={true}
-                header={
-                    <Header
-                        variant="h4"
-                        description="This table lists all the labels selected above"
-                        info={
-                            <Link variant="info" onFollow={() => setHelpPanelOpen({
-                                status: true,
-                                page: 'labelling',
-                                section: 'labelsTable'
-                            })}>Info</Link>
-                        }
-                        {...actions}
-                    >
-                        Labels list
-                    </Header>
-                }
-                columnDefinitions={[
-                    { id: "startDate", header: "Label start date", cell: e => <Box textAlign="right">{e.startDate}</Box> },
-                    { id: "endDate", header: "Label end date", cell: e => <Box textAlign="right">{e.endDate}</Box> },
-                    { id: "duration", header: "Label duration", cell: e => <Box textAlign="right">{e.duration}</Box> }
-                ]}
-                items={items}
-                empty={
-                    <Box textAlign="center" color="inherit">
-                        {noLabelText}
-                        <Box
-                            padding={{ bottom: "s" }}
-                            variant="p"
-                            color="inherit"
+                    variant="embedded"
+                    contentDensity="compact"
+                    stripedRows={true}
+                    header={
+                        <Header
+                            variant="h4"
+                            description="This table lists all the labels selected above"
+                            info={
+                                <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                    status: true,
+                                    page: 'labelling',
+                                    section: 'labelsTable'
+                                })}>Info</Link>
+                            }
+                            {...tableActions}
                         >
-                            No labels to display in this table. Use the <b>Labeling</b> option in the left hand menu bar to define
-                            historical events of interest (unplanned downtime, maintenance events...).
+                            Labels list
+                        </Header>
+                    }
+                    columnDefinitions={[
+                        { id: "startDate", header: "Label start date", cell: e => <Box textAlign="right">{e.startDate}</Box> },
+                        { id: "endDate", header: "Label end date", cell: e => <Box textAlign="right">{e.endDate}</Box> },
+                        { id: "duration", header: "Label duration", cell: e => <Box textAlign="right">{e.duration}</Box> }
+                    ]}
+                    items={items}
+                    empty={
+                        <Box textAlign="center" color="inherit">
+                            {noLabelText}
+                            <Box
+                                padding={{ bottom: "s" }}
+                                variant="p"
+                                color="inherit"
+                            >
+                                No labels to display in this table. Use the <b>Labeling</b> option in the left hand menu bar to define
+                                historical events of interest (unplanned downtime, maintenance events...).
+                            </Box>
                         </Box>
-                    </Box>
-                }
-            />
+                    }
+                />
+            </Container>
         </>
     )
 }, [])

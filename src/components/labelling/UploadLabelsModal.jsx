@@ -69,20 +69,23 @@ function CSVUpload({ value, setValue, constraintText, onChange, setError, setLab
         let newText = []
 
         labels.forEach((label, index) => {
-            let currentRow = label.join(delimiter)
-            const start = new Date(label[0])
-            const end = new Date(label[1])
+            // Discard empty rows:
+            if (!(label.length == 1 &&  label[0] === '')) {
+                let currentRow = label.join(delimiter)
+                const start = new Date(label[0])
+                const end = new Date(label[1])
 
-            if (start.toString() === 'Invalid Date' || end.toString() === 'Invalid Date') {
-                errors.push(index)
-                currentRow = "(*) " + currentRow
-            }
-            else if (label.length != 2) {
-                errors.push(index)
-                currentRow = "(*) " + currentRow
-            }
+                if (start.toString() === 'Invalid Date' || end.toString() === 'Invalid Date') {
+                    errors.push(index)
+                    currentRow = "(*) " + currentRow
+                }
+                else if (label.length != 2) {
+                    errors.push(index)
+                    currentRow = "(*) " + currentRow
+                }
 
-            newText.push(currentRow)
+                newText.push(currentRow)
+            }
         })
 
         setPreview(newText.join('\n'))

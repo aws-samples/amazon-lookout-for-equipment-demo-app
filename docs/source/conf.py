@@ -2,9 +2,9 @@
 
 # -- Project information
 
-project = 'Lumache'
-copyright = '2021, Graziella'
-author = 'Graziella'
+project = 'Lookout for Equipment Demo App'
+copyright = '2023, Amazon Web Services'
+author = 'Michaël HOARAU'
 
 release = '0.1'
 version = '0.1.0'

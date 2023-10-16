@@ -48,6 +48,7 @@ function SignalTable({ cols, allItems, selectedItems, changeSelectedItems }) {
         stripedRows: true,
         contentDisplay: [
             { id: "SensorName", visible: true },
+            { id: "Grade", visible: true },
             { id: "DataStartTime", visible: false },
             { id: "DataEndTime", visible: false },
             { id: "Categorical", visible: true },
@@ -123,6 +124,7 @@ function SignalTable({ cols, allItems, selectedItems, changeSelectedItems }) {
                     contentDisplayPreference={{
                         options: [
                             { id: "SensorName", label: "Sensor", alwaysVisible: true },
+                            { id: "Grade", label: "Grade" },
                             { id: "DataStartTime", label: "Start time" },
                             { id: "DataEndTime", label: "End time" },
                             { id: "Categorical", label: "Categorical?" },

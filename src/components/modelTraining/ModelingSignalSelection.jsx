@@ -11,7 +11,6 @@ import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
 import Cards        from "@cloudscape-design/components/cards"
 import Checkbox     from "@cloudscape-design/components/checkbox"
-import Container    from "@cloudscape-design/components/container"
 import Header       from "@cloudscape-design/components/header"
 import Pagination   from "@cloudscape-design/components/pagination"
 import SpaceBetween from "@cloudscape-design/components/space-between"
@@ -57,7 +56,22 @@ function getMatchesCountText(count) {
     return count === 1 ? '1 match' : `${count} matches`
 }
 
-function SignalSelectionCards({ cardItems, selectedItems, tagsList, trainingRange, allChecked, data, rangeEnd, x, toggleAllSignals, onSelectionChange }) {
+function SignalSelectionCards({ 
+    cardItems, 
+    selectedItems, 
+    tagsList, 
+    trainingRange, 
+    allChecked, 
+    data, 
+    rangeEnd, 
+    x, 
+    toggleAllSignals, 
+    toggleGrade,
+    highGradeChecked,
+    mediumGradeChecked,
+    lowGradeChecked,
+    onSelectionChange
+}) {
     // Add sorting, filtering and pagination to the table:
     const { items, actions, filteredItemsCount, collectionProps, filterProps, paginationProps } = useCollection(
         cardItems,
@@ -91,9 +105,33 @@ function SignalSelectionCards({ cardItems, selectedItems, tagsList, trainingRang
                         &nbsp;<b>{new Date(trainingRange.current['startDate']).toISOString().substring(0, 19).replace('T', ' ') }</b>
                         &nbsp;to <b>{new Date(trainingRange.current['endDate']).toISOString().substring(0, 19).replace('T', ' ') }</b>.
                         <Box float="right">
-                            <Checkbox onChange = {( { detail }) => toggleAllSignals(detail.checked)} checked={allChecked}>
-                                Select all signals
-                            </Checkbox>
+                            <SpaceBetween direction="horizontal" size="xs">
+                                <Checkbox 
+                                    onChange = {( { detail }) => toggleAllSignals(detail.checked)} 
+                                    checked={allChecked}
+                                    indeterminate={allChecked && selectedItems.length < tagsList.length}
+                                >
+                                    Select all signals
+                                </Checkbox>
+                                <Checkbox
+                                    onChange = {( { detail }) => toggleGrade(detail.checked, 'High')} 
+                                    checked={highGradeChecked}
+                                >
+                                    High
+                                </Checkbox>
+                                <Checkbox
+                                    onChange = {( { detail }) => toggleGrade(detail.checked, 'Medium')} 
+                                    checked={mediumGradeChecked}
+                                >
+                                    Medium
+                                </Checkbox>
+                                <Checkbox
+                                    onChange = {( { detail }) => toggleGrade(detail.checked, 'Low')} 
+                                    checked={lowGradeChecked}
+                                >
+                                    Low
+                                </Checkbox>
+                            </SpaceBetween>
                         </Box>
                     </Box>
                 </SpaceBetween>
@@ -103,9 +141,10 @@ function SignalSelectionCards({ cardItems, selectedItems, tagsList, trainingRang
             cardDefinition={{
                 header: e => e.name,
                 sections: [
-                    { id: 'issues', header: 'Issues', content: e => e.issues, width: 34 },
-                    { id: 'startTime', header: 'Start time', content: e => e.startTime, width: 33 },
-                    { id: 'endTime', header: 'End time', content: e => e.endTime, width: 33 },
+                    { id: 'issues', header: 'Issues', content: e => e.issues, width: 40 },
+                    { id: 'startTime', header: 'Start time', content: e => e.startTime, width: 20 },
+                    { id: 'endTime', header: 'End time', content: e => e.endTime, width: 20 },
+                    { id: 'grade', header: 'Grade', content: e => e.grade, width: 20 },
                     { 
                         id: 'timeseries',
                         width: 50,
@@ -164,6 +203,10 @@ function ModelingSignalSelection() {
     const { setSelectedItems, setAllChecked } = useContext(ModelParametersContext)
     const [ signalDetails, setSignalDetails ] = useState(undefined)
 
+    const [ highGradeChecked, setHighGradeChecked ] = useState(true)
+    const [ mediumGradeChecked, setMediumGradeChecked ] = useState(true)
+    const [ lowGradeChecked, setLowGradeChecked ] = useState(true)
+
     // Extract the details of the signals to be displayed:
     useEffect(() => {
         getSignalDetails(gateway, uid + '-' + projectName)
@@ -174,8 +217,6 @@ function ModelingSignalSelection() {
     }, [gateway])
 
     function toggleAllSignals(checked) {
-        setAllChecked(checked)
-
         if (checked) {
             let selection = []
             tagsList.forEach((tag) => {
@@ -186,6 +227,11 @@ function ModelingSignalSelection() {
         else {
             setSelectedItems([])
         }
+
+        setAllChecked(checked)
+        setHighGradeChecked(checked)
+        setMediumGradeChecked(checked)
+        setLowGradeChecked(checked)
     }
 
     if (!data.timeseries) {
@@ -198,15 +244,57 @@ function ModelingSignalSelection() {
         )
     }
     else if (signalDetails) {
-        const output = getSignalsStatistics(signalDetails)
-        const signalInfos = output['signalInfos']
-        const signalAttributes = output['signalAttributes']
+        const { signalInfos, signalAttributes, signalGrade } = getSignalsStatistics(signalDetails)
         const signalOptions = buildChartOptions(tagsList, x, signals, trainingRange, evaluationRange)
+
+        function toggleGrade(checked, targetGrade) {
+            let newSelection = []
+
+            if (checked) {
+                let currentSelection = []
+                newSelection = selectedItems
+                selectedItems.forEach((item) => { currentSelection.push(item.name) })
+
+                for (const [tag, grade] of Object.entries(signalGrade)) {
+                    if (grade === targetGrade && currentSelection.indexOf(tag) == -1)  {
+                        newSelection.push({name: tag})
+                    }
+                }
+            }
+
+            else {
+                for (const [key, tag] of Object.entries(selectedItems)) {
+                    if (signalGrade[tag.name] !== targetGrade) {
+                        newSelection.push({name: tag.name})
+                    }
+                }
+            }
+
+            setSelectedItems(newSelection)
+            switch (targetGrade) {
+                case 'High': 
+                    setHighGradeChecked(checked)
+                    if (checked && mediumGradeChecked && lowGradeChecked) { setAllChecked(true) }
+                    if (!checked && !mediumGradeChecked && !lowGradeChecked) { setAllChecked(false) }
+                    break
+                case 'Medium': 
+                    setMediumGradeChecked(checked)
+                    if (highGradeChecked && checked && lowGradeChecked) { setAllChecked(true) }
+                    if (!highGradeChecked && !checked && !lowGradeChecked) { setAllChecked(false) }
+                    break
+                case 'Low':
+                    setLowGradeChecked(checked)
+                    if (highGradeChecked && mediumGradeChecked && checked) { setAllChecked(true) }
+                    if (!highGradeChecked && !mediumGradeChecked && !checked) { setAllChecked(false) }
+                    break
+            }
+        }
         
         let cardItems = []
         tagsList.forEach((tag) => {
             cardItems.push({
                 name: tag,
+                grade: signalAttributes[tag]['grade'],
                 issues: signalInfos[tag].length === 0
                     ? <Badge color="green">None</Badge> 
                     : <SpaceBetween size="xxs" direction="horizontal">{signalInfos[tag].map((issue) => issue)}</SpaceBetween>,
@@ -224,12 +312,19 @@ function ModelingSignalSelection() {
                 selectedItems={selectedItems} 
                 tagsList={tagsList} 
                 trainingRange={trainingRange} 
-                allChecked={allChecked} 
                 data={data} 
                 rangeEnd={rangeEnd}
                 x={x}
+                
                 toggleAllSignals={toggleAllSignals}
-                onSelectionChange={(newSelection) => { setSelectedItems(newSelection) }}
+                allChecked={allChecked} 
+
+                toggleGrade={toggleGrade}
+                highGradeChecked={highGradeChecked}
+                mediumGradeChecked={mediumGradeChecked}
+                lowGradeChecked={lowGradeChecked}
+
+                onSelectionChange={(newSelection) => {  setSelectedItems(newSelection) }}
             />
         )
     }

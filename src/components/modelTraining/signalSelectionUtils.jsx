@@ -1,9 +1,11 @@
 // Cloudscape components:
 import Badge from "@cloudscape-design/components/badge"
+import { getSignalGrading } from '../sensorOverview/sensorOverviewUtils'
 
 export function getSignalsStatistics(signalDetails) {
     let signalInfos = {}
     let signalAttributes = {}
+    let signalGrade = {}
 
     signalDetails['sensorStatistics'].forEach((signal) => {
         signalInfos[signal['SensorName']] = []
@@ -47,11 +49,16 @@ export function getSignalsStatistics(signalDetails) {
         signalAttributes[signal['SensorName']] = {}
         signalAttributes[signal['SensorName']]['startTime'] = new Date(signal['DataStartTime'] * 1000).toISOString().substring(0, 19).replace('T', ' ')
         signalAttributes[signal['SensorName']]['endTime'] = new Date(signal['DataEndTime'] * 1000).toISOString().substring(0, 19).replace('T', ' ')
+
+        const { grade, gradeStatus } = getSignalGrading(signal)
+        signalAttributes[signal['SensorName']]['grade']= grade
+        signalGrade[signal['SensorName']] = gradeStatus
     })
 
     return {
         signalAttributes: signalAttributes,
-        signalInfos: signalInfos
+        signalInfos: signalInfos,
+        signalGrade: signalGrade
     }
 }
 

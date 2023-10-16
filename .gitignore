@@ -15,6 +15,7 @@ l4e-demo-app*.zip
 *.bkp
 *.dtmp
 deploy.py
+MultipleComponents.md
 
 # Editor directories and files
 .vscode/*

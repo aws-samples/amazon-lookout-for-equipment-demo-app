@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^4.6.4",
-    "@cloudscape-design/collection-hooks": "^1.0.23",
-    "@cloudscape-design/components": "^3.0.303",
-    "@cloudscape-design/design-tokens": "^3.0.15",
-    "@cloudscape-design/global-styles": "^1.0.9",
+    "@cloudscape-design/collection-hooks": "^1.0.25",
+    "@cloudscape-design/components": "^3.0.406",
+    "@cloudscape-design/design-tokens": "^3.0.28",
+    "@cloudscape-design/global-styles": "^1.0.13",
     "@octokit/core": "^5.0.1",
     "aws-amplify": "^5.3.11",
     "buffer": "^6.0.3",
@@ -27,6 +27,7 @@
     "react-papaparse": "^4.4.0",
     "react-query": "^3.39.3",
     "react-router-dom": "^6.12.0",
+    "upgrade": "^1.1.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

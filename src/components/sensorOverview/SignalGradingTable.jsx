@@ -44,7 +44,7 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
             setItems(tableItems)
             setIsLoading(false)
         })
-    }, [gateway])
+    }, [gateway, projectName])
 
     // The data query is done and the signal details are 
     // available from the Lookout for Equipment service:

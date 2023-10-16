@@ -40,7 +40,6 @@ function DatasetSummary({ modelDetails, setRefreshTimer }) {
 
     // Refresh component state definition:
     const refreshStartTime  = useRef(Date.now())
-    const progressBar = useRef('.')
 
     // Links to other pages of the app:
     const sensorOverviewLink = <Link 
@@ -198,11 +197,6 @@ function DatasetSummary({ modelDetails, setRefreshTimer }) {
                         Dataset ingestion failed in Amazon Lookout for Equipment: delete this project and verify your input file.
                 </Alert> }
             </Container>
-
-            {/* <Container>
-                <ParallelReadTest />
-            </Container> */}
-
         </SpaceBetween>
     )
 }

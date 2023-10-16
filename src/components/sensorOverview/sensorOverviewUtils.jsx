@@ -1,4 +1,5 @@
 import CategoricalFlag from '../shared/CategoricalFlag'
+import StatusIndicator from '@cloudscape-design/components/status-indicator'
 import { getSignalDetails } from '../../utils/dataExtraction'
 
 // -------------------------
@@ -66,9 +67,9 @@ export async function buildTableItems(gateway, uid, projectName) {
     const signalDetails = await getSignalDetails(gateway, `${uid}-${projectName}`)
 
     // Defining columns for the table:
-    let tableItems = []
     const tableColumns = [
         {id: "SensorName", header: "Sensor", cell: e => e.SensorName, sortingField: 'SensorName'},
+        {id: "Grade", header: "Grade", cell: e => (<b>{e.Grade}</b>), sortingField: 'Grade'},
         {id: "DataStartTime", header: "Start time", cell: e => e.DataStartTime, sortingField: 'DataStartTime'},
         {id: "DataEndTime", header: "End time", cell: e => e.DataEndTime, sortingField: 'DataEndTime'},
         {id: "Categorical", header: "Categorical?", cell: e => (<CategoricalFlag type={e.Categorical} />), sortingField: 'Categorical'},
@@ -82,9 +83,12 @@ export async function buildTableItems(gateway, uid, projectName) {
     ]
 
     // Populating the content for the table:
+    let tableItems = []
     signalDetails['sensorStatistics'].forEach((stat) => {
+        const { grade } = getSignalGrading(stat)
         const current_item = {
             SensorName: stat['SensorName'],
+            Grade: grade,
             DataStartTime: new Date(stat['DataStartTime']*1000).toISOString().replace('T', ' ').substring(0,19),
             DataEndTime: new Date(stat['DataEndTime']*1000).toISOString().replace('T', ' ').substring(0,19),
             Categorical: stat['CategoricalValues']['Status'],
@@ -101,4 +105,30 @@ export async function buildTableItems(gateway, uid, projectName) {
     })
 
     return {signalDetails, tableColumns, tableItems}
+}
+
+export function getSignalGrading(stat) {
+    let grade = <StatusIndicator type="success">High</StatusIndicator>
+    let gradeStatus = 'High'
+
+    const categorical = stat.CategoricalValues.Status !== 'NO_ISSUE_DETECTED'
+    const noData = stat.DataExists == false
+    const duplicate = stat.DuplicateTimestamps.Count > 0
+    const nonNumericalValues = stat.InvalidValues.Count > 0
+    const largeGaps = stat.LargeTimestampGaps.Status !== 'NO_ISSUE_DETECTED'
+    const missingValues = stat.MissingValues.Count > 0
+    const monotonic = stat.MonotonicValues.Status !== 'NO_ISSUE_DETECTED'
+    const multipleModes = stat.MultipleOperatingModes.Status !== 'NO_ISSUE_DETECTED'
+    const insufficientData = (stat.DataEndTime - stat.DataStartTime) < 86400 * 14
+
+    if (noData || insufficientData || monotonic) {
+        grade = <StatusIndicator type="error">Low</StatusIndicator>
+        gradeStatus = 'Low'
+    }
+    else if (largeGaps || multipleModes || missingValues || categorical || nonNumericalValues || duplicate) {
+        grade = <StatusIndicator type="warning">Medium</StatusIndicator>
+        gradeStatus = 'Medium'
+    }
+
+    return { grade, gradeStatus }
 }

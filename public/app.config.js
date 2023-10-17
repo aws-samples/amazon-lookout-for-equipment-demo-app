@@ -1,4 +1,4 @@
-var version = "1.0.2";
+var version = "1.0.1";
 var userPoolId = "eu-west-1_s93PCdhWT";
 var userPoolWebClientId = "3dblqgvrm6midi34iq6oabjv9l";
 var identityPoolId = "eu-west-1:580d8750-fca6-49d2-ada6-2afdc9075bd7";

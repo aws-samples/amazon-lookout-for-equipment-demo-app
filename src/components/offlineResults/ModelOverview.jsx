@@ -130,7 +130,7 @@ function ModelOverview() {
 
                                 { (modelDetails && modelDetails['status'] === 'FAILED') && <div>
                                     <Alert type="error">
-                                        Model training failed with the following error: 
+                                        Model training failed with the following error:&nbsp;
                                         <i>{modelDetails['failedReason']}</i> You can delete 
                                         this model, verify your training parameters and create
                                         a new one.

@@ -40,7 +40,7 @@ module.exports = (event, context, callback) => {
     const requestBody = JSON.stringify({
       Status: status,
       Reason: 'event: ' + JSON.stringify(event) + ' ### Message: ' + JSON.stringify(data),
-      PhysicalResourceId: context.logStreamName,
+      PhysicalResourceId: 'AppSetupFunction',
       StackId: event.StackId,
       RequestId: event.RequestId,
       LogicalResourceId: event.LogicalResourceId,

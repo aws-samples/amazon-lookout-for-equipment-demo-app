@@ -18,5 +18,12 @@ Contents
 
 .. toctree::
 
-   user-guide
+   login
+   project-creation
+   reviewing-dataset
+   labeling
+   model-training
+   model-evaluation
+   model-deployment
+   online-monitoring
    administration

@@ -1,10 +1,16 @@
 Administration
 ==============
 
+.. _admin_installation:
 Installation
+------------
 
 Upgrade
+-------
 
 Uninstallation
+--------------
 
-TODO
+Creating users
+--------------
+

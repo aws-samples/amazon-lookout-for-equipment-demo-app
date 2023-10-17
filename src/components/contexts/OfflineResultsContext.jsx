@@ -26,7 +26,6 @@ export const OfflineResultsProvider = ({ children }) => {
     const { projectName, modelName } = useParams()
     const { gateway, uid } = useContext(ApiGatewayContext)
 
-    const [ loading, setLoading ] = useState(true)
     const [ modelDetails, setModelDetails ] = useState(undefined)
     const [ tagsList, setTagsList ] = useState(undefined)
     const [ trainingTimeseries, setTrainingTimeseries ] = useState(undefined)
@@ -45,13 +44,11 @@ export const OfflineResultsProvider = ({ children }) => {
     // Loads the model details:
     // ------------------------
     useEffect(() => {
-        setLoading(true)
         getModelDetails(gateway, modelName, projectName, uid, deleteInProgress)
         .then((details) => { 
             if (details) {
                 // Loading the overall model details:
                 setModelDetails(details)
-                setLoading(false)
 
                 if (details['status'] === 'SUCCESS') {
                     // Building and cleaning the tags list:
@@ -106,7 +103,7 @@ export const OfflineResultsProvider = ({ children }) => {
     // --------------------------------------
     // Renders the provider and its children:
     // --------------------------------------
-    if ((!loading && modelDetails && modelDetails['status'] === 'IN_PROGRESS')) {
+    if ((modelDetails && modelDetails['status'] === 'IN_PROGRESS')) {
         const now = new Date()
         const tzOffset = new Date(modelDetails['createdAt']).getTimezoneOffset() * 60 * 1000
 
@@ -130,11 +127,11 @@ export const OfflineResultsProvider = ({ children }) => {
             </Container>
         )
     }
-    else if (modelDetails && modelDetails['status'] !== 'IN_PROGRESS' && !loading) {
+    else if (modelDetails && modelDetails['status'] !== 'IN_PROGRESS') {
         return (
             <OfflineResultsContext.Provider value={{
                 modelDetails,
-                loading,
+                // loading,
                 tagsList,
                 trainingTimeseries,
                 evaluationTimeseries,

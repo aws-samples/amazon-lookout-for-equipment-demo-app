@@ -29,7 +29,7 @@ import OfflineResultsContext from '../contexts/OfflineResultsContext'
 // Component main entry point
 // --------------------------
 function ModelOverview() {
-    const { modelDetails, loading, setDeleteInProgress } = useContext(OfflineResultsContext)
+    const { modelDetails, setDeleteInProgress } = useContext(OfflineResultsContext)
 
     const [ showDeleteModelModal, setShowDeleteModelModal ] = useState(false)
     const [ showUserGuide, setShowUserGuide ] = useState(true)
@@ -46,7 +46,7 @@ function ModelOverview() {
     }
 
     // Renders the component:
-    if (!loading && modelDetails) {
+    if (modelDetails) {
         let schema = []
         const numSignalsUsed = modelDetails.schema.Components[0].Columns.length
         modelDetails.schema.Components[0].Columns.forEach((signal) => {

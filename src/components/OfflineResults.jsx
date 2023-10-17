@@ -3,13 +3,11 @@ import { useContext, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
-import NavigationBar from './NavigationBar'
 import ModelOverview from './offlineResults/ModelOverview'
 import DetectedEvents from './offlineResults/DetectedEvents'
 import SignalHistograms from './offlineResults/SignalHistograms'
 
 // CloudScape Components:
-import AppLayout        from "@cloudscape-design/components/app-layout"
 import ContentLayout    from "@cloudscape-design/components/content-layout"
 import Header           from "@cloudscape-design/components/header"
 import SpaceBetween     from "@cloudscape-design/components/space-between"
@@ -20,6 +18,9 @@ import HelpPanelContext from './contexts/HelpPanelContext'
 import ApiGatewayContext from './contexts/ApiGatewayContext'
 import { OfflineResultsProvider } from './contexts/OfflineResultsContext'
 
+// ------------------------
+// Get current model status
+// ------------------------
 async function getModelStatus(gateway, uid, projectName, modelName) {
     if (!uid) { return undefined }
 
@@ -39,8 +40,11 @@ async function getModelStatus(gateway, uid, projectName, modelName) {
     return undefined
 }
 
+// --------------------------
+// Component main entry point
+// --------------------------
 function OfflineResults() {
-    const { helpPanelOpen, setHelpPanelOpen, panelContent } = useContext(HelpPanelContext)
+    const { helpPanelOpen, setHelpPanelOpen } = useContext(HelpPanelContext)
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { modelName, projectName } = useParams()
     const [ modelStatus, setModelStatus ] = useState(undefined)
@@ -58,6 +62,7 @@ function OfflineResults() {
         .then((x) => setModelStatus(x))
     }, [gateway, projectName, modelName])
 
+    // Renders the component
     return (
         <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
             <OfflineResultsProvider>

@@ -12,7 +12,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between"
 import HelpPanelContext       from '../contexts/HelpPanelContext'
 import LabelingContext        from '../contexts/LabelingContext'
 
-function LabelGroupSelect({ getLabels, formLabel, formDescription, showSecondaryControl }) {
+function LabelGroupSelect({ getLabels, formLabel, formDescription, showSecondaryControl, setLabelGroupName }) {
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { 
         deleteButtonDisabled,
@@ -57,7 +57,7 @@ function LabelGroupSelect({ getLabels, formLabel, formDescription, showSecondary
                 selectedOption={selectedOption}
                 onChange={({ detail }) => {
                     setSelectedOption(detail.selectedOption)
-                    getLabels(detail.selectedOption)
+                    getLabels(detail.selectedOption, setLabelGroupName)
                 }}
                 options={groupLabelOptions}
                 placeholder="Select an existing group to load the associated labels"

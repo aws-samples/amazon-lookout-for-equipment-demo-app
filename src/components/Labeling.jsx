@@ -34,14 +34,11 @@ function Labeling() {
     return (
         <ModelParametersProvider>
             <ContentLayout header={<Header variant="h1">{projectName} labeling</Header>}>
-                <Container>
-                    <Header>Labeling a dataset</Header>
-                    <TimeSeriesProvider projectName={projectName}>
-                        <LabelingContextProvider>
-                            <LabelsManagement />
-                        </LabelingContextProvider>
-                    </TimeSeriesProvider>
-                </Container>
+                <TimeSeriesProvider projectName={projectName}>
+                    <LabelingContextProvider>
+                        <LabelsManagement />
+                    </LabelingContextProvider>
+                </TimeSeriesProvider>
             </ContentLayout>
         </ModelParametersProvider>
     )

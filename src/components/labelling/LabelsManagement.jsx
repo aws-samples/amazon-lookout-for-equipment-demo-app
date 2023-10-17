@@ -12,6 +12,7 @@ import LabelingChart         from "./LabelingChart"
 // Cloudscape components:
 import Alert        from "@cloudscape-design/components/alert"
 import Button       from "@cloudscape-design/components/button"
+import Container    from "@cloudscape-design/components/container"
 import Flashbar     from "@cloudscape-design/components/flashbar"
 import FormField    from '@cloudscape-design/components/form-field'
 import Input        from "@cloudscape-design/components/input"
@@ -28,7 +29,7 @@ import LabelingContext        from '../contexts/LabelingContext'
 
 // Utils:
 import "../../styles/chartThemeMacarons.js"
-import { checkLabelGroupNameAvailability } from '../../utils/utils.js'
+// import { checkLabelGroupNameAvailability } from '../../utils/utils.js'
 import { redrawBrushes, onBrushEndEvent, onClear, getLabelGroups } from './labelingUtils.js'
 
 function LabelsManagement({ componentHeight, readOnly }) {
@@ -42,12 +43,22 @@ function LabelsManagement({ componentHeight, readOnly }) {
         eChartRef,
         labelsTableRef,
         storedRanges,
+        labelCreationProgress,
+        progressBarVisible,
+        invalidNameErrorMessage,
+
         setDeleteButtonDisabled,
         setShowDeleteLabelGroupModal,
         setShowUpdateLabelGroupModal,
         setUpdateButtonDisabled,
         setSelectedOption,
         setGroupLabelOptions,
+        setLabelCreationProgress,
+        setProgressBarVisible,
+        setInvalidNameErrorMessage,
+
+        getLabels,
+        checkLabelGroupNameErrors
     } = useContext(LabelingContext)
 
     const { 
@@ -64,14 +75,14 @@ function LabelsManagement({ componentHeight, readOnly }) {
     const [ labelGroupName, setLabelGroupName ]                       = useState(!selectedLabelGroupName.current ? "" : selectedLabelGroupName.current)
     const [ errorMessage, setErrorMessage ]                           = useState("")
     const [ invalidName, setInvalidName ]                             = useState(false)
-    const [ invalidNameErrorMessage, setInvalidNameErrorMessage ]     = useState("")
+    // const [ invalidNameErrorMessage, setInvalidNameErrorMessage ]     = useState("")
     const [ noLabelDefined, setNoLabelDefined ]                       = useState(false)
     const [ showUserGuide, setShowUserGuide ]                         = useState(true)
     const [ showUpdateSuccess, setShowUpdateSuccess ]                 = useState(false)
     const [ flashbarItems, setFlashbarItems ]                         = useState([])
-    const [ labelCreationProgress, setLabelCreationProgress ]         = useState(0)
+    // const [ labelCreationProgress, setLabelCreationProgress ]         = useState(0)
     const [ labelUpdateProgress, setLabelUpdateProgress ]             = useState(0)
-    const [ progressBarVisible, setProgressBarVisible ]               = useState(false)
+    // const [ progressBarVisible, setProgressBarVisible ]               = useState(false)
     const [ updateProgressBarVisible, setUpdateProgressBarVisible ]   = useState(false)
 
     if (!componentHeight) { componentHeight = 350 }
@@ -100,81 +111,81 @@ function LabelsManagement({ componentHeight, readOnly }) {
                 navigate(`/model-training/ProjectName/${projectName}`)
             }}>Model training</Link>
 
-        // --------------------------------------------------------------------------------
-        // This functions collects all the labels associated with the selected label groups
-        // --------------------------------------------------------------------------------
-        async function getLabels(selectedLabelGroup) {
-            let currentLabelGroupName = selectedLabelGroup['value']
-            selectedLabelGroupValue.current = selectedLabelGroup['value']
-            labels.current = []
-            storedRanges.current = []
+        // // --------------------------------------------------------------------------------
+        // // This functions collects all the labels associated with the selected label groups
+        // // --------------------------------------------------------------------------------
+        // async function getLabels(selectedLabelGroup) {
+        //     let currentLabelGroupName = selectedLabelGroup['value']
+        //     selectedLabelGroupValue.current = selectedLabelGroup['value']
+        //     labels.current = []
+        //     storedRanges.current = []
 
-            if (currentLabelGroupName === 'NewGroup') {
-                setLabelGroupName("")
-                selectedLabelGroupName.current = ""
-                selectedLabelGroupValue.current = undefined
-                setDeleteButtonDisabled(true)
-                setUpdateButtonDisabled(true)
-                setLabelCreationProgress(0)
-                setProgressBarVisible(false)
-            }
-            else {
-                const response = await gateway.lookoutEquipment
-                                                .listLabels(currentLabelGroupName)
-                                                .catch((error) => console.log(error.response))
+        //     if (currentLabelGroupName === 'NewGroup') {
+        //         setLabelGroupName("")
+        //         selectedLabelGroupName.current = ""
+        //         selectedLabelGroupValue.current = undefined
+        //         setDeleteButtonDisabled(true)
+        //         setUpdateButtonDisabled(true)
+        //         setLabelCreationProgress(0)
+        //         setProgressBarVisible(false)
+        //     }
+        //     else {
+        //         const response = await gateway.lookoutEquipment
+        //                                         .listLabels(currentLabelGroupName)
+        //                                         .catch((error) => console.log(error.response))
 
-                if (response['LabelSummaries'].length > 0) {
-                    response['LabelSummaries'].forEach((label) => {
-                        labels.current.push({
-                            start: new Date(label['StartTime'] * 1000),
-                            end: new Date(label['EndTime'] * 1000)
-                        })
+        //         if (response['LabelSummaries'].length > 0) {
+        //             response['LabelSummaries'].forEach((label) => {
+        //                 labels.current.push({
+        //                     start: new Date(label['StartTime'] * 1000),
+        //                     end: new Date(label['EndTime'] * 1000)
+        //                 })
 
-                        storedRanges.current.push({
-                            brushType: 'lineX',
-                            coordRange: [label['StartTime'] * 1000, label['EndTime'] * 1000],
-                            coordRanges: [[label['StartTime'] * 1000, label['EndTime'] * 1000]]
-                        })
-                    })
+        //                 storedRanges.current.push({
+        //                     brushType: 'lineX',
+        //                     coordRange: [label['StartTime'] * 1000, label['EndTime'] * 1000],
+        //                     coordRanges: [[label['StartTime'] * 1000, label['EndTime'] * 1000]]
+        //                 })
+        //             })
 
-                    setDeleteButtonDisabled(false)
-                    setUpdateButtonDisabled(false)
-                }
+        //             setDeleteButtonDisabled(false)
+        //             setUpdateButtonDisabled(false)
+        //         }
 
-                // selectedLabelGroupValue.current = currentLabelGroupName
-                currentLabelGroupName = currentLabelGroupName.substring(uid.length + 1 + projectName.length + 1, currentLabelGroupName.length)
-                setLabelGroupName(currentLabelGroupName)
-                selectedLabelGroupName.current = currentLabelGroupName
-            }
+        //         // selectedLabelGroupValue.current = currentLabelGroupName
+        //         currentLabelGroupName = currentLabelGroupName.substring(uid.length + 1 + projectName.length + 1, currentLabelGroupName.length)
+        //         setLabelGroupName(currentLabelGroupName)
+        //         selectedLabelGroupName.current = currentLabelGroupName
+        //     }
 
-            labelsTableRef.current.updateTable(labels.current)
-            redrawBrushes(eChartRef, labels)
-        }
+        //     labelsTableRef.current.updateTable(labels.current)
+        //     redrawBrushes(eChartRef, labels)
+        // }
 
-        // -------------------------------------------------
-        // Only checks errors linked to the label group name
-        // -------------------------------------------------
-        async function checkLabelGroupNameErrors(labelGroupName) {
-            let error = true
-            let msg = ""
+        // // -------------------------------------------------
+        // // Only checks errors linked to the label group name
+        // // -------------------------------------------------
+        // async function checkLabelGroupNameErrors(labelGroupName) {
+        //     let error = true
+        //     let msg = ""
         
-            // Error checking:
-            if (labelGroupName.length <= 2) {
-                msg = 'Label group name must be at least 3 characters long'
-            }
-            else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(labelGroupName)) {
-                msg = 'Label group name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
-            }
-            else if (! await checkLabelGroupNameAvailability(gateway, uid, projectName, labelGroupName)) {
-                msg = 'Label group name not available'
-            }
-            else {
-                error = false
-            }
+        //     // Error checking:
+        //     if (labelGroupName.length <= 2) {
+        //         msg = 'Label group name must be at least 3 characters long'
+        //     }
+        //     else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(labelGroupName)) {
+        //         msg = 'Label group name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
+        //     }
+        //     else if (! await checkLabelGroupNameAvailability(gateway, uid, projectName, labelGroupName)) {
+        //         msg = 'Label group name not available'
+        //     }
+        //     else {
+        //         error = false
+        //     }
 
-            setInvalidNameErrorMessage(msg)
-            return {error, msg}
-        }
+        //     setInvalidNameErrorMessage(msg)
+        //     return {error, msg}
+        // }
 
         // -------------------------------------------
         // Error checking at label group creation time
@@ -241,7 +252,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                         await gateway.lookoutEquipment.createLabel(labelRequest)
                             .catch((error) => { console.log(error.response) })
 
-                        // Wait 100-300 ms to prevent label creation throttling:
+                        // Wait 200-400 ms to prevent label creation throttling:
                         const timeout = 200 + Math.floor(Math.random() * 200)
                         await new Promise(r => setTimeout(r, timeout))
 
@@ -397,35 +408,38 @@ function LabelsManagement({ componentHeight, readOnly }) {
 
                     { errorMessage !== "" && <Alert type="error">{errorMessage}</Alert> }
 
-                    { !readOnly && showHelp && showUserGuide && <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
-                        <p>
-                            If you don't know about any historical events of interest in your dataset, feel free to
-                            skip this step and go to <b>{modelTrainingLink}</b>.
-                        </p>
+                    { !readOnly && showHelp && showUserGuide && <Container>
+                        <Alert dismissible={true} onDismiss={() => setShowUserGuide(false)}>
+                            <p>
+                                If you don't know about any historical events of interest in your dataset, feel free to
+                                skip this step and go to <b>{modelTrainingLink}</b>.
+                            </p>
 
-                        <p>
-                            Use this page to label your time series data with past historical events. For instance,
-                            you may leverage time ranges related to past maintenance records or known failures that
-                            are not contingent to normal operating conditions of your equipment or process.
-                            Lookout for Equipment only leverages unsupervised approaches and this labeling step
-                            is <b>completely optional</b>. Most users start their experimentation with the service
-                            without defining any label. Based on the first results, they then iterate to improve
-                            the detection capabilities of their model or their forewarning time.
-                        </p>
-                    </Alert> }
+                            <p>
+                                Use this page to label your time series data with past historical events. For instance,
+                                you may leverage time ranges related to past maintenance records or known failures that
+                                are not contingent to normal operating conditions of your equipment or process.
+                                Lookout for Equipment only leverages unsupervised approaches and this labeling step
+                                is <b>completely optional</b>. Most users start their experimentation with the service
+                                without defining any label. Based on the first results, they then iterate to improve
+                                the detection capabilities of their model or their forewarning time.
+                            </p>
+                        </Alert> 
+                    </Container> }
 
                     {/***************************************************************
                      * This section is only displayed when the component is read only 
                      ***************************************************************/ }
-                    { readOnly && 
+                    { readOnly && <Container>
                         <LabelGroupSelect
                             formLabel="Select a label group (optional)"
                             formDescription="You can load a group of labels previously defined using the following drop down."
                             showSecondaryControl={false}
-                            getLabels={getLabels} />
-                    }
+                            getLabels={getLabels} 
+                            setLabelGroupName={setLabelGroupName} />
+                    </Container> }
 
-                    { readOnly && labels.current && labels.current.length > 0 &&
+                    { readOnly && labels.current && labels.current.length > 0 && <Container>
                         <LabelingChart 
                             chartLabel="Signal overview"
                             chartDescription="Use the following plot to preview the selected labels on your actual signals"
@@ -433,21 +447,22 @@ function LabelsManagement({ componentHeight, readOnly }) {
                             redrawBrushes={redrawBrushes}
                             interactive={false}
                         />
-                    }
+                    </Container> }
 
                     {/*******************************************************************
                      * This section is only displayed when the component is NOT read only 
                      *******************************************************************/ }
-                    { !readOnly && groupLabelOptions.length > 1 && 
+                    { !readOnly && groupLabelOptions.length > 1 && <Container>
                         <LabelGroupSelect
                             formLabel="Select an existing label group"
                             formDescription="Using this drop down, you can load a group of labels previously 
                                              defined to visualize them over your time series."
                             showSecondaryControl={true}
-                            getLabels={getLabels} />
-                    }
+                            getLabels={getLabels} 
+                            setLabelGroupName={setLabelGroupName} />
+                    </Container> }
 
-                    { !readOnly && 
+                    { !readOnly && <Container>
                         <LabelingChart 
                             chartLabel="Signal overview"
                             chartDescription="Use the following plot to preview the selected labels on your actual signals. Use the
@@ -459,7 +474,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                             onBrushEndEvent={onBrushEndEvent}
                             onClear={onClear}
                         />
-                    }
+                    </Container> }
 
                     {/***********************************************************************************
                      * This section is always displayed whether the component is in read only mode or not
@@ -480,49 +495,50 @@ function LabelsManagement({ componentHeight, readOnly }) {
                     {/*******************************************************************
                      * This section is only displayed when the component is NOT read only 
                      *******************************************************************/ }
-                    { selectedOption.value === "NewGroup" && !readOnly && <SpaceBetween size="xl">
-                        <FormField
-                            description={`After you've selected some labels in the plot above, you can gGive a name 
-                                        to your label group and save it. Note that you can't modify a label group
-                                        once created.`}
-                            label="Label group name"
-                            constraintText={invalidNameErrorMessage !== "" ? invalidNameErrorMessage : ""}
-                            info={
-                                <Link variant="info" onFollow={() => setHelpPanelOpen({
-                                    status: true,
-                                    page: 'labelling',
-                                    section: 'labelGroupName'
-                                })}>Info</Link>
-                            }
-                            secondaryControl={
-                                <SpaceBetween size="s" direction="horizontal">
-                                    <Button 
-                                        variant="primary" 
-                                        onClick={(e) => createLabelGroup(e)}
-                                        disabled={invalidNameErrorMessage !== ""}
-                                    >Create group</Button>
-                                </SpaceBetween>
-                            }
-                        >
-                            <Input 
-                                onChange={({ detail }) => {
-                                    checkLabelGroupNameErrors(detail.value)
-                                    setLabelGroupName(detail.value)
-                                }}
-                                value={labelGroupName}
-                                placeholder="Enter a label group name"
-                                invalid={invalidNameErrorMessage !== ""}
-                            />
-                        </FormField> 
+                    { selectedOption.value === "NewGroup" && !readOnly && <Container>
+                        <SpaceBetween size="xl">
+                            <FormField
+                                description={`After you've selected some labels in the plot above, you can gGive a name 
+                                            to your label group and save it. Note that you can't modify a label group
+                                            once created.`}
+                                label="Label group name"
+                                constraintText={invalidNameErrorMessage !== "" ? invalidNameErrorMessage : ""}
+                                info={
+                                    <Link variant="info" onFollow={() => setHelpPanelOpen({
+                                        status: true,
+                                        page: 'labelling',
+                                        section: 'labelGroupName'
+                                    })}>Info</Link>
+                                }
+                                secondaryControl={
+                                    <SpaceBetween size="s" direction="horizontal">
+                                        <Button 
+                                            variant="primary" 
+                                            onClick={(e) => createLabelGroup(e)}
+                                            disabled={invalidNameErrorMessage !== ""}
+                                        >Create group</Button>
+                                    </SpaceBetween>
+                                }
+                            >
+                                <Input 
+                                    onChange={({ detail }) => {
+                                        checkLabelGroupNameErrors(detail.value)
+                                        setLabelGroupName(detail.value)
+                                    }}
+                                    value={labelGroupName}
+                                    placeholder="Enter a label group name"
+                                    invalid={invalidNameErrorMessage !== ""}
+                                />
+                            </FormField> 
 
-                        { progressBarVisible && <FormField>
-                            <ProgressBar
-                                value={labelCreationProgress}
-                                label="Creating labels"
-                            />
-                        </FormField> }
-                    </SpaceBetween>
-                    }
+                            { progressBarVisible && <FormField>
+                                <ProgressBar
+                                    value={labelCreationProgress}
+                                    label="Creating labels"
+                                />
+                            </FormField> }
+                        </SpaceBetween>
+                    </Container> }
                 </SpaceBetween>
             </>
         )

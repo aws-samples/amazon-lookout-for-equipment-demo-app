@@ -1,6 +1,7 @@
 // Imports
 import { forwardRef, useContext, useImperativeHandle, useState } from 'react'
 import { useCollection } from '@cloudscape-design/collection-hooks'
+import { DateTime } from "luxon"
 
 // Cloudscape component
 import Alert        from "@cloudscape-design/components/alert"
@@ -155,17 +156,28 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
             <UploadLabelsModal 
                 visible={showUploadLabels} 
                 onDiscard={() => { setShowUploadLabels(false) }} 
-                onUpload={async () => { 
+                onUpload={async () => {
+                    function getUTCDate(date) {
+                        let UTCDate = DateTime.fromMillis(new Date(date).getTime()).c
+                        UTCDate = DateTime.utc(
+                            UTCDate.year, UTCDate.month, UTCDate.day, 
+                            UTCDate.hour, UTCDate.minute, UTCDate.second
+                        )
+                        UTCDate = UTCDate.toISO()
+
+                        return new Date(UTCDate)
+                    }
+
                     uploadedLabelData.forEach((label) => {
                         // Discard empty lines:
                         if (!(label.length == 1 && label[0] === '')) {
                             labels.current.push({
-                                start: new Date(label[0]),
-                                end: new Date(label[1])
+                                start: getUTCDate(label[0]),
+                                end: getUTCDate(label[1])
                             })
 
                             storedRanges.current.push({
-                                coordRange: [new Date(label[0]), new Date(label[1])]
+                                coordRange: [getUTCDate(label[0]), getUTCDate(label[1])]
                             })
                         }
                     })

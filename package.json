@@ -22,6 +22,7 @@
     "echarts": "^5.4.3",
     "echarts-for-react": "^3.0.2",
     "echarts-stat": "^1.2.0",
+    "luxon": "^3.4.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-papaparse": "^4.4.0",

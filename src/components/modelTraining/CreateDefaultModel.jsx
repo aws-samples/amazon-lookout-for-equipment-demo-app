@@ -65,6 +65,15 @@ const CreateDefaultModel = forwardRef(function CreateDefaultModel(props, ref) {
             // so we can see the new model name popping up:
             setNavbarCounter(navbarCounter + 1)
 
+            // We will also trigger a Step Function that will "listen"
+            // to this model until training is finished:
+            const sfnArn = window.modelResultsExtractionArn
+            const inputPayload = { modelName: modelConfig['modelName'] }
+            await gateway.stepFunctions
+                         .startExecution(sfnArn, inputPayload)
+                         .catch((error) => console.log(error.response))
+
+            // Let's now redirect the user to the offline results page of this model
             const modelName = modelConfig['modelName'].slice(uid.length + 1 + modelConfig['projectName'].length + 1)
             const projectName = modelConfig['projectName']
             navigate(`/offline-results/modelName/${modelName}/projectName/${projectName}`)

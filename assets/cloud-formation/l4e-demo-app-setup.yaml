@@ -891,44 +891,6 @@ Resources:
                     - !Ref "AWS::StackId"
         RoleArn: !GetAtt EventBridgeRuleRole.Arn
 
-  TrainingFinishedRule:
-    Type: AWS::Events::Rule
-    Properties: 
-      Name: !Join
-        - "-"
-        - - "L4EDemoApp-TrainingFinished"
-          - !Select
-            - 0
-            - !Split
-              - "-"
-              - !Select
-                - 2
-                - !Split
-                  - "/"
-                  - !Ref "AWS::StackId"
-      Description: Triggered when a model training is launched
-      EventPattern: !Sub 
-        - '{"source": ["aws.lookoutequipment"],"account": ["${Account}"],"region": ["${Region}"],"detail-type":["AWS API Call via CloudTrail"],"detail":{"eventSource":["lookoutequipment.amazonaws.com"],"eventName":["CreateModel"]}}'
-        - Region: !Ref 'AWS::Region'
-          Account: !Ref 'AWS::AccountId'
-      State: ENABLED
-      Targets: 
-      - Arn: !GetAtt ModelResultsExtractionStateMachine.Arn
-        Id: !Join
-          - "-"
-          - - "ModelResultsExtractionStateMachineTarget"
-            - !Select
-              - 0
-              - !Split
-                - "-"
-                - !Select
-                  - 2
-                  - !Split
-                    - "/"
-                    - !Ref "AWS::StackId"
-        RoleArn: !GetAtt EventBridgeRuleRole.Arn
-        InputPath: $.detail.requestParameters
-
   # ----------------
   # LAMBDA FUNCTIONS
   # ----------------

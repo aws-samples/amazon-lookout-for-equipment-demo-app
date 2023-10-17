@@ -13,6 +13,7 @@ const {
     VERSION,
     USER_FILES_BUCKET,
     SFN_MODEL_DEPLOYMENT_ARN,
+    SFN_MODEL_RESULTS_EXTRACTION_ARN,
     STACK_ID,
     ALLOW_USER_SIGN_UP
 } = process.env;
@@ -84,6 +85,7 @@ var identityPoolId = "${COGNITO_IDENTITY_POOL_ID}";
 var appS3Bucket = "${USER_FILES_BUCKET}";
 var stackId = "${STACK_ID}";
 var deployModelArn = "${SFN_MODEL_DEPLOYMENT_ARN}";
+var modelResultsExtractionArn = "${SFN_MODEL_RESULTS_EXTRACTION_ARN}";
 var allowUserSignUp = "${ALLOW_USER_SIGN_UP}";`
             }).promise();
         }

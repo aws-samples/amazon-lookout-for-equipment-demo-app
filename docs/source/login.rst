@@ -12,7 +12,7 @@ time you open the application link, you will be presented with a login page:
 .. image:: images/login-without-signup.png
 
 .. note::
-    If you administrator allowed in-app creation of new users, you will have a
+    If your administrator allowed in-app creation of new users, you will have a
     second tab where you will be able to create a new user on a self-serve 
     basis.
 
@@ -24,7 +24,7 @@ page of the application:
 
 What's next?
 
-* To learn more about how to navigation this application, scroll down to the
+* To learn more about how to navigate this application, scroll down to the
 :ref:`Navigation section <_login_navigation>`.
 * To create your first project, go the :ref:`Project creation section <_project_creation>`.
 
@@ -38,12 +38,12 @@ The top menu bar give you access to several links of interest:
 
 From left to right you will find:
 
-* The application title: clicking on this title will always bring you back to
+* The **application title**: clicking on this title will always bring you back to
   the welcome page, wherever you are in the application.
-* Access to the Amazon Lookout for Equipment official documentation
-* Access to the officiel API documentation should you need to interact with
-  Lookout for Equipment programmatically
+* Access to the Amazon Lookout for Equipment **official documentation**.
+* Access to the official **API documentation** should you need to interact with
+  Lookout for Equipment programmatically.
 * A drop down menu accessible by clicking on your user name. This will show
-  you the current version of the app and let you send us a feedback by email.
-* A cog icon which will give you access to application-wide settings.
-* A sign out button
+  you the **current version** of the app and let you send us a **feedback** by email.
+* A cog icon which will give you access to application-wide **settings**.
+* A **sign out** button to log out or switch user.

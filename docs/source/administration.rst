@@ -1,7 +1,7 @@
 Administration
 ==============
 
-.. _admin_installation:
+.. _admin installation:
 Installation
 ------------
 

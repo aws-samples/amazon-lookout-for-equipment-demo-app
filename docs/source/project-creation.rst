@@ -1,3 +1,3 @@
-.. _project_creation:
+.. _project creation:
 Creating a project
 ==================

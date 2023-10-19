@@ -4,7 +4,7 @@ Login
 First time login
 ----------------
 
-After your administrator :ref:`deployed the app <_admin_installation>` in an
+After your administrator :ref:`deployed the app <admin installation>` in an
 AWS account, you will receive a link to log into the application. In parallel,
 you will receive an email with your temporary credentials to login. The first
 time you open the application link, you will be presented with a login page:
@@ -24,11 +24,10 @@ page of the application:
 
 What's next?
 
-* To learn more about how to navigate this application, scroll down to the
-:ref:`Navigation section <_login_navigation>`.
-* To create your first project, go the :ref:`Project creation section <_project_creation>`.
+* To learn more about how to navigate this application, scroll down to the :ref:`Navigation section <login navigation>`.
+* To create your first project, go the :ref:`Project creation section <project_creation>`.
 
-.. _login_navigation:
+.. _login navigation:
 Navigating the application
 --------------------------
 

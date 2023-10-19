@@ -148,6 +148,7 @@ Resources:
           USER_FILES_BUCKET: !Ref ApplicationBucket
           SFN_MODEL_DEPLOYMENT_ARN: !GetAtt DeployModelStateMachine.Arn
           SFN_MODEL_RESULTS_EXTRACTION_ARN: !GetAtt ModelResultsExtractionStateMachine.Arn
+          SFN_DATASET_PREPARATION: !GetAtt DatasetPreparationStateMachine.Arn
           ALLOW_USER_SIGN_UP: !Ref AllowUserSignUp
           STACK_ID: !Select
             - 0

@@ -580,7 +580,6 @@ export async function checkProjectNameAvailability(projectName, gateway, uid) {
     return projects.indexOf(projectName) < 0
 }
 
-
 // --------------------------------------------------------------------
 // This function waits for the data processing pipeline to start. This
 // allows us to navigate directly to the project dashboard page without 

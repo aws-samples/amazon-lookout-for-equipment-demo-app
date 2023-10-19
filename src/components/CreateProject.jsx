@@ -1,5 +1,5 @@
 // Imports:
-import { Storage } from 'aws-amplify'
+import { Storage, Auth } from 'aws-amplify'
 import { useContext, useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom"
 
@@ -49,31 +49,16 @@ function CreateProject() {
     const [ projectNameError, setProjectNameError ]     = useState("")
     const [ assetError, setAssetError ]                 = useState("")
     const [ assetDescription, setAssetDescription ]     = useState("")
+    const [ identityId, setIdentityId ]                 = useState("")
 
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const navigate = useNavigate()
 
-    // --------------------------------------
-    // Called while a file is pushed to S3 to 
-    // provide feedback to the user during an 
-    // upload:
-    // --------------------------------------
-    const progressCallback = (progress) => {
-        if (!progress['timeStamp']) {
-            setProgressPercent(parseInt(progress.loaded / progress.total * 100))
-            setBytesTransferred(`${getHumanReadableSize(progress.loaded)} bytes loaded`)
-        }
-        else {
-            setProgressPercent(100)
-            setBytesTransferred('Done')
-        }
-    }
-
     // -----------------------
     // Uploading a file to S3:
     // -----------------------
-    const uploadFileToS3 = async (prefix, file) => {
+    function uploadFileToS3(prefix, file) {
         try {
             setFilename(file.name)
             setUploadInProgress(true)
@@ -86,7 +71,40 @@ function CreateProject() {
                     level: "private",
                     tagging: `L4EDemoAppUser=${uid}&AssetDescription=${assetDescription}`,
                     resumable: true,
-                    progressCallback
+                    progressCallback(progress) {
+                        if (!progress['timeStamp']) {
+                            setProgressPercent(parseInt(progress.loaded / progress.total * 100))
+                            setBytesTransferred(`${getHumanReadableSize(progress.loaded)} bytes loaded`)
+                        }
+                        else {
+                            setProgressPercent(100)
+                            setBytesTransferred('Done')
+                        }
+                    },
+                    completeCallback: async () => {
+                        setShowFlashbar(true)
+
+                        // We will also trigger a Step Function that will 
+                        // ingest the data once upload is finished:
+                        const sfnArn = window.datasetPreparationArn
+                        const inputPayload = { 
+                            detail: {
+                                bucket: { name: upload.params.Bucket },
+                                object: { key: `private/${identityId}/${upload.params.Key}` }
+                            }
+                        }
+                        await gateway.stepFunctions
+                                    .startExecution(sfnArn, inputPayload)
+                                    .catch((error) => console.log(error.response))
+                        await waitForPipelineStart(gateway, uid, projectName)
+
+                        // This forces a refresh of the side bar navigation
+                        // so we can see the new project name popping up:
+                        setNavbarCounter(navbarCounter + 1)
+
+                        // Redirects to the dashboard for the new project:
+                        navigate(`/project-dashboard/projectName/${projectName}`)
+                    }
                 }
             )
         }
@@ -122,20 +140,9 @@ function CreateProject() {
         }
 
         if (currentError === "") {
-            // Upload the file and wait for the processing
-            // pipeline to kick in:
+            // Upload the file and wait for the processing pipeline to kick in:
             setErrorMessage("")
-            await uploadFileToS3(projectName, dataset[0])
-            setShowFlashbar(true)
-            await waitForPipelineStart(gateway, uid, projectName)
-            setUploadInProgress(false)
-
-            // This forces a refresh of the side bar navigation
-            // so we can see the new project name popping up:
-            setNavbarCounter(navbarCounter + 1)
-
-            // Redirects to the dashboard for the new project:
-            navigate(`/project-dashboard/projectName/${projectName}`)
+            uploadFileToS3(projectName, dataset[0])
         }
         else {
             setErrorMessage(currentError)
@@ -146,6 +153,11 @@ function CreateProject() {
         getAvailableDefaultProjectName(gateway, uid)
         .then((x) => setProjectName(x))
     }, [gateway])
+
+    useEffect(() => {
+        Auth.currentUserCredentials()
+        .then((credentials) => setIdentityId(credentials.identityId))
+    })
 
     // ---------------------
     // Render the component:

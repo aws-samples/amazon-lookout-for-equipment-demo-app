@@ -23,7 +23,7 @@ After you clicked on one of the `Launch stack` button above, you will be brought
 
 On the parameters page, you will have to fill in:
 
-* `Stack name`: a unique name for your CloudFormation deployment. A default name will have been filled in on your behalf
+* `Stack name`: a unique name for your CloudFormation deployment. A default name will have been filled in on your behalf.
 * `Admin username`: the login the administrator will use to log into the application once installed
 * `Admin email`: make sure this is a valid email, the temporary password will be sent to this address
 * `Allow new users to sign up in the app`: by default, new users will be able to create their credentials when then land on the authentication page of the app. You can prevent this behavior. Note that in this case, you will have to use the Amazon Cognito console to create the users manually in the backend. However, this will prevent any users with the link to your app to create an account and provision AWS resources in your account

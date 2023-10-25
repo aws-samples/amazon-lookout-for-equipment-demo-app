@@ -22,11 +22,11 @@ Parameters:
     ConstraintDescription: Must be a valid Amazon S3 Bucket name
     Description: > 
       S3 bucket which will contains all the resources to run this application. When you launch
-      this template deployment, it will add a suffix to this name to make it unique.
+      this template deployment, it will add a suffix to this name to make it unique
   CreateCloudFrontDistribution:
     Description: Creates a CloudFront distribution for accessing the web interface
       of the demo. This must be enabled if S3 Block Public Access is enabled at an
-      account level.
+      account level
     Type: String
     Default: 'true'
     AllowedValues:

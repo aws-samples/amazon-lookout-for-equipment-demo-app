@@ -8,6 +8,7 @@ import { getAvailableDefaultProjectName } from '../utils/utils.js'
 
 // Application components:
 import CSVUpload from "./createProject/CSVUpload.jsx"
+import TimestreamImport from "./createProject/TimestreamImport.jsx"
 
 // CloudScape components:
 import Alert            from "@cloudscape-design/components/alert"
@@ -37,8 +38,15 @@ function CreateProject() {
     const [ projectNameError, setProjectNameError ]     = useState("")
     const [ assetError, setAssetError ]                 = useState("")
     const [ assetDescription, setAssetDescription ]     = useState("")
+    const [ selectedImportMethod, setSelectedImportMethod ] = useState({
+        label: 'Timestream Table',
+        description: 'Extract a subset of an Amazon Timestream table',
+        iconUrl: 'timestream-icon-32.png',
+        value: 'timestream'
+    })
 
     const csvUploadRef = useRef(undefined)
+    const timestreamImportRef = useRef(undefined)
 
     const { gateway, uid } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
@@ -139,6 +147,8 @@ function CreateProject() {
                             <SpaceBetween size="l">
                                 <FormField label="Select a dataset importing method">
                                     <Select 
+                                        selectedOption={selectedImportMethod}
+                                        onChange={({ detail }) => { setSelectedImportMethod(detail.selectedOption)}}
                                         options={[
                                             {
                                                 label: 'CSV File',
@@ -166,22 +176,34 @@ function CreateProject() {
                                             },
                                             {
                                                 label: 'Timestream Table',
-                                                description: 'Extract a subset of a Amazon Timestream table',
+                                                description: 'Extract a subset of an Amazon Timestream table',
                                                 iconUrl: 'timestream-icon-32.png',
                                                 value: 'timestream'
+                                            },
+                                            {
+                                                label: 'AWS IoT Sitewise',
+                                                description: 'Connect to an AWS IoT Sitewise asset model',
+                                                iconUrl: 'sitewise-icon-32.png',
+                                                value: 'sitewise'
                                             }
                                         ]}
                                     />
                                 </FormField>
 
-                                <CSVUpload 
+                                { selectedImportMethod.value === 'csv-upload' && <CSVUpload 
                                     ref={csvUploadRef}
                                     setUploadInProgress={setUploadInProgress}
                                     setAssetError={setAssetError}
                                     setErrorMessage={setErrorMessage}
                                     assetDescription={assetDescription}
                                     projectName={projectName}
-                                />
+                                /> }
+
+                                { selectedImportMethod.value === 'timestream' && <TimestreamImport 
+                                    ref={timestreamImportRef}
+                                    assetDescription={assetDescription}
+                                    projectName={projectName}
+                                /> }
                             </SpaceBetween>
                         </Container>
                     </SpaceBetween>

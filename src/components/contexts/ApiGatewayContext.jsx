@@ -284,6 +284,49 @@ export const ApiGatewayProvider = ({user, children}) => {
     
                 return overall_response
             },
+        },
+
+        // ----------------
+        // Timestream calls
+        // ----------------
+        timestream: {
+            async listDatabases() {
+                return queryAllItems(
+                    'Databases', 
+                    'TimestreamWrite', 
+                    'ListDatabases'
+                )
+            },
+            async listTables(databaseName) {
+                return queryAllItems(
+                    'Tables', 
+                    'TimestreamWrite', 
+                    'ListTables',
+                    { DatabaseName: databaseName }
+                )
+            },
+            async query(query) {
+                let response = undefined
+                let overall_response = {Rows: []}
+                let nextToken = undefined
+    
+                do {
+                    if (!response) {
+                        response = await request("TimestreamQuery", "Query", {QueryString: query})
+                                         .catch((error) => console.log(error.response))
+                    }
+                    else {
+                        nextToken = response['NextToken']
+                        response = await request("TimestreamQuery", "Query", {QueryString: query, NextToken: nextToken})
+                                         .catch((error) => console.log(error.response))
+                    }
+
+                    overall_response['Rows'] = [...overall_response['Rows'], ...response['Rows']]
+    
+                } while (response['NextToken'])
+    
+                return overall_response
+            }
         }
     }
 

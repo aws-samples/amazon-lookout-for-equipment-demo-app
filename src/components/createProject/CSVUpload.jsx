@@ -21,6 +21,9 @@ import HelpPanelContext from '../contexts/HelpPanelContext'
 import { getHumanReadableSize, checkProjectNameAvailability, waitForPipelineStart } from '../../utils/utils.js'
 import { checkAssetDescriptionValidity } from './createProjectUtils.js'
 
+// --------------------------
+// Component main entry point
+// --------------------------
 const CSVUpload = forwardRef(function CSVUpload(props, ref) {
     const [ dataset, setDataset ]                       = useState([])
     const [ progressPercent, setProgressPercent ]       = useState(0)

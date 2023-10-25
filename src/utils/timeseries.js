@@ -195,7 +195,7 @@ export function buildChartOptions(
         series: series,
         animation: false,
         dataZoom: datazoomOption,
-        grid: { top: 90, bottom: 30, right: 0, left: 70 },
+        grid: { top: 55 + top, bottom: 30, right: 0, left: 70 },
         toolbox: {
             right: 110,
             top: 0
@@ -270,7 +270,7 @@ export function buildChartOptions(
         }
         option['toolbox']['show'] = false
         datazoomOption['top'] = 10
-        option['grid']['top'] = 65
+        option['grid']['top'] = 55 + top
         option['legend']['top'] = 10
     }
 

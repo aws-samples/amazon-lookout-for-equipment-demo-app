@@ -157,8 +157,14 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 visible={showUploadLabels} 
                 onDiscard={() => { setShowUploadLabels(false) }} 
                 onUpload={async () => {
-                    function getUTCDate(date) {
-                        let UTCDate = DateTime.fromMillis(new Date(date).getTime()).c
+                    function getUTCDate(date, options) {
+                        let UTCDate = undefined
+                        if (options) {
+                            UTCDate = DateTime.fromMillis(new Date(date).getTime(), options).c
+                        }
+                        else {
+                            UTCDate = DateTime.fromMillis(new Date(date).getTime()).c
+                        }
                         UTCDate = DateTime.utc(
                             UTCDate.year, UTCDate.month, UTCDate.day, 
                             UTCDate.hour, UTCDate.minute, UTCDate.second

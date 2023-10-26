@@ -1,5 +1,5 @@
 // Imports:
-import { useRef, useContext } from 'react'
+import { useRef, useContext, useState } from 'react'
 import ReactEcharts from "echarts-for-react"
 
 // Application components:
@@ -22,6 +22,25 @@ import { getLegendWidth, getCurrentISODate } from '../../utils/utils.js'
 import { buildChartOptions } from '../../utils/timeseries.js'
 import "../../styles/chartThemeMacarons.js"
 
+// To be reimported from feature-1.1.0 branch
+import { DateTime } from "luxon"
+function getUTCDate(date, options) {
+    let UTCDate = undefined
+    if (options) {
+        UTCDate = DateTime.fromMillis(new Date(date).getTime(), options).c
+    }
+    else {
+        UTCDate = DateTime.fromMillis(new Date(date).getTime()).c
+    }
+    UTCDate = DateTime.utc(
+        UTCDate.year, UTCDate.month, UTCDate.day, 
+        UTCDate.hour, UTCDate.minute, UTCDate.second
+    )
+    UTCDate = UTCDate.toISO()
+
+    return new Date(UTCDate)
+}
+
 // ---------------------
 // Component entry point
 // ---------------------
@@ -33,6 +52,7 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
     const initialZoomEnd = useRef(10)
     const modelDataRangesRef = useRef(undefined)
     const eChartRef = useRef(null)
+    const [ forceChartUpdate, setForceChartUpdate ] = useState(0)
 
     if (!componentHeight) { componentHeight = 700 }
 
@@ -40,26 +60,45 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
     // This function is used to update the training and evaluation ranges both in
     // in date pickers and the datazoom component of the time series chart.
     // --------------------------------------------------------------------------
-    function updateRanges() {
-        const numDataPoints = x.length
-        const trainingDataStart = new Date(x[parseInt(initialZoomStart.current / 100 * numDataPoints)].replace('\n', ' '))
-        const trainingDataEnd = new Date(x[parseInt(initialZoomEnd.current / 100 * numDataPoints) - 1].replace('\n', ' '))
-        let evaluationDataStart = new Date(x[parseInt(initialZoomEnd.current / 100 * numDataPoints) - 1].replace('\n', ' '))
-        evaluationDataStart.setSeconds(evaluationDataStart.getSeconds() + 1)
-        const evaluationDataEnd = new Date(x[x.length - 1].replace('\n', ' '))
+    function updateRanges(range) {
+        let trainingDataStart = undefined
+        let trainingDataEnd = undefined
+        let evaluationDataStart = undefined
+        let evaluationDataEnd = undefined
+
+        if (range) {
+            trainingDataStart = getUTCDate(new Date(range['startDate']), {zone: 'UTC'})
+            trainingDataEnd = getUTCDate(new Date(range['endDate']).toUTCString(), {zone: 'UTC'})
+            evaluationDataStart = trainingDataEnd
+            evaluationDataStart.setSeconds(trainingDataEnd.getSeconds() + 1)
+
+            initialZoomStart.current = ((new Date(trainingDataStart) - new Date(x[0])) / (new Date(x[x.length - 1]) - new Date(x[0])) * 100)
+            initialZoomEnd.current = ((new Date(trainingDataEnd) - new Date(x[0])) / (new Date(x[x.length - 1]) - new Date(x[0])) * 100)
+        }
+        else {
+            const numDataPoints = x.length
+            trainingDataStart = new Date(x[parseInt(initialZoomStart.current / 100 * numDataPoints)].replace('\n', ' '))
+            trainingDataEnd = new Date(x[parseInt(initialZoomEnd.current / 100 * numDataPoints) - 1].replace('\n', ' '))
+            evaluationDataStart = new Date(x[parseInt(initialZoomEnd.current / 100 * numDataPoints) - 1].replace('\n', ' '))
+            evaluationDataStart.setSeconds(evaluationDataStart.getSeconds() + 1)
+        }
+
+        evaluationDataEnd = new Date(x[x.length - 1].replace('\n', ' '))
     
         trainingRange.current = {
             type: 'absolute', 
-            startDate: getCurrentISODate(trainingDataStart),
-            endDate: getCurrentISODate(trainingDataEnd)
+            startDate: trainingDataStart.toISOString(),
+            endDate: trainingDataEnd.toISOString()
         }
         evaluationRange.current = {
             type: 'absolute', 
-            startDate: getCurrentISODate(evaluationDataStart),
-            endDate: getCurrentISODate(evaluationDataEnd)
+            startDate: evaluationDataStart.toISOString(),
+            endDate: evaluationDataEnd.toISOString()
         }
         numTrainingDays.current = parseInt((trainingDataEnd - trainingDataStart) / 1000 / 86400).toString() + " day(s)"
         numEvaluationDays.current = parseInt((evaluationDataEnd - evaluationDataStart) / 1000 / 86400).toString() + " day(s)"
+
+        if (range) { setForceChartUpdate(forceChartUpdate + 1) }
     }
 
     // ------------------------------------------------------
@@ -81,8 +120,8 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
             updateRanges()
         }
         else {
-            initialZoomStart.current = parseInt((new Date(trainingRange.current['startDate']) - new Date(x[0])) / (new Date(x[x.length - 1]) - new Date(x[0])) * 100)
-            initialZoomEnd.current = parseInt((new Date(trainingRange.current['endDate']) - new Date(x[0])) / (new Date(x[x.length - 1]) - new Date(x[0])) * 100)
+            initialZoomStart.current = ((new Date(trainingRange.current['startDate']) - new Date(x[0])) / (new Date(x[x.length - 1]) - new Date(x[0])) * 100)
+            initialZoomEnd.current = ((new Date(trainingRange.current['endDate']) - new Date(x[0])) / (new Date(x[x.length - 1]) - new Date(x[0])) * 100)
         }
 
         const option = buildChartOptions(
@@ -96,7 +135,8 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
             enableBrush,
             true,                   // customDatazoomColor,
             false,                  // readOnly
-            5                       // Show top 5 signals after loading
+            5,                      // Show top 5 signals after loading
+            forceChartUpdate
         )
 
         // --------------------------------------------------------

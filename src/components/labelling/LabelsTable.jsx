@@ -150,6 +150,16 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     // Add filtering and pagination to the table:
     const { items, paginationProps } = useCollection(tableItems, {pagination: { pageSize: 10 }})
 
+    let counterString = ""
+    if (tableItems.length > 0) {
+        if (selectedLabels.length > 0) {
+            counterString = `(${selectedLabels.length}/${tableItems.length}})`
+        }
+        else {
+            counterString = `(${tableItems.length})`
+        }
+    }
+
     // Render the component:
     return (
         <>
@@ -215,6 +225,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                                 })}>Info</Link>
                             }
                             {...tableActions}
+                            counter={counterString}
                         >
                             Labels list
                         </Header>

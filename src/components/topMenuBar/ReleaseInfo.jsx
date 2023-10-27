@@ -1,6 +1,10 @@
+// Imports:
+import Markdown from 'react-markdown'
+
 // CloudScape components:
 import Box           from "@cloudscape-design/components/box"
 import Button        from "@cloudscape-design/components/button"
+import Container     from "@cloudscape-design/components/container"
 import FormField     from "@cloudscape-design/components/form-field"
 import Modal         from "@cloudscape-design/components/modal"
 import SpaceBetween  from "@cloudscape-design/components/space-between"
@@ -11,6 +15,8 @@ import TextContent   from "@cloudscape-design/components/text-content"
 // Components used to configure the application
 // --------------------------------------------
 function ReleaseInfo({ visible, onDiscard, publicationDate, releaseInfo, latestVersion }) {
+    const markdown = '# Hi, *Pluto*!'
+
     // Renders the modal window for the settings components:
     return (
         <Modal 
@@ -34,12 +40,12 @@ function ReleaseInfo({ visible, onDiscard, publicationDate, releaseInfo, latestV
                     </p>
                 </TextContent>
 
+
+
                 <FormField label="Release notes:">
-                    <Textarea 
-                        value={releaseInfo}
-                        readOnly={true}
-                        rows="5"
-                    />
+                    <Container>
+                        <Markdown>{releaseInfo}</Markdown>
+                    </Container>
                 </FormField>
 
                 <TextContent>

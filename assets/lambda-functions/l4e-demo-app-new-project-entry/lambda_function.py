@@ -8,6 +8,9 @@ s3 = boto3.resource('s3')
 ddb_client = boto3.client('dynamodb')
 
 def lambda_handler(event, context):
+    print(event)
+    print('===========================')
+    
     # Assembling the S3 path to process:
     bucket = event['bucket']
     key = event['key']

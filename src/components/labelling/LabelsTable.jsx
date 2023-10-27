@@ -150,6 +150,16 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     // Add filtering and pagination to the table:
     const { items, paginationProps } = useCollection(tableItems, {pagination: { pageSize: 10 }})
 
+    let counterString = ""
+    if (tableItems.length > 0) {
+        if (selectedLabels.length > 0) {
+            counterString = `(${selectedLabels.length}/${tableItems.length}})`
+        }
+        else {
+            counterString = `(${tableItems.length})`
+        }
+    }
+
     // Render the component:
     return (
         <>
@@ -157,8 +167,14 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 visible={showUploadLabels} 
                 onDiscard={() => { setShowUploadLabels(false) }} 
                 onUpload={async () => {
-                    function getUTCDate(date) {
-                        let UTCDate = DateTime.fromMillis(new Date(date).getTime()).c
+                    function getUTCDate(date, options) {
+                        let UTCDate = undefined
+                        if (options) {
+                            UTCDate = DateTime.fromMillis(new Date(date).getTime(), options).c
+                        }
+                        else {
+                            UTCDate = DateTime.fromMillis(new Date(date).getTime()).c
+                        }
                         UTCDate = DateTime.utc(
                             UTCDate.year, UTCDate.month, UTCDate.day, 
                             UTCDate.hour, UTCDate.minute, UTCDate.second
@@ -209,6 +225,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                                 })}>Info</Link>
                             }
                             {...tableActions}
+                            counter={counterString}
                         >
                             Labels list
                         </Header>

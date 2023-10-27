@@ -1,5 +1,5 @@
 Description: >
-  [1.0.2] Template to deploy the Amazon Lookout for Equipment demo application
+  [1.0.3] Template to deploy the Amazon Lookout for Equipment demo application
 
 # ============================================================================
 # CLOUDFORMATION TEMPLATE PARAMETERS
@@ -22,11 +22,11 @@ Parameters:
     ConstraintDescription: Must be a valid Amazon S3 Bucket name
     Description: > 
       S3 bucket which will contains all the resources to run this application. When you launch
-      this template deployment, it will add a suffix to this name to make it unique.
+      this template deployment, it will add a suffix to this name to make it unique
   CreateCloudFrontDistribution:
     Description: Creates a CloudFront distribution for accessing the web interface
       of the demo. This must be enabled if S3 Block Public Access is enabled at an
-      account level.
+      account level
     Type: String
     Default: 'true'
     AllowedValues:
@@ -72,17 +72,17 @@ Mappings:
   SourceCode:
     Functions:
       S3Bucket: lookout-equipment-content
-      KeyPrefix: l4e-demo-app/v1.0.2/functions
+      KeyPrefix: l4e-demo-app/v1.0.3/functions
       AppSetupVersion: 4
     Layers:
       S3Bucket: lookout-equipment-content
-      KeyPrefix: l4e-demo-app/v1.0.2/layers
+      KeyPrefix: l4e-demo-app/v1.0.3/layers
     StateMachines:
       S3Bucket: lookout-equipment-content
-      KeyPrefix: l4e-demo-app/v1.0.2/state-machines
+      KeyPrefix: l4e-demo-app/v1.0.3/state-machines
     Frontend:
       S3Bucket: lookout-equipment-content
-      KeyPrefix: l4e-demo-app/v1.0.2/frontend
+      KeyPrefix: l4e-demo-app/v1.0.3/frontend
 
 # ============================================================================
 Resources:
@@ -138,7 +138,7 @@ Resources:
       Environment:
         Variables:
           API_GATEWAY: API_GATEWAY
-          VERSION: 1.0.2
+          VERSION: 1.0.3
           REGION: !Ref AWS::Region
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_USER_POOL_CLIENT_ID: !Ref CognitoUserPoolClient
@@ -1055,7 +1055,7 @@ Resources:
       Handler: lambda_function.lambda_handler
       Role: !GetAtt FunctionIngestModelResultsRole.Arn
       Runtime: python3.10
-      MemorySize: 1024
+      MemorySize: 2048
       Timeout: 600
       Layers:
         - !Ref PackagePandas
@@ -1425,7 +1425,7 @@ Resources:
         function-new-project-entry: !GetAtt FunctionNewProjectEntry.Arn
         function-prepare-hourly-data: !GetAtt FunctionPrepareHourlyData.Arn
         function-ingest-model-results: !GetAtt FunctionIngestModelResults.Arn
-        l4e-demo-app-version: 1.0.2
+        l4e-demo-app-version: 1.0.3
         role-step-function-dataset-preparation: !GetAtt StepFunctionRole.Arn
       RoleArn: !GetAtt StepFunctionRole.Arn
       LoggingConfiguration:
@@ -1522,7 +1522,7 @@ Resources:
       DefinitionSubstitutions:
         function-prepare-replay-data: !GetAtt FunctionPrepareReplayData.Arn
         function-generate-inference-input: !GetAtt FunctionGenerateInferenceInput.Arn
-        l4e-demo-app-version: 1.0.2
+        l4e-demo-app-version: 1.0.3
         role-step-function-deploy-model: !GetAtt StepFunctionRole.Arn
       RoleArn: !GetAtt StepFunctionRole.Arn
       LoggingConfiguration:

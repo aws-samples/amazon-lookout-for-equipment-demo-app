@@ -38,12 +38,18 @@ def lambda_handler(event, context):
         timestamp = int(datetime.timestamp(datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')))
         
         # Write the anomaly to the l4edemoapp-anomalies DynamoDB table:
-        anomaly = data['prediction']
+        if ('prediction' not in data.keys()):
+            anomaly = 0
+        else:
+            anomaly = data['prediction']
         storeAnomaly(modelName, timestamp, anomaly, projectName)
         
         # Write the raw anomaly score to the 
         # l4edemoapp-raw-anomalies DynamoDB table:
-        score = data['anomaly_score']
+        if ('anomaly_score' not in data.keys()):
+            score = 0.0
+        else:
+            score = data['anomaly_score']
         storeRawAnomaly(modelName, timestamp, score, projectName)
         
         # Write the diagnostic data to the l4edemoapp-XXX-sensor_contribution

@@ -8,7 +8,6 @@ import Container     from "@cloudscape-design/components/container"
 import FormField     from "@cloudscape-design/components/form-field"
 import Modal         from "@cloudscape-design/components/modal"
 import SpaceBetween  from "@cloudscape-design/components/space-between"
-import Textarea      from "@cloudscape-design/components/textarea"
 import TextContent   from "@cloudscape-design/components/text-content"
 
 // --------------------------------------------
@@ -39,8 +38,6 @@ function ReleaseInfo({ visible, onDiscard, publicationDate, releaseInfo, latestV
                         is <b>v{window.version}</b> while the latest version is <b>v{latestVersion}</b>.
                     </p>
                 </TextContent>
-
-
 
                 <FormField label="Release notes:">
                     <Container>

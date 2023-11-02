@@ -2,6 +2,7 @@
 import * as awsui from '@cloudscape-design/design-tokens/index.js'
 import { histogram } from 'echarts-stat'
 import { Octokit } from "@octokit/core"
+import { DateTime } from "luxon"
 
 // --------------------------------------
 // Search in which bin a given date falls
@@ -719,4 +720,15 @@ function compareVersions(a, b) {
     }
 
     return 0
+}
+
+export function getUTCDate(date) {
+    let UTCDate = DateTime.fromMillis(new Date(date).getTime()).c
+    UTCDate = DateTime.utc(
+        UTCDate.year, UTCDate.month, UTCDate.day, 
+        UTCDate.hour, UTCDate.minute, UTCDate.second
+    )
+    UTCDate = UTCDate.toISO()
+
+    return new Date(UTCDate)
 }

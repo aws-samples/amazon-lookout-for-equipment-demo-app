@@ -1,7 +1,6 @@
 // Imports
 import { forwardRef, useContext, useImperativeHandle, useState } from 'react'
 import { useCollection } from '@cloudscape-design/collection-hooks'
-import { DateTime } from "luxon"
 
 // Cloudscape component
 import Alert        from "@cloudscape-design/components/alert"
@@ -20,6 +19,9 @@ import LabelingContext from '../contexts/LabelingContext'
 
 // App components:
 import UploadLabelsModal from "./UploadLabelsModal"
+
+// Utils:
+import { getUTCDate } from '../../utils/utils.js'
 
 // --------------------------
 // Component main entry point
@@ -157,17 +159,6 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 visible={showUploadLabels} 
                 onDiscard={() => { setShowUploadLabels(false) }} 
                 onUpload={async () => {
-                    function getUTCDate(date) {
-                        let UTCDate = DateTime.fromMillis(new Date(date).getTime()).c
-                        UTCDate = DateTime.utc(
-                            UTCDate.year, UTCDate.month, UTCDate.day, 
-                            UTCDate.hour, UTCDate.minute, UTCDate.second
-                        )
-                        UTCDate = UTCDate.toISO()
-
-                        return new Date(UTCDate)
-                    }
-
                     uploadedLabelData.forEach((label) => {
                         // Discard empty lines:
                         if (!(label.length == 1 && label[0] === '')) {

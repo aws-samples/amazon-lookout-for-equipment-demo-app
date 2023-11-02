@@ -15,6 +15,7 @@ const {
     SFN_MODEL_DEPLOYMENT_ARN,
     SFN_MODEL_RESULTS_EXTRACTION_ARN,
     SFN_DATASET_PREPARATION,
+    SFN_TIMESTREAM_EXPORT,
     STACK_ID,
     ALLOW_USER_SIGN_UP
 } = process.env;
@@ -88,6 +89,7 @@ var stackId = "${STACK_ID}";
 var deployModelArn = "${SFN_MODEL_DEPLOYMENT_ARN}";
 var modelResultsExtractionArn = "${SFN_MODEL_RESULTS_EXTRACTION_ARN}";
 var datasetPreparationArn = "${SFN_DATASET_PREPARATION}";
+var timestreamUploadArn = "${SFN_TIMESTREAM_EXPORT}";
 var allowUserSignUp = "${ALLOW_USER_SIGN_UP}";`
             }).promise();
         }

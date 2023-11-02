@@ -6,6 +6,7 @@ var region = "eu-west-1";
 var deployModelArn = "arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-deploy-model";
 var modelResultsExtractionArn = "arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-model-results-extraction"
 var datasetPreparationArn = "arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-datasets-preparation"
+var timestreamUploadArn = "arn:aws:states:eu-west-1:905637044774:stateMachine:l4e-demo-app-timestream-export"
 var stackId = "stackid";
 var appS3Bucket = "l4e-demo-app-storage212931-dev";
 var allowUserSignUp = "false";

@@ -33,9 +33,12 @@ Parameters:
     - 'true'
     - 'false'
   AllowUserSignUp:
-    Description: Allows new user sign-up on the app authentication screen?
+    Description: >
+      Allows new user sign-up on the app authentication screen? If set to "false", refer to the installation
+      page on GitHub to learn how to create users manually in the Cognito user pool that will be created
+      for this application (https://github.com/aws-samples/amazon-lookout-for-equipment-demo-app/blob/main/USAGE.md#how-to-manually-create-user).
     Type: String
-    Default: 'true'
+    Default: 'false'
     AllowedValues:
     - 'true'
     - 'false'
@@ -73,7 +76,7 @@ Mappings:
     Functions:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.1.0/functions
-      AppSetupVersion: 4
+      AppSetupVersion: 6
     Layers:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.1.0/layers
@@ -132,7 +135,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-setup-v4.zip
+            - l4e-demo-app-setup-v6.zip
       Description: Amazon Lookout for Equipment demo app setup
       Role: !GetAtt AppSetupRole.Arn
       Environment:
@@ -149,6 +152,7 @@ Resources:
           SFN_MODEL_DEPLOYMENT_ARN: !GetAtt DeployModelStateMachine.Arn
           SFN_MODEL_RESULTS_EXTRACTION_ARN: !GetAtt ModelResultsExtractionStateMachine.Arn
           SFN_DATASET_PREPARATION: !GetAtt DatasetPreparationStateMachine.Arn
+          SFN_TIMESTREAM_EXPORT: !GetAtt TimestreamExportStateMachine.Arn
           ALLOW_USER_SIGN_UP: !Ref AllowUserSignUp
           STACK_ID: !Select
             - 0
@@ -1056,7 +1060,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-prepare-replay-data-v4.zip
+            - l4e-demo-app-prepare-replay-data-v5.zip
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1324,6 +1328,101 @@ Resources:
     DependsOn:
       - FunctionDescribeModelRole
 
+  FunctionTimestreamUnload:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-timestream-unload"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Unload a table from Timestream
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - ''
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - '/'
+            - l4e-demo-app-timestream-unload-v2.zip
+      Environment:
+        Variables:
+          STACK_ID: !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Layers:
+        - !Ref PackagePandas
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt FunctionTimestreamRole.Arn
+      Runtime: python3.10
+      MemorySize: 256
+      Timeout: 300
+    DependsOn:
+      - FunctionTimestreamRole
+
+  FunctionParquet2CSV:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-parquet2csv"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Unload a table from Timestream
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - ''
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - '/'
+            - l4e-demo-app-parquet2csv-v2.zip
+      Layers:
+        - arn:aws:lambda:eu-west-1:336392948345:layer:AWSSDKPandas-Python310:5
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt FunctionParquet2CSVRole.Arn
+      Runtime: python3.10
+      MemorySize: 2048
+      Timeout: 300
+    DependsOn:
+      - FunctionParquet2CSVRole
+
   # -------------------------
   # LAMBDA LAYERS DEFINITIONS
   # -------------------------
@@ -1402,6 +1501,52 @@ Resources:
       - FunctionPrepareHourlyData
       - FunctionIngestModelResults
       - DatasetPreparationStateMachineLogGroup
+
+  TimestreamExportStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Join
+        - "-"
+        - - "l4e-demo-app-timestream-export"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      DefinitionS3Location:
+        Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - StateMachines
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - StateMachines
+              - KeyPrefix
+            - 'timestream-export-v1.json'
+      DefinitionSubstitutions:
+        function-timestream-unload: !GetAtt FunctionTimestreamUnload.Arn
+        function-parquet2csv: !GetAtt FunctionParquet2CSV.Arn
+      RoleArn: !GetAtt StepFunctionRole.Arn
+      LoggingConfiguration:
+        Destinations: 
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt TimestreamExportStateMachineLogGroup.Arn
+        IncludeExecutionData: True
+        Level: ALL
+    DependsOn:
+      - StepFunctionRole
+      - FunctionTimestreamUnload
+      - FunctionParquet2CSV
+      - TimestreamExportStateMachineLogGroup
 
   ModelResultsExtractionStateMachine:
     Type: AWS::StepFunctions::StateMachine
@@ -1505,6 +1650,23 @@ Resources:
       LogGroupName: !Join
         - "-"
         - - "/aws/vendedlogs/states/DatasetPreparationLogGroup"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      RetentionInDays: 14
+
+  TimestreamExportStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join
+        - "-"
+        - - "/aws/vendedlogs/states/TimestreamExportLogGroup"
           - !Select
             - 0
             - !Split
@@ -1656,6 +1818,31 @@ Resources:
                 - ':'
                 - !Ref 'AWS::AccountId'
                 - ':table/*'
+      # The authenticated user needs the following permissions to interact with
+      # Timestream when extracting data from this service to create a new project:
+      - PolicyName: !Join
+        - "_"
+        - - TimestreamPermissions
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Action:
+            - timestream:DescribeTable
+            - timestream:ListDatabases
+            - timestream:ListMeasures
+            - timestream:ListTables
+            - timestream:Select
+            Effect: Allow
+            Resource: '*'
       # The authenticated users must be able to run the backend Step Functions:
       - PolicyName: !Join
         - "_"
@@ -1932,6 +2119,8 @@ Resources:
             Statement:
               - Action:
                   - states:StartExecution
+                  - states:DescribeExecution
+                  - states:StopExecution
                 Effect: Allow
                 Resource: '*'
         - PolicyName: !Join
@@ -1950,8 +2139,8 @@ Resources:
             Version: 2012-10-17
             Statement:
               - Action:
-                - 'dynamodb:ImportTable'
-                - 'dynamodb:DescribeImport'
+                - dynamodb:ImportTable
+                - dynamodb:DescribeImport
                 Effect: Allow
                 Resource: !Join 
                   - ''
@@ -1962,6 +2151,48 @@ Resources:
                     - ':'
                     - !Ref 'AWS::AccountId'
                     - ':table/l4edemoapp-*'
+        - PolicyName: !Join
+          - "-"
+          - - StepFunctionsNestedExecutions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - events:PutTargets
+                  - events:PutRule
+                  - events:DescribeRule
+                Effect: Allow
+                Resource: 
+                - !Sub arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:rule/StepFunctionsGetEventsForStepFunctionsExecutionRule
+        - PolicyName: !Join
+          - "-"
+          - - StepFunctionsTimestreamPermissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                - timestream:Unload
+                - timestream:Select
+                Effect: Allow
+                Resource: '*'
         - PolicyName: !Join
           - "-"
           - - StepFunctionsLambdaPermissions
@@ -2241,6 +2472,36 @@ Resources:
           Principal:
             Service: lambda.amazonaws.com
 
+  FunctionTimestreamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - !Ref LambdaExecutionPolicy
+        - !Ref DynamoDBAccessPolicy
+        - !Ref TimestreamAccessPolicy
+        - !Ref S3AccessPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+
+  FunctionParquet2CSVRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - !Ref LambdaExecutionPolicy
+        - !Ref S3AccessPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+
   # ------------------------------------------------------
   # IAM FINE GRAINED POLICIES
   # These policies cover all the needs of the app and will
@@ -2321,13 +2582,15 @@ Resources:
         Version: 2012-10-17
         Statement:
           - Action:
-              - 's3:GetObject'
-              - 's3:GetObjectAcl'
-              - 's3:GetObjectTagging'
-              - 's3:PutObject'
-              - 's3:PutObjectAcl'
-              - 's3:ListBucket'
-              - 's3:DeleteObject'
+              - s3:GetObject
+              - s3:GetObjectAcl
+              - s3:GetObjectTagging
+              - s3:PutObjectTagging
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:ListBucket
+              - s3:DeleteObject
+              - s3:GetBucketAcl
             Effect: Allow
             Resource:
               - !GetAtt ApplicationBucket.Arn
@@ -2356,6 +2619,20 @@ Resources:
                 - ':'
                 - !Ref 'AWS::AccountId'
                 - ':table/l4edemoapp-*'
+
+  # This gives ability to run Unload on a Timestream table:
+  TimestreamAccessPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+            - timestream:Unload
+            - timestream:Select
+            - timestream:DescribeEndpoints
+            Effect: Allow
+            Resource: '*'
 
 # ================
 # OUTPUTS

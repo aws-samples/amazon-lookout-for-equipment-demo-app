@@ -8,7 +8,7 @@ s3_client = boto3.client('s3')
 s3 = boto3.resource('s3')
 
 def lambda_handler(event, context):
-    print(event['detail'])
+    print(event)
     print('-----------------------------------')
     
     # Assembling the S3 path to process:

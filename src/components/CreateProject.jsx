@@ -39,10 +39,10 @@ function CreateProject() {
     const [ assetError, setAssetError ]                 = useState("")
     const [ assetDescription, setAssetDescription ]     = useState("")
     const [ selectedImportMethod, setSelectedImportMethod ] = useState({
-        label: 'Timestream Table',
-        description: 'Extract a subset of an Amazon Timestream table',
-        iconUrl: 'timestream-icon-32.png',
-        value: 'timestream'
+        label: 'CSV File',
+        description: 'Upload a CSV file from your computer',
+        iconName: 'upload',
+        value: 'csv-upload'
     })
 
     const csvUploadRef = useRef(undefined)
@@ -56,7 +56,15 @@ function CreateProject() {
     // ----------------------------------------------------------------
     const handleCreateProjectSubmit = async (e) => {
         e.preventDefault()
-        await csvUploadRef.current.processCsvUpload()
+        
+        switch(selectedImportMethod.value) {
+            case 'csv-upload':
+                await csvUploadRef.current.processCsvUpload()
+                break
+            case 'timestream':
+                await timestreamImportRef.current.processTimestreamImport()
+                break
+        }
     }
 
     // -----------------------------------------------------------
@@ -156,36 +164,36 @@ function CreateProject() {
                                                 iconName: 'upload',
                                                 value: 'csv-upload'
                                             },
-                                            {
-                                                label: 'ZIP Archive',
-                                                description: 'Upload a collection of CSV files zipped in an archive from your computer',
-                                                iconName: 'folder',
-                                                value: 'zip-upload'
-                                            },
-                                            {
-                                                label: 'CSV File on S3',
-                                                description: 'Pick a CSV file from Amazon S3',
-                                                iconUrl: 's3-icon-32.png',
-                                                value: 'csv-s3'
-                                            },
-                                            {
-                                                label: 'ZIP Archive on S3',
-                                                description: 'Pick a ZIP archive from Amazon S3',
-                                                iconUrl: 's3-objects-icon-32.png',
-                                                value: 'zip-s3'
-                                            },
+                                            // {
+                                            //     label: 'ZIP Archive',
+                                            //     description: 'Upload a collection of CSV files zipped in an archive from your computer',
+                                            //     iconName: 'folder',
+                                            //     value: 'zip-upload'
+                                            // },
+                                            // {
+                                            //     label: 'CSV File on S3',
+                                            //     description: 'Pick a CSV file from Amazon S3',
+                                            //     iconUrl: 's3-icon-32.png',
+                                            //     value: 'csv-s3'
+                                            // },
+                                            // {
+                                            //     label: 'ZIP Archive on S3',
+                                            //     description: 'Pick a ZIP archive from Amazon S3',
+                                            //     iconUrl: 's3-objects-icon-32.png',
+                                            //     value: 'zip-s3'
+                                            // },
                                             {
                                                 label: 'Timestream Table',
                                                 description: 'Extract a subset of an Amazon Timestream table',
                                                 iconUrl: 'timestream-icon-32.png',
                                                 value: 'timestream'
                                             },
-                                            {
-                                                label: 'AWS IoT Sitewise',
-                                                description: 'Connect to an AWS IoT Sitewise asset model',
-                                                iconUrl: 'sitewise-icon-32.png',
-                                                value: 'sitewise'
-                                            }
+                                            // {
+                                            //     label: 'AWS IoT Sitewise',
+                                            //     description: 'Connect to an AWS IoT Sitewise asset model',
+                                            //     iconUrl: 'sitewise-icon-32.png',
+                                            //     value: 'sitewise'
+                                            // }
                                         ]}
                                     />
                                 </FormField>
@@ -201,6 +209,9 @@ function CreateProject() {
 
                                 { selectedImportMethod.value === 'timestream' && <TimestreamImport 
                                     ref={timestreamImportRef}
+                                    setUploadInProgress={setUploadInProgress}
+                                    setAssetError={setAssetError}
+                                    setErrorMessage={setErrorMessage}
                                     assetDescription={assetDescription}
                                     projectName={projectName}
                                 /> }

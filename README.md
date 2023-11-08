@@ -1,4 +1,4 @@
-# Amazon Lookout for Equipment Demo Application
+# Amazon Lookout for Equipment Web Application
 Amazon Lookout for Equipment uses the data from your sensors to detect abnormal equipment behavior, so you
 can take action before machine failures occur and avoid unplanned downtime.
 

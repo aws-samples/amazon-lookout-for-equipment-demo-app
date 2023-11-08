@@ -77,8 +77,8 @@ const CSVFromS3 = forwardRef(function CSVFromS3(props, ref) {
 
             if (currentError === "") {
                 setErrorMessage("")
-                setShowCopyInProgress(true)
                 setUploadInProgress(true)
+                setShowFlashbar(true)
 
                 const sourceBucket = s3Resource.uri.split('/')[2]
                 let sourcePrefix = s3Resource.uri.split('/')
@@ -86,7 +86,7 @@ const CSVFromS3 = forwardRef(function CSVFromS3(props, ref) {
                 const targetBucket = window.appS3Bucket
                 const targetPrefix = `private/${identityId}/${projectName}/${projectName}/sensors.csv`
                 
-                const response = await copyCsvFromS3(
+                await copyCsvFromS3(
                     sourceBucket, 
                     sourcePrefix, 
                     targetBucket, 
@@ -97,36 +97,26 @@ const CSVFromS3 = forwardRef(function CSVFromS3(props, ref) {
                     assetDescription
                 )
 
-                if (response.errorMessage) {
-                    setShowCopyInProgress(false)
-                    setUploadInProgress(false)
-                    setErrorMessage(response.errorType + ': ' + response.errorMessage)
-                }
-                else {
-                    setShowCopyInProgress(false)
-                    setShowFlashbar(true)
-
-                    // We will now trigger a Step Function that will 
-                    // ingest the data once the copy is finished:
-                    const sfnArn = window.datasetPreparationArn
-                    const inputPayload = { 
-                        detail: {
-                            bucket: { name: targetBucket },
-                            object: { key: targetPrefix }
-                        }
+                // We will now trigger a Step Function that will 
+                // ingest the data once the copy is finished:
+                const sfnArn = window.datasetPreparationArn
+                const inputPayload = { 
+                    detail: {
+                        bucket: { name: targetBucket },
+                        object: { key: targetPrefix }
                     }
-                    await gateway.stepFunctions
-                                 .startExecution(sfnArn, inputPayload)
-                                 .catch((error) => console.log(error.response))
-                    await waitForPipelineStart(gateway, uid, projectName)
-
-                    // This forces a refresh of the side bar navigation
-                    // so we can see the new project name popping up:
-                    setNavbarCounter(navbarCounter + 1)
-
-                    // Redirects to the dashboard for the new project:
-                    navigate(`/project-dashboard/projectName/${projectName}`)
                 }
+                await gateway.stepFunctions
+                                .startExecution(sfnArn, inputPayload)
+                                .catch((error) => console.log(error.response))
+                await waitForPipelineStart(gateway, uid, projectName)
+
+                // This forces a refresh of the side bar navigation
+                // so we can see the new project name popping up:
+                setNavbarCounter(navbarCounter + 1)
+
+                // Redirects to the dashboard for the new project:
+                navigate(`/project-dashboard/projectName/${projectName}`)
             }
             else {
                 setErrorMessage(currentError)

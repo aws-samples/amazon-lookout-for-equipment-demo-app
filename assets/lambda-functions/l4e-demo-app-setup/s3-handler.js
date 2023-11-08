@@ -17,7 +17,8 @@ const {
     SFN_DATASET_PREPARATION,
     SFN_TIMESTREAM_EXPORT,
     STACK_ID,
-    ALLOW_USER_SIGN_UP
+    ALLOW_USER_SIGN_UP,
+    API_GATEWAY_ID
 } = process.env;
 
 const CONFIG_FILENAME = "app.config.js";
@@ -90,7 +91,8 @@ var deployModelArn = "${SFN_MODEL_DEPLOYMENT_ARN}";
 var modelResultsExtractionArn = "${SFN_MODEL_RESULTS_EXTRACTION_ARN}";
 var datasetPreparationArn = "${SFN_DATASET_PREPARATION}";
 var timestreamUploadArn = "${SFN_TIMESTREAM_EXPORT}";
-var allowUserSignUp = "${ALLOW_USER_SIGN_UP}";`
+var allowUserSignUp = "${ALLOW_USER_SIGN_UP}";
+var apiGatewayId = "${API_GATEWAY_ID}";`
             }).promise();
         }
     };

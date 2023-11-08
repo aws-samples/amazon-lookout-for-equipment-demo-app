@@ -2,6 +2,31 @@
     "Comment": "A description of my state machine",
     "StartAt": "Create new project entry",
     "States": {
+      "Check if file exists": {
+        "Type": "Task",
+        "Next": "Create new project entry",
+        "Parameters": {
+          "Bucket.$": "$.detail.bucket.name",
+          "Key.$": "$.detail.object.key"
+        },
+        "Resource": "arn:aws:states:::aws-sdk:s3:headObject",
+        "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Comment": "File does not exist",
+                "ResultPath": null,
+                "Next": "Wait 5s"
+              }
+            ],
+            "ResultPath": null
+          },
+          "Wait 5s": {
+            "Type": "Wait",
+            "Seconds": 5,
+            "Next": "Check if file exists"
+        },
       "Create new project entry": {
         "Type": "Task",
         "Resource": "arn:aws:states:::lambda:invoke",

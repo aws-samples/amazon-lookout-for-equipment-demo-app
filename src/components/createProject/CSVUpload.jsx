@@ -86,8 +86,8 @@ const CSVUpload = forwardRef(function CSVUpload(props, ref) {
                             }
                         }
                         await gateway.stepFunctions
-                                    .startExecution(sfnArn, inputPayload)
-                                    .catch((error) => console.log(error.response))
+                                     .startExecution(sfnArn, inputPayload)
+                                     .catch((error) => console.log(error.response))
                         await waitForPipelineStart(gateway, uid, projectName)
 
                         // This forces a refresh of the side bar navigation

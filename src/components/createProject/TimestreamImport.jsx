@@ -4,15 +4,15 @@ import { Auth } from 'aws-amplify'
 import { useNavigate } from 'react-router-dom'
 
 // Cloudscape components:
-import Alert from "@cloudscape-design/components/alert"
-import DatePicker from "@cloudscape-design/components/date-picker"
-import Flashbar from "@cloudscape-design/components/flashbar"
-import FormField from "@cloudscape-design/components/form-field"
-import Multiselect from "@cloudscape-design/components/multiselect"
-import Select from "@cloudscape-design/components/select"
-import Spinner from "@cloudscape-design/components/spinner"
+import Alert        from "@cloudscape-design/components/alert"
+import DatePicker   from "@cloudscape-design/components/date-picker"
+import Flashbar     from "@cloudscape-design/components/flashbar"
+import FormField    from "@cloudscape-design/components/form-field"
+import Multiselect  from "@cloudscape-design/components/multiselect"
+import Select       from "@cloudscape-design/components/select"
+import Spinner      from "@cloudscape-design/components/spinner"
 import SpaceBetween from "@cloudscape-design/components/space-between"
-import Textarea from "@cloudscape-design/components/textarea"
+import Textarea     from "@cloudscape-design/components/textarea"
 
 // Contexts:
 import ApiGatewayContext from '../contexts/ApiGatewayContext.jsx'
@@ -123,6 +123,9 @@ async function getAllDimensionItems(gateway, databaseName, tableName, dimension)
     return assetsList
 }
 
+// --------------------------------------------------------
+// Get the extent of the sensor data for the selected asset
+// --------------------------------------------------------
 async function getTimeRange(gateway, databaseName, tableName, dimensionName, asset, timestampCol) {
     const query = `SELECT MIN(${timestampCol}) AS startDate, MAX(${timestampCol}) AS endDate 
                    FROM "${databaseName}"."${tableName}" 
@@ -141,6 +144,10 @@ async function getTimeRange(gateway, databaseName, tableName, dimensionName, ass
     return { startDate, endDate }
 }
 
+// -----------------------------------------------------------
+// Calculate the sampling rate by counting the number of
+// datapoints recorded for this asset and using the time range
+// -----------------------------------------------------------
 async function getSamplingRate(gateway, databaseName, tableName, dimensionName, asset, startTime, endTime) {
     let signalSamplingRate = {}
     const query = `SELECT "measure_name", COUNT(*) 
@@ -177,28 +184,24 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
 
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
 
-    const [ identityId, setIdentityId ] = useState("")
-
-    const [ databasesList, setDatabasesList ] = useState(undefined)
-    const [ tablesList, setTablesList ] = useState(undefined)
-    const [ dimensionsOptions, setDimensionsOptions ] = useState(undefined)
-    const [ tagsOptions, setTagsOptions ] = useState(undefined)
-    const [ assetsList, setAssetsList ] = useState(undefined)
-
-    const [ database, setDatabase ] = useState(undefined)
-    const [ table, setTable ] = useState(undefined)
-    const [ dimension, setDimension ] = useState(undefined)
-    const [ sensors, setSensors ] = useState(undefined)
-    const [ asset, setAsset ] = useState(undefined)
-    const [ timestamp, setTimestamp ] = useState(undefined)
-
-    const [ exportStartDate, setExportStartDate ] = useState(undefined)
-    const [ exportEndDate, setExportEndDate ] = useState(undefined)
+    const [ identityId, setIdentityId ]                 = useState("")
+    const [ databasesList, setDatabasesList ]           = useState(undefined)
+    const [ tablesList, setTablesList ]                 = useState(undefined)
+    const [ dimensionsOptions, setDimensionsOptions ]   = useState(undefined)
+    const [ tagsOptions, setTagsOptions ]               = useState(undefined)
+    const [ assetsList, setAssetsList ]                 = useState(undefined)
+    const [ database, setDatabase ]                     = useState(undefined)
+    const [ table, setTable ]                           = useState(undefined)
+    const [ dimension, setDimension ]                   = useState(undefined)
+    const [ sensors, setSensors ]                       = useState(undefined)
+    const [ asset, setAsset ]                           = useState(undefined)
+    const [ timestamp, setTimestamp ]                   = useState(undefined)
+    const [ exportStartDate, setExportStartDate ]       = useState(undefined)
+    const [ exportEndDate, setExportEndDate ]           = useState(undefined)
     const [ signalSamplingRate, setSignalSamplingRate ] = useState(undefined)
     const [ unloadSamplingRate, setUnloadSamplingRate ] = useState(undefined)
-
-    const [ assetLoading, setAssetLoading ] = useState("")
-    const [ showFlashbar, setShowFlashbar ] = useState(false)
+    const [ assetLoading, setAssetLoading ]             = useState("")
+    const [ showFlashbar, setShowFlashbar ]             = useState(false)
 
     const navigate = useNavigate()
 

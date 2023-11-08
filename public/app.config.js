@@ -10,3 +10,4 @@ var timestreamUploadArn = "arn:aws:states:eu-west-1:905637044774:stateMachine:l4
 var stackId = "stackid";
 var appS3Bucket = "l4e-demo-app-storage212931-dev";
 var allowUserSignUp = "false";
+var apiGatewayId = "0ju8ktbfw7";

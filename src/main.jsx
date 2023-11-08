@@ -6,6 +6,8 @@ import { BrowserRouter as Router } from "react-router-dom"
 import "@aws-amplify/ui-react/styles.css";
 import "@cloudscape-design/global-styles/index.css";
 import "./styles/styles.css"
+import { I18nProvider } from '@cloudscape-design/components/i18n'
+import messages from '@cloudscape-design/components/i18n/messages/all.all';
 
 import { Amplify } from 'aws-amplify'
 import { Authenticator } from '@aws-amplify/ui-react'
@@ -36,9 +38,11 @@ Amplify.configure(awsconfig)
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <Authenticator.Provider>
-            <Router>
-                <App />
-            </Router>
+            <I18nProvider messages={[messages]}>
+                <Router>
+                    <App />
+                </Router>
+            </I18nProvider>
         </Authenticator.Provider>
     </React.StrictMode>
 )

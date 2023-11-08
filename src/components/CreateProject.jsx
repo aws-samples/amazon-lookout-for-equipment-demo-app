@@ -9,6 +9,7 @@ import { getAvailableDefaultProjectName } from '../utils/utils.js'
 // Application components:
 import CSVUpload from "./createProject/CSVUpload.jsx"
 import TimestreamImport from "./createProject/TimestreamImport.jsx"
+import CSVFromS3 from "./createProject/CSVFromS3.jsx"
 
 // CloudScape components:
 import Alert            from "@cloudscape-design/components/alert"
@@ -47,6 +48,7 @@ function CreateProject() {
 
     const csvUploadRef = useRef(undefined)
     const timestreamImportRef = useRef(undefined)
+    const csvFromS3Ref = useRef(undefined)
 
     const { gateway, uid } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
@@ -60,6 +62,9 @@ function CreateProject() {
         switch(selectedImportMethod.value) {
             case 'csv-upload':
                 await csvUploadRef.current.processCsvUpload()
+                break
+            case 'csv-s3':
+                await csvFromS3Ref.current.processCsvFromS3()
                 break
             case 'timestream':
                 await timestreamImportRef.current.processTimestreamImport()
@@ -170,12 +175,12 @@ function CreateProject() {
                                             //     iconName: 'folder',
                                             //     value: 'zip-upload'
                                             // },
-                                            // {
-                                            //     label: 'CSV File on S3',
-                                            //     description: 'Pick a CSV file from Amazon S3',
-                                            //     iconUrl: 's3-icon-32.png',
-                                            //     value: 'csv-s3'
-                                            // },
+                                            {
+                                                label: 'CSV File on S3',
+                                                description: 'Pick a CSV file from Amazon S3',
+                                                iconUrl: 's3-icon-32.png',
+                                                value: 'csv-s3'
+                                            },
                                             // {
                                             //     label: 'ZIP Archive on S3',
                                             //     description: 'Pick a ZIP archive from Amazon S3',
@@ -212,6 +217,16 @@ function CreateProject() {
                                     setUploadInProgress={setUploadInProgress}
                                     setAssetError={setAssetError}
                                     setErrorMessage={setErrorMessage}
+                                    assetDescription={assetDescription}
+                                    projectName={projectName}
+                                /> }
+
+                                { selectedImportMethod.value === 'csv-s3' && <CSVFromS3 
+                                    ref={csvFromS3Ref}
+                                    setUploadInProgress={setUploadInProgress}
+                                    setAssetError={setAssetError}
+                                    setErrorMessage={setErrorMessage}
+                                    errorMessage={errorMessage}
                                     assetDescription={assetDescription}
                                     projectName={projectName}
                                 /> }

@@ -17,7 +17,7 @@ Parameters:
     AllowedPattern: ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$
   DataBucket:
     Type: String
-    Default: 'lookout-equipment-demo'
+    Default: 'lookout-equipment-app'
     AllowedPattern: '(?!^(\d{1,3}\.){3}\d{1,3}$)(^[a-z0-9]([a-z0-9-]*(\.[a-z0-9])?)*$(?<!\-))'
     ConstraintDescription: Must be a valid Amazon S3 Bucket name
     Description: > 
@@ -25,7 +25,7 @@ Parameters:
       this template deployment, it will add a suffix to this name to make it unique.
   CreateCloudFrontDistribution:
     Description: Creates a CloudFront distribution for accessing the web interface
-      of the demo. This must be enabled if S3 Block Public Access is enabled at an
+      of the app. This must be enabled if S3 Block Public Access is enabled at an
       account level.
     Type: String
     Default: 'true'
@@ -76,7 +76,7 @@ Mappings:
     Functions:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.1.0/functions
-      AppSetupVersion: 6
+      AppSetupVersion: 7
     Layers:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.1.0/layers
@@ -135,7 +135,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-setup-v6.zip
+            - l4e-demo-app-setup-v7.zip
       Description: Amazon Lookout for Equipment demo app setup
       Role: !GetAtt AppSetupRole.Arn
       Environment:
@@ -154,6 +154,7 @@ Resources:
           SFN_DATASET_PREPARATION: !GetAtt DatasetPreparationStateMachine.Arn
           SFN_TIMESTREAM_EXPORT: !GetAtt TimestreamExportStateMachine.Arn
           ALLOW_USER_SIGN_UP: !Ref AllowUserSignUp
+          API_GATEWAY_ID: !Ref AppBackendApiGateway
           STACK_ID: !Select
             - 0
             - !Split
@@ -232,7 +233,7 @@ Resources:
             Effect: Allow
             Action: logs:CreateLogGroup
           - Resource:
-             !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
+             !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:*
             Effect: Allow
             Action:
             - logs:CreateLogStream
@@ -350,7 +351,7 @@ Resources:
         - Action: s3:GetObject
           Effect: Allow
           Resource:
-            !Sub arn:aws:s3:::${FrontendBucket}/*
+            !Sub arn:${AWS::Partition}:s3:::${FrontendBucket}/*
           Principal:
             CanonicalUser:
               !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
@@ -1423,6 +1424,136 @@ Resources:
     DependsOn:
       - FunctionParquet2CSVRole
 
+  FunctionCsvFromS3:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-csv-from-s3"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: Copy a CSV file from an S3 location
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - ''
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - '/'
+            - l4e-demo-app-csv-from-s3-v1.zip
+      Environment:
+        Variables:
+          EXECUTION_ROLE: !GetAtt FunctionCSVFromS3Role.Arn
+          ORIGIN:
+            Fn::If:
+            - WithCloudFront
+            - !Sub https://${CloudFrontDistribution.DomainName}
+            - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt FunctionCSVFromS3Role.Arn
+      Runtime: python3.10
+      MemorySize: 128
+      Timeout: 60
+    DependsOn:
+      - FunctionCSVFromS3Role
+      - CloudFrontDistribution
+      - FrontendBucket
+
+  FunctionListBuckets:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-list-buckets"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: List all the buckets visible from this account
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - ''
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - '/'
+            - l4e-demo-app-list-buckets-v1.zip
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt FunctionListBucketsRole.Arn
+      Runtime: python3.10
+      MemorySize: 128
+      Timeout: 10
+    DependsOn:
+      - FunctionListBucketsRole
+
+  FunctionListObjects:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join
+        - "-"
+        - - "l4e-demo-app-list-objects"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      Description: List all the objects visible from this account
+      Code:
+        S3Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        S3Key: !Join 
+          - ''
+          - - !FindInMap 
+              - SourceCode
+              - Functions
+              - KeyPrefix
+            - '/'
+            - l4e-demo-app-list-objects-v1.zip
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt FunctionListObjectsRole.Arn
+      Runtime: python3.10
+      MemorySize: 128
+      Timeout: 60
+    DependsOn:
+      - FunctionListObjectsRole
+
   # -------------------------
   # LAMBDA LAYERS DEFINITIONS
   # -------------------------
@@ -1447,6 +1578,285 @@ Resources:
             - pandas-py310.zip
       CompatibleRuntimes:
         - python3.10
+
+  # -------------------------
+  # API GATEWAY AND REST APIs
+  # -------------------------
+  AppBackendApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: "Lookout for Equipment web application API Gateway"
+      EndpointConfiguration:
+        Types:
+          - EDGE
+      Name: !Join
+        - "-"
+        - - "l4e-demo-app-backend-api"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+
+  AppBackendApiGatewayStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: "default"
+      RestApiId: !Ref AppBackendApiGateway
+      DeploymentId: !Ref AppBackendApiGatewayDeployment
+    DependsOn:
+    - AppBackendApiGatewayDeployment
+
+  AppBackendApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+    DependsOn:
+    - CsvFromS3PostMethod
+    - CsvFromS3OptionsMethod
+    - ListObjectsPostMethod
+    - ListObjectsOptionsMethod
+    - ListBucketsPostMethod
+    - ListBucketsOptionsMethod
+
+  CreateProjectResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt AppBackendApiGateway.RootResourceId
+      RestApiId: !Ref AppBackendApiGateway
+      PathPart: create-project
+
+  CsvFromS3Resource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt CreateProjectResource.ResourceId
+      RestApiId: !Ref AppBackendApiGateway
+      PathPart: csv-from-s3
+
+  ListObjectsResource:
+      Type: "AWS::ApiGateway::Resource"
+      Properties:
+        RestApiId: !Ref AppBackendApiGateway
+        PathPart: list-objects
+        ParentId: !GetAtt AppBackendApiGateway.RootResourceId
+
+  ListBucketsResource:
+      Type: "AWS::ApiGateway::Resource"
+      Properties:
+        RestApiId: !Ref AppBackendApiGateway
+        PathPart: list-buckets
+        ParentId: !GetAtt AppBackendApiGateway.RootResourceId
+
+  CsvFromS3PostMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+      ResourceId: !GetAtt CsvFromS3Resource.ResourceId
+      HttpMethod: POST
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseModels:
+            application/json: "Empty"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        CacheNamespace: !Ref CsvFromS3Resource
+        Type: AWS
+        IntegrationHttpMethod: POST
+        TimeoutInMillis: 29000
+        PassthroughBehavior: WHEN_NO_MATCH
+        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionCsvFromS3.Arn}/invocations
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ""
+    DependsOn:
+    - FunctionCsvFromS3
+
+  CsvFromS3OptionsMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+      ResourceId: !GetAtt CsvFromS3Resource.ResourceId
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      MethodResponses: 
+        - StatusCode: "200"
+          ResponseModels: 
+              application/json: "Empty"
+          ResponseParameters: 
+              method.response.header.Access-Control-Allow-Headers: false
+              method.response.header.Access-Control-Allow-Methods: false
+              method.response.header.Access-Control-Allow-Origin: false
+      Integration: 
+        CacheNamespace: !Ref ListObjectsResource
+        IntegrationResponses: 
+          - StatusCode: "200"
+            ResponseParameters: 
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        RequestTemplates: 
+          "application/json": "{\"statusCode\": 200}"
+        TimeoutInMillis: 29000
+        Type: "MOCK"
+
+  ListObjectsPostMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+      ResourceId: !GetAtt ListObjectsResource.ResourceId
+      HttpMethod: POST
+      AuthorizationType: NONE
+      MethodResponses: 
+        - StatusCode: "200"
+          ResponseModels: 
+              application/json: "Empty"
+          ResponseParameters: 
+            method.response.header.Access-Control-Allow-Origin: false
+      Integration: 
+        CacheNamespace: !Ref ListObjectsResource
+        Type: "AWS"
+        IntegrationHttpMethod: "POST"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        TimeoutInMillis: 29000
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionListObjects.Arn}/invocations"
+        IntegrationResponses: 
+          - StatusCode: "200"
+            ResponseParameters: 
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ""
+    DependsOn:
+    - FunctionListObjects
+
+  ListObjectsOptionsMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+      ResourceId: !GetAtt ListObjectsResource.ResourceId
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      MethodResponses: 
+        - StatusCode: "200"
+          ResponseModels: 
+              application/json: "Empty"
+          ResponseParameters: 
+              method.response.header.Access-Control-Allow-Headers: false
+              method.response.header.Access-Control-Allow-Methods: false
+              method.response.header.Access-Control-Allow-Origin: false
+      Integration: 
+        CacheNamespace: !Ref ListObjectsResource
+        IntegrationResponses: 
+          - StatusCode: "200"
+            ResponseParameters: 
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        RequestTemplates: 
+          "application/json": "{\"statusCode\": 200}"
+        TimeoutInMillis: 29000
+        Type: "MOCK"
+
+  ListBucketsPostMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+      ResourceId: !GetAtt ListBucketsResource.ResourceId
+      HttpMethod: POST
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      MethodResponses: 
+        - StatusCode: "200"
+          ResponseModels: 
+            application/json: "Empty"
+          ResponseParameters: 
+            method.response.header.Access-Control-Allow-Origin: false
+      Integration: 
+          CacheNamespace: !Ref ListBucketsResource
+          IntegrationHttpMethod: "POST"
+          IntegrationResponses: 
+            - StatusCode: "200"
+              ResponseParameters: 
+                method.response.header.Access-Control-Allow-Origin: "'*'"
+              ResponseTemplates: {}
+          PassthroughBehavior: "WHEN_NO_MATCH"
+          TimeoutInMillis: 29000
+          Type: "AWS"
+          Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionListBuckets.Arn}/invocations"
+    DependsOn:
+    - FunctionListBuckets
+
+  ListBucketsOptionsMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+      ResourceId: !GetAtt ListBucketsResource.ResourceId
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      MethodResponses: 
+        - StatusCode: "200"
+          ResponseModels: 
+              application/json: "Empty"
+          ResponseParameters: 
+              method.response.header.Access-Control-Allow-Headers: false
+              method.response.header.Access-Control-Allow-Methods: false
+              method.response.header.Access-Control-Allow-Origin: false
+      Integration: 
+        CacheNamespace: !Ref ListObjectsResource
+        IntegrationResponses: 
+          - StatusCode: "200"
+            ResponseParameters: 
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        RequestTemplates: 
+          "application/json": "{\"statusCode\": 200}"
+        TimeoutInMillis: 29000
+        Type: "MOCK"
+
+  ApiGatewayInvokeCsvFromS3Permission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt FunctionCsvFromS3.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${AppBackendApiGateway}/*/*/*"
+    DependsOn:
+    - AppBackendApiGateway
+    - FunctionCsvFromS3
+
+  ApiGatewayInvokeListObjectsPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt FunctionListObjects.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${AppBackendApiGateway}/*/*/*"
+    DependsOn:
+    - AppBackendApiGateway
+    - FunctionListObjects
+
+  ApiGatewayInvokeListBucketsPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt FunctionListBuckets.Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${AppBackendApiGateway}/*/*/*"
+    DependsOn:
+    - AppBackendApiGateway
+    - FunctionListBuckets
 
   # -----------------------------
   # STEP FUNCTIONS AND ASSOCIATED
@@ -2076,6 +2486,7 @@ Resources:
                   - s3:ListBucket
                   - s3:PutObject
                   - s3:DeleteObject
+                  - s3:HeadObject
                 Effect: Allow
                 Resource: 
                   - !GetAtt ApplicationBucket.Arn
@@ -2502,6 +2913,91 @@ Resources:
           Principal:
             Service: lambda.amazonaws.com
 
+  FunctionCSVFromS3Role:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - !Ref LambdaExecutionPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+      Policies:
+        - PolicyName: !Join
+          - "-"
+          - - CSVFromS3AssumeRolePermissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                - sts:AssumeRole
+                Effect: Allow
+                Resource: "*"
+        # Only allow access to roles this lambda function will create:
+        - PolicyName: !Join
+          - "-"
+          - - CSVFromS3IAMRolePermissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                - iam:CreateRole
+                - iam:PutRolePolicy
+                - iam:DeleteRole
+                - iam:GetRolePolicy
+                - iam:DeleteRolePolicy
+                Effect: Allow
+                Resource: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/L4EDemoApp-CopyCSVFromS3-*"
+
+  FunctionListBucketsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - !Ref LambdaExecutionPolicy
+        - !Ref S3AccessPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+
+  FunctionListObjectsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - !Ref LambdaExecutionPolicy
+        - !Ref S3AccessPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+
   # ------------------------------------------------------
   # IAM FINE GRAINED POLICIES
   # These policies cover all the needs of the app and will
@@ -2589,6 +3085,7 @@ Resources:
               - s3:PutObject
               - s3:PutObjectAcl
               - s3:ListBucket
+              - s3:ListAllMyBuckets
               - s3:DeleteObject
               - s3:GetBucketAcl
             Effect: Allow

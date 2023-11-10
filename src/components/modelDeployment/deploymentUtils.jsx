@@ -29,7 +29,7 @@ export async function getModelsSummary(gateway, projectName, uid) {
             // The ListModels API lists all the models with a name *starting* by 
             // a string. We need to make sure that the current model is actually
             // linked to the right project:
-            if (model['DatasetName'] === lookoutEquipmentProjectName) {
+            if (model['DatasetName'] === lookoutEquipmentProjectName && model['ModelName'].slice(0,8) === uid) {
                 let modelDetails = {}
                 modelDetails['CreatedAt'] = new Date(model['CreatedAt'] * 1000)
                 modelDetails['ModelName'] = model['ModelName']
@@ -142,8 +142,8 @@ export function getSchedulerStatus(scheduler, modelStatus, modelName, showModelD
 // ---------------------------
 // Get scheduler launch status
 // ---------------------------
-export async function getSchedulerData(gateway, projectName, stateMachinesList) {
-    const modelSummary = await getModelsSummary(gateway, projectName)
+export async function getSchedulerData(gateway, projectName, stateMachinesList, uid) {
+    const modelSummary = await getModelsSummary(gateway, projectName, uid)
     const sfnStatus = await getStateMachineStatus(gateway, stateMachinesList)
 
     return {

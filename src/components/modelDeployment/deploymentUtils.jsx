@@ -6,7 +6,7 @@ import SpaceBetween from "@cloudscape-design/components/space-between"
 // ------------------------------------------------------------
 // Get the model summary, including the scheduler configuration
 // ------------------------------------------------------------
-export async function getModelsSummary(gateway, projectName) {
+export async function getModelsSummary(gateway, projectName, uid) {
     const lookoutEquipmentProjectName = `l4e-demo-app-${projectName}`
     let modelsSummaries = await gateway.lookoutEquipment.listModels(lookoutEquipmentProjectName)
     modelsSummaries = modelsSummaries['ModelSummaries']
@@ -26,17 +26,22 @@ export async function getModelsSummary(gateway, projectName) {
         // Now we can get the list of models:
         let modelsList = []
         for (const model of modelsSummaries) {
-            let modelDetails = {}
-            modelDetails['CreatedAt'] = new Date(model['CreatedAt'] * 1000)
-            modelDetails['ModelName'] = model['ModelName']
-            modelDetails['Status'] = model['Status']
-            modelDetails['Scheduler'] = undefined
+            // The ListModels API lists all the models with a name *starting* by 
+            // a string. We need to make sure that the current model is actually
+            // linked to the right project:
+            if (model['DatasetName'] === lookoutEquipmentProjectName) {
+                let modelDetails = {}
+                modelDetails['CreatedAt'] = new Date(model['CreatedAt'] * 1000)
+                modelDetails['ModelName'] = model['ModelName']
+                modelDetails['Status'] = model['Status']
+                modelDetails['Scheduler'] = undefined
 
-            if (listSchedulers && listSchedulers[model['ModelName']]) {
-                modelDetails['Scheduler'] = listSchedulers[model['ModelName']]
+                if (listSchedulers && listSchedulers[model['ModelName']]) {
+                    modelDetails['Scheduler'] = listSchedulers[model['ModelName']]
+                }
+
+                modelsList.push(modelDetails)
             }
-
-            modelsList.push(modelDetails)
         }
 
         return modelsList

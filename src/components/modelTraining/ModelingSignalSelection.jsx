@@ -74,7 +74,6 @@ function SignalSelectionCards({
     mediumGradeChecked,
     lowGradeChecked,
     onSelectionChange,
-    showSignalsList, 
     setShowSignalsList
 }) {
     // Add sorting, filtering and pagination to the table:
@@ -235,8 +234,6 @@ function SignalsListModal( { visible, onDiscard, setSelectedItems, signalsList, 
                             signals = signals.join('\n')
                             signalsList.current = signals
 
-                            console.log('cleanedUpList:', cleanedUpList)
-
                             setTempSelectedItems(cleanedUpList)
                             setSelectedItems(cleanedUpList)
                             onDiscard()
@@ -260,7 +257,6 @@ function SignalsListModal( { visible, onDiscard, setSelectedItems, signalsList, 
                                 list.push({name: item})
                             }
                         })
-                        console.log(list)
                         setTempSelectedItems(list)
                     }}
                     value={signalsList.current}
@@ -278,8 +274,17 @@ function ModelingSignalSelection() {
     const { projectName } = useParams()
     const { data, tagsList, x, signals } = useContext(TimeSeriesContext)
     const { gateway, uid } = useContext(ApiGatewayContext)
-    const { trainingRange, evaluationRange, selectedItems, allChecked, signalsList, tempSelectedItems, setTempSelectedItems } = useContext(ModelParametersContext)
-    const { setSelectedItems, setAllChecked } = useContext(ModelParametersContext)
+    const { 
+        trainingRange, 
+        evaluationRange, 
+        selectedItems, 
+        allChecked,
+        signalsList, 
+        tempSelectedItems, 
+        setSelectedItems, 
+        setAllChecked, 
+        setTempSelectedItems, 
+    } = useContext(ModelParametersContext)
 
     const [ signalDetails, setSignalDetails ]           = useState(undefined)
     const [ highGradeChecked, setHighGradeChecked ]     = useState(true)
@@ -292,7 +297,9 @@ function ModelingSignalSelection() {
         getSignalDetails(gateway, uid + '-' + projectName)
         .then((x) => { 
             setSignalDetails(x)
-            toggleAllSignals(allChecked)
+            if (selectedItems.length == 0) {
+                toggleAllSignals(allChecked)
+            }
         })
     }, [gateway])
 
@@ -419,8 +426,6 @@ function ModelingSignalSelection() {
                     highGradeChecked={highGradeChecked}
                     mediumGradeChecked={mediumGradeChecked}
                     lowGradeChecked={lowGradeChecked}
-
-                    showSignalsList={showSignalsList}
                     setShowSignalsList={setShowSignalsList}
 
                     onSelectionChange={(newSelection) => {

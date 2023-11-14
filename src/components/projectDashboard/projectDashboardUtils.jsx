@@ -204,32 +204,44 @@ async function getProjectInfos(gateway, uid, projectName) {
 // --------------------------------------------------------------
 // Collects the models and schedulers attached to a given project
 // --------------------------------------------------------------
-export async function getProjectData(gateway, projectName) {
+export async function getProjectData(gateway, projectName, uid) {
     let listModels = []
+    let listExternalModels = []
     let listSchedulers = []
-    const models = await getModelsSummary(gateway, projectName)
+    const models = await getModelsSummary(gateway, projectName, uid)
 
     if (models && models.length > 0) {
         models.forEach((model) => {
-            if (model['Status'] !== 'SUCCESS') {
-                listModels.push(model['ModelName'].slice(projectName.length + 1) + ` (${model['Status']})`)
+            if (model['ModelName'].slice(0,8) === uid) {
+                if (model['Status'] !== 'SUCCESS') {
+                    listModels.push(model['ModelName'].slice(projectName.length + 1) + ` (${model['Status']})`)
+                }
+                else {
+                    listModels.push(model['ModelName'].slice(projectName.length + 1))
+                }
+
+                if (model['Scheduler']) {
+                    listSchedulers.push({
+                        model: model['ModelName'].slice(projectName.length + 1),
+                        status: model['Scheduler']['Status']
+                    })
+                }
             }
             else {
-                listModels.push(model['ModelName'].slice(projectName.length + 1))
-            }
-
-            if (model['Scheduler']) {
-                listSchedulers.push({
-                    model: model['ModelName'].slice(projectName.length + 1),
-                    status: model['Scheduler']['Status']
-                })
+                if (model['Status'] !== 'SUCCESS') {
+                    listExternalModels.push(model['ModelName'] + ` (${model['Status']})`)
+                }
+                else {
+                    listExternalModels.push(model['ModelName'])
+                }
             }
         })
     }
 
     return {
         listModels, 
-        listSchedulers
+        listSchedulers,
+        listExternalModels
     }
 }
 

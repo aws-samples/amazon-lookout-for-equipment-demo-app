@@ -22,6 +22,7 @@ import { stopAndDeleteScheduler, deleteScheduler } from '../../utils/utils'
 
 function DeleteProjectModal({ visible, onDiscard }) {
     const [ listModels, setListModels ] = useState([])
+    const [ listExternalModels, setListExternalModels ] = useState([])
     const [ listSchedulers, setListSchedulers ] = useState([])
     const [ deleteInProgress, setDeleteInProgress ] = useState(false)
     const [ deleteMessage, setDeleteMessage ] = useState(undefined)
@@ -31,10 +32,11 @@ function DeleteProjectModal({ visible, onDiscard }) {
 
     // Loads project configuration:
     useEffect(() => {
-        getProjectData(gateway, uid + '-' + projectName)
-        .then(({listModels, listSchedulers}) => { 
+        getProjectData(gateway, uid + '-' + projectName, uid)
+        .then(({ listModels, listSchedulers, listExternalModels }) => { 
             setListModels(listModels)
             setListSchedulers(listSchedulers) 
+            setListExternalModels(listExternalModels) 
         })
     }, [gateway, projectName])
 
@@ -152,44 +154,65 @@ function DeleteProjectModal({ visible, onDiscard }) {
             footer={
                 <Box float="right">
                     <SpaceBetween direction="horizontal" size="xs">
-                        <Button variant="link" onClick={onDiscard}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" onClick={() => onDeleteProject(gateway, uid, projectName)} disabled={deleteInProgress}>
-                            {deleteInProgress ? <Spinner /> : "Delete"}
-                        </Button>
+                        { listExternalModels.length > 0 && <Button variant="primary" onClick={onDiscard}>Close</Button> }
+
+                        { listExternalModels.length == 0 && <>
+                            <Button variant="link" onClick={onDiscard}>Cancel</Button>
+                            <Button variant="primary" onClick={() => onDeleteProject(gateway, uid, projectName)} disabled={deleteInProgress}>
+                                {deleteInProgress ? <Spinner /> : "Delete"}
+                            </Button>
+                        </> }
                     </SpaceBetween>
                 </Box>
               }
         >
             <SpaceBetween size="xs">
                 <Box variant="span">
-                    Permanently delete project <b>{projectName}</b>? You cannot undo this action.
+                    { listExternalModels.length == 0 && <>Permanently delete project <b>{projectName}</b>? You cannot undo this action.</>}
+
+                    { listExternalModels.length > 0 && <>
+                        Some models were trained outside of this application and must be processed 
+                        in the Amazon Lookout for Equipment console. You will need to log into your
+                        AWS console to delete these models before you can delete this project.
+                    </> }
                     
                     {(listModels.length > 0 || listSchedulers.length > 0) && "The following related assets will also be deleted:"}
                 </Box>
 
                 {listModels && listModels.length > 0 &&
                     <FormField label="Models" description="Models trained within this project. Note that you have to wait for all models trainings 
-                                                       to be finished before you can delete this project">
+                                                           to be finished before you can delete this project">
                         <Textarea
                             onChange={({ detail }) => setValue(detail.value)}
                             value={listModels.length == 0 ? "No model created" : listModels.join('\n')}
-                            disabled={true}
+                            readOnly={true}
                             rows={listModels.length == 0 ? 1 : listModels.length > 5 ? 5 : listModels.length}
+                        />                    
+                    </FormField>
+                }
+
+                {listExternalModels && listExternalModels.length > 0 &&
+                    <FormField 
+                        label="External models" 
+                        description="Models trained outside of this application.">
+                        <Textarea
+                            onChange={({ detail }) => setValue(detail.value)}
+                            value={listExternalModels.length == 0 ? "No model created" : listExternalModels.join('\n')}
+                            readOnly={true}
+                            rows={listExternalModels.length == 0 ? 1 : listExternalModels.length > 5 ? 5 : listExternalModels.length}
                         />                    
                     </FormField>
                 }
 
                 {listSchedulers && listSchedulers.length > 0 && 
                     <FormField label="Schedulers" description="Some models have been deployed and the following schedulers have been configured. 
-                                                            They will be stopped and deleted before the corresponding models are deleted">
+                                                               They will be stopped and deleted before the corresponding models are deleted">
                         <Textarea
                             onChange={({ detail }) => setValue(detail.value)}
                             value={listSchedulers.length > 0 ? listSchedulers.map((scheduler) => (
                                 `${scheduler.model} (${scheduler.status})`
                             )).join('\n') : 'No scheduler configured within this project'}
-                            disabled={true}
+                            readOnly={true}
                             rows={listSchedulers.length == 0 ? 1 : listSchedulers.length > 5 ? 5 : listSchedulers.length}
                         />
                     </FormField>

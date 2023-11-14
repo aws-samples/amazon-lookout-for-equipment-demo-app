@@ -1,5 +1,5 @@
 Description: >
-  [1.0.3] Template to deploy the Amazon Lookout for Equipment demo application
+  [1.0.4] Template to deploy the Amazon Lookout for Equipment demo application
 
 # ============================================================================
 # CLOUDFORMATION TEMPLATE PARAMETERS
@@ -72,17 +72,17 @@ Mappings:
   SourceCode:
     Functions:
       S3Bucket: lookout-equipment-content
-      KeyPrefix: l4e-demo-app/v1.0.3/functions
-      AppSetupVersion: 5
+      KeyPrefix: l4e-demo-app/v1.0.4/functions
+      AppSetupVersion: 8
     Layers:
       S3Bucket: lookout-equipment-content
-      KeyPrefix: l4e-demo-app/v1.0.3/layers
+      KeyPrefix: l4e-demo-app/v1.0.4/layers
     StateMachines:
       S3Bucket: lookout-equipment-content
-      KeyPrefix: l4e-demo-app/v1.0.3/state-machines
+      KeyPrefix: l4e-demo-app/v1.0.4/state-machines
     Frontend:
       S3Bucket: lookout-equipment-content
-      KeyPrefix: l4e-demo-app/v1.0.3/frontend
+      KeyPrefix: l4e-demo-app/v1.0.4/frontend
 
 # ============================================================================
 Resources:
@@ -132,13 +132,13 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-setup-v5.zip
+            - l4e-demo-app-setup-v8.zip
       Description: Amazon Lookout for Equipment demo app setup
       Role: !GetAtt AppSetupRole.Arn
       Environment:
         Variables:
           API_GATEWAY: API_GATEWAY
-          VERSION: 1.0.3
+          VERSION: 1.0.4
           REGION: !Ref AWS::Region
           COGNITO_USER_POOL_ID: !Ref CognitoUserPool
           COGNITO_USER_POOL_CLIENT_ID: !Ref CognitoUserPoolClient
@@ -1094,7 +1094,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-prepare-replay-data-v4.zip
+            - l4e-demo-app-prepare-replay-data-v5.zip
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1109,7 +1109,7 @@ Resources:
       Handler: lambda_function.lambda_handler
       Role: !GetAtt FunctionPrepareReplayDataRole.Arn
       Runtime: python3.10
-      MemorySize: 1024
+      MemorySize: 4096
       Timeout: 180
       Layers:
         - !Ref PackagePandas
@@ -1425,7 +1425,7 @@ Resources:
         function-new-project-entry: !GetAtt FunctionNewProjectEntry.Arn
         function-prepare-hourly-data: !GetAtt FunctionPrepareHourlyData.Arn
         function-ingest-model-results: !GetAtt FunctionIngestModelResults.Arn
-        l4e-demo-app-version: 1.0.3
+        l4e-demo-app-version: 1.0.4
         role-step-function-dataset-preparation: !GetAtt StepFunctionRole.Arn
       RoleArn: !GetAtt StepFunctionRole.Arn
       LoggingConfiguration:
@@ -1522,7 +1522,7 @@ Resources:
       DefinitionSubstitutions:
         function-prepare-replay-data: !GetAtt FunctionPrepareReplayData.Arn
         function-generate-inference-input: !GetAtt FunctionGenerateInferenceInput.Arn
-        l4e-demo-app-version: 1.0.3
+        l4e-demo-app-version: 1.0.4
         role-step-function-deploy-model: !GetAtt StepFunctionRole.Arn
       RoleArn: !GetAtt StepFunctionRole.Arn
       LoggingConfiguration:

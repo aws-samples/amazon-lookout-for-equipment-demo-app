@@ -42,7 +42,7 @@ function ListModels({ projectName }) {
 
     // Loads model configuration:
     useEffect(() => {
-        getSchedulerData(gateway, uid + '-' + projectName, stateMachinesList)
+        getSchedulerData(gateway, uid + '-' + projectName, stateMachinesList, uid)
         .then(({modelSummary, sfnStatus}) => {
             setModelsSummary(modelSummary)
             setIsLoading(false)
@@ -118,12 +118,12 @@ function ListModels({ projectName }) {
     // ---------------------------------------
     // Data was loaded but no model was found:
     // ---------------------------------------
-    else if (!isLoading && !modelsSummary) {
+    else if (!isLoading && (!modelsSummary || (modelsSummary && modelsSummary.length == 0))) {
         return (
             <Container header={<Header variant="h1">Model overview</Header>}>
                 <Alert header={`No model was found for asset ${projectName}`}>
-                    To train a model, you can navigate to the <b>Exploration & 
-                    Modeling</b> section you will find in the left hand menu bar, 
+                    To train a model, you can navigate to the <b>Model 
+                    training</b> section you will find in the left hand menu bar, 
                     configure your model and then click the <b>Create model</b>{' '}
                     button.
                 </Alert>

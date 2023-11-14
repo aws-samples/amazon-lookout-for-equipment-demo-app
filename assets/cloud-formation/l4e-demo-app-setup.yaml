@@ -73,7 +73,7 @@ Mappings:
     Functions:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.0.4/functions
-      AppSetupVersion: 5
+      AppSetupVersion: 8
     Layers:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.0.4/layers
@@ -132,7 +132,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-setup-v5.zip
+            - l4e-demo-app-setup-v8.zip
       Description: Amazon Lookout for Equipment demo app setup
       Role: !GetAtt AppSetupRole.Arn
       Environment:
@@ -1094,7 +1094,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-prepare-replay-data-v4.zip
+            - l4e-demo-app-prepare-replay-data-v5.zip
       Environment:
         Variables:
           STACK_ID: !Select
@@ -1109,7 +1109,7 @@ Resources:
       Handler: lambda_function.lambda_handler
       Role: !GetAtt FunctionPrepareReplayDataRole.Arn
       Runtime: python3.10
-      MemorySize: 1024
+      MemorySize: 4096
       Timeout: 180
       Layers:
         - !Ref PackagePandas

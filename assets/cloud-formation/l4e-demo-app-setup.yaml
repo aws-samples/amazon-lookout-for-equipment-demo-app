@@ -73,7 +73,7 @@ Mappings:
     Functions:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.0.4/functions
-      AppSetupVersion: 6
+      AppSetupVersion: 8
     Layers:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.0.4/layers
@@ -132,7 +132,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-setup-v6.zip
+            - l4e-demo-app-setup-v8.zip
       Description: Amazon Lookout for Equipment demo app setup
       Role: !GetAtt AppSetupRole.Arn
       Environment:

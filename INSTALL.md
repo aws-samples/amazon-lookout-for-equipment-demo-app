@@ -13,9 +13,9 @@ via CloudFormation.
 
 | Region |     | CloudFormation Stack |
 | ---    | --- | --- |
-| US East (N. Virginia) | **us-east-1** | [![Launch stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=L4EDemoApp&templateURL=https://lookout-equipment-content-us-east-1.s3.amazonaws.com/l4e-demo-app/v1.0.3/cloud-formation-templates/l4e-demo-app-setup.yaml) |
-| Europe (Ireland) | **eu-west-1** | [![Launch stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=L4EDemoApp&templateURL=https://lookout-equipment-content-eu-west-1.s3.eu-west-1.amazonaws.com/l4e-demo-app/v1.0.3/cloud-formation-templates/l4e-demo-app-setup.yaml) |
-| Asia Pacific (Seoul) | **ap-northeast-2** | [![Launch stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-2.console.aws.amazon.com/cloudformation/home?region=ap-northeast-2#/stacks/new?stackName=L4EDemoApp&templateURL=https://lookout-equipment-content-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/l4e-demo-app/v1.0.3/cloud-formation-templates/l4e-demo-app-setup.yaml) |
+| US East (N. Virginia) | **us-east-1** | [![Launch stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=L4EDemoApp&templateURL=https://lookout-equipment-content-us-east-1.s3.amazonaws.com/l4e-demo-app/v1.0.4/cloud-formation-templates/l4e-demo-app-setup.yaml) |
+| Europe (Ireland) | **eu-west-1** | [![Launch stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=L4EDemoApp&templateURL=https://lookout-equipment-content-eu-west-1.s3.eu-west-1.amazonaws.com/l4e-demo-app/v1.0.4/cloud-formation-templates/l4e-demo-app-setup.yaml) |
+| Asia Pacific (Seoul) | **ap-northeast-2** | [![Launch stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-2.console.aws.amazon.com/cloudformation/home?region=ap-northeast-2#/stacks/new?stackName=L4EDemoApp&templateURL=https://lookout-equipment-content-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/l4e-demo-app/v1.0.4/cloud-formation-templates/l4e-demo-app-setup.yaml) |
 
 After you clicked on one of the `Launch stack` button above, you will be brought to the `Create stack` screen. Start by clicking `Next` at the bottom:
 
@@ -57,9 +57,9 @@ To update the app in your AWS account, follow these steps:
 2. Find the initial stack that you deployed at installation time
 3. Click the `Update` button at the top and then select `Replace current template`
 4. For the Amazon S3 URL, select one of these links, depending on your region:
-   - `us-east-1`: https://lookout-equipment-content-us-east-1.s3.amazonaws.com/l4e-demo-app/v1.0.3/cloud-formation-templates/l4e-demo-app-setup.yaml
-   - `eu-west-1`: https://lookout-equipment-content-eu-west-1.s3.eu-west-1.amazonaws.com/l4e-demo-app/v1.0.3/cloud-formation-templates/l4e-demo-app-setup.yaml
-   - `ap-northeast-1`: https://lookout-equipment-content-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/l4e-demo-app/v1.0.3/cloud-formation-templates/l4e-demo-app-setup.yaml
+   - `us-east-1`: https://lookout-equipment-content-us-east-1.s3.amazonaws.com/l4e-demo-app/v1.0.4/cloud-formation-templates/l4e-demo-app-setup.yaml
+   - `eu-west-1`: https://lookout-equipment-content-eu-west-1.s3.eu-west-1.amazonaws.com/l4e-demo-app/v1.0.4/cloud-formation-templates/l4e-demo-app-setup.yaml
+   - `ap-northeast-1`: https://lookout-equipment-content-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/l4e-demo-app/v1.0.4/cloud-formation-templates/l4e-demo-app-setup.yaml
 
 <img src="assets/screenshots/update-stack.png" width="1000px" />
 

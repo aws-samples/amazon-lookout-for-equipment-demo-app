@@ -215,7 +215,7 @@ function SignalsListModal( { visible, onDiscard, setSelectedItems, signalsList, 
         <Modal 
             visible={visible} 
             onDismiss={onDiscard} 
-            header="Upload label file"
+            header="Modify signal selection"
             footer={
                 <Box float="right">
                     <SpaceBetween direction="horizontal" size="xs">

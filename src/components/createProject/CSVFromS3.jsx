@@ -85,7 +85,10 @@ const CSVFromS3 = forwardRef(function CSVFromS3(props, ref) {
                 sourcePrefix = sourcePrefix.slice(3, sourcePrefix.length).join('/')
                 const targetBucket = window.appS3Bucket
                 const targetPrefix = `private/${identityId}/${projectName}/${projectName}/sensors.csv`
-                
+
+                // We will now trigger a Step Function that will 
+                // copy the file from its source location and 
+                // ingest the data once the copy is finished:                
                 await copyCsvFromS3(
                     sourceBucket, 
                     sourcePrefix, 
@@ -96,19 +99,6 @@ const CSVFromS3 = forwardRef(function CSVFromS3(props, ref) {
                     uid,
                     assetDescription
                 )
-
-                // We will now trigger a Step Function that will 
-                // ingest the data once the copy is finished:
-                const sfnArn = window.datasetPreparationArn
-                const inputPayload = { 
-                    detail: {
-                        bucket: { name: targetBucket },
-                        object: { key: targetPrefix }
-                    }
-                }
-                await gateway.stepFunctions
-                                .startExecution(sfnArn, inputPayload)
-                                .catch((error) => console.log(error.response))
                 await waitForPipelineStart(gateway, uid, projectName)
 
                 // This forces a refresh of the side bar navigation

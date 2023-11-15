@@ -6,7 +6,7 @@ import axios from 'axios'
 // ----------------------------------------------------
 export async function getListBuckets() {
     let response = await axios.post(
-        `https://${window.apiGatewayId}.execute-api.${window.region}.amazonaws.com/default/l4e-demo-app-list-buckets`
+        `https://${window.apiGatewayId}.execute-api.${window.region}.amazonaws.com/default/list-buckets`
     )
     response = JSON.parse(response.data.body)
 
@@ -66,16 +66,23 @@ export async function copyCsvFromS3(
     uid, 
     assetDescription
 ) {
+
+    let sfnInput = {
+        sourceBucket: sourceBucket,
+        sourcePrefix: sourcePrefix,
+        targetBucket: targetBucket,
+        targetPrefix: targetPrefix,
+        createRole: createRole,
+        existingRole: roleArn,
+        uid: uid,
+        assetDescription: assetDescription,
+        datasetPreparationSfnArn: window.datasetPreparationArn
+    }
+
     let response = await axios.post(
         `https://${window.apiGatewayId}.execute-api.${window.region}.amazonaws.com/default/create-project/csv-from-s3`, {
-            'sourceBucket': sourceBucket,
-            'sourcePrefix': sourcePrefix,
-            'targetBucket': targetBucket,
-            'targetPrefix': targetPrefix,
-            'createRole': createRole,
-            'existingRole': roleArn,
-            'uid': uid,
-            'assetDescription': assetDescription
+            'input': JSON.stringify(sfnInput),
+            'stateMachineArn': window.csvFromS3Arn
         }
     )
 

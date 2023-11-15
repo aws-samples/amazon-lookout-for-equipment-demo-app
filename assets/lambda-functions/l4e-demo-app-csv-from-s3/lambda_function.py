@@ -124,18 +124,6 @@ def lambda_handler(event, context):
         return {
             "errorMessage": str(e),
             "statusCode": 400,
-            "headers": {
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Origin": os.environ['ORIGIN'],
-                "Access-Control-Allow-Methods": "*" 
-            }
         }
     
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Access-Control-Allow-Headers": "*",
-            "Access-Control-Allow-Origin": os.environ['ORIGIN'],
-            "Access-Control-Allow-Methods": "*" 
-        }
-    }
+    return { "statusCode": 200 }

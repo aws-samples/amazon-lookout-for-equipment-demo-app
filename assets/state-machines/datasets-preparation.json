@@ -142,38 +142,10 @@
                   {
                     "Variable": "$.ImportResults.ImportStatus",
                     "StringEquals": "COMPLETED",
-                    "Next": "Ingest summary in DynamoDB"
+                    "Next": "Delete hourly file"
                   }
                 ],
                 "Default": "Wait"
-              },
-              "Ingest summary in DynamoDB": {
-                "Type": "Task",
-                "Resource": "arn:aws:states:::lambda:invoke",
-                "Parameters": {
-                  "FunctionName": "${function-ingest-model-results}",
-                  "Payload": {
-                    "bucket.$": "$.bucket",
-                    "key.$": "$.summaryKey",
-                    "table.$": "$.tableName",
-                    "fieldTypes.$": "$.fieldTypes"
-                  }
-                },
-                "Retry": [
-                  {
-                    "ErrorEquals": [
-                      "Lambda.ServiceException",
-                      "Lambda.AWSLambdaException",
-                      "Lambda.SdkClientException",
-                      "Lambda.TooManyRequestsException"
-                    ],
-                    "IntervalSeconds": 1,
-                    "MaxAttempts": 3,
-                    "BackoffRate": 2
-                  }
-                ],
-                "Next": "Delete hourly file",
-                "ResultPath": null
               },
               "Wait": {
                 "Type": "Wait",
@@ -185,6 +157,16 @@
                 "Parameters": {
                   "Bucket.$": "$.bucket",
                   "Key.$": "$.key"
+                },
+                "Resource": "arn:aws:states:::aws-sdk:s3:deleteObject",
+                "ResultPath": null,
+                "Next": "Delete summary file"
+              },
+              "Delete summary file": {
+                "Type": "Task",
+                "Parameters": {
+                  "Bucket.$": "$.bucket",
+                  "Key.$": "$.summaryKey"
                 },
                 "Resource": "arn:aws:states:::aws-sdk:s3:deleteObject",
                 "ResultPath": null,

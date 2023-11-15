@@ -76,7 +76,7 @@ Mappings:
     Functions:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.1.0/functions
-      AppSetupVersion: 7
+      AppSetupVersion: 10
     Layers:
       S3Bucket: lookout-equipment-content
       KeyPrefix: l4e-demo-app/v1.1.0/layers
@@ -135,7 +135,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-setup-v7.zip
+            - l4e-demo-app-setup-v10.zip
       Description: Amazon Lookout for Equipment demo app setup
       Role: !GetAtt AppSetupRole.Arn
       Environment:
@@ -153,6 +153,7 @@ Resources:
           SFN_MODEL_RESULTS_EXTRACTION_ARN: !GetAtt ModelResultsExtractionStateMachine.Arn
           SFN_DATASET_PREPARATION: !GetAtt DatasetPreparationStateMachine.Arn
           SFN_TIMESTREAM_EXPORT: !GetAtt TimestreamExportStateMachine.Arn
+          SFN_CSV_FROM_S3: !GetAtt CsvFromS3StateMachine.Arn
           ALLOW_USER_SIGN_UP: !Ref AllowUserSignUp
           API_GATEWAY_ID: !Ref AppBackendApiGateway
           STACK_ID: !Select
@@ -1459,11 +1460,6 @@ Resources:
       Environment:
         Variables:
           EXECUTION_ROLE: !GetAtt FunctionCSVFromS3Role.Arn
-          ORIGIN:
-            Fn::If:
-            - WithCloudFront
-            - !Sub https://${CloudFrontDistribution.DomainName}
-            - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
       Handler: lambda_function.lambda_handler
       Role: !GetAtt FunctionCSVFromS3Role.Arn
       Runtime: python3.10
@@ -1471,8 +1467,6 @@ Resources:
       Timeout: 60
     DependsOn:
       - FunctionCSVFromS3Role
-      - CloudFrontDistribution
-      - FrontendBucket
 
   FunctionListBuckets:
     Type: AWS::Lambda::Function
@@ -1670,11 +1664,16 @@ Resources:
         IntegrationHttpMethod: POST
         TimeoutInMillis: 29000
         PassthroughBehavior: WHEN_NO_MATCH
-        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FunctionCsvFromS3.Arn}/invocations
+        Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:states:action/StartExecution
         IntegrationResponses:
           - StatusCode: "200"
             ResponseParameters:
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              # method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Origin:
+                Fn::If:
+                - WithCloudFront
+                - !Sub https://${CloudFrontDistribution.DomainName}
+                - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
             ResponseTemplates:
               application/json: ""
     DependsOn:
@@ -1732,7 +1731,12 @@ Resources:
         IntegrationResponses: 
           - StatusCode: "200"
             ResponseParameters: 
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              # method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Origin:
+                Fn::If:
+                - WithCloudFront
+                - !Sub https://${CloudFrontDistribution.DomainName}
+                - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
             ResponseTemplates:
               application/json: ""
     DependsOn:
@@ -1760,7 +1764,13 @@ Resources:
             ResponseParameters: 
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
               method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              # method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Origin:
+                Fn::If:
+                - WithCloudFront
+                - !Sub https://${CloudFrontDistribution.DomainName}
+                - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
+
         PassthroughBehavior: "WHEN_NO_MATCH"
         RequestTemplates: 
           "application/json": "{\"statusCode\": 200}"
@@ -1787,7 +1797,12 @@ Resources:
           IntegrationResponses: 
             - StatusCode: "200"
               ResponseParameters: 
-                method.response.header.Access-Control-Allow-Origin: "'*'"
+                # method.response.header.Access-Control-Allow-Origin: "'*'"
+                method.response.header.Access-Control-Allow-Origin:
+                  Fn::If:
+                  - WithCloudFront
+                  - !Sub https://${CloudFrontDistribution.DomainName}
+                  - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
               ResponseTemplates: {}
           PassthroughBehavior: "WHEN_NO_MATCH"
           TimeoutInMillis: 29000
@@ -1818,23 +1833,28 @@ Resources:
             ResponseParameters: 
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
               method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              # method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Origin:
+                Fn::If:
+                - WithCloudFront
+                - !Sub https://${CloudFrontDistribution.DomainName}
+                - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
         PassthroughBehavior: "WHEN_NO_MATCH"
         RequestTemplates: 
           "application/json": "{\"statusCode\": 200}"
         TimeoutInMillis: 29000
         Type: "MOCK"
 
-  ApiGatewayInvokeCsvFromS3Permission:
-    Type: AWS::Lambda::Permission
-    Properties: 
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt FunctionCsvFromS3.Arn
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${AppBackendApiGateway}/*/*/*"
-    DependsOn:
-    - AppBackendApiGateway
-    - FunctionCsvFromS3
+  # ApiGatewayInvokeCsvFromS3Permission:
+  #   Type: AWS::Lambda::Permission
+  #   Properties: 
+  #     Action: lambda:InvokeFunction
+  #     FunctionName: !GetAtt FunctionCsvFromS3.Arn
+  #     Principal: apigateway.amazonaws.com
+  #     SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${AppBackendApiGateway}/*/*/*"
+  #   DependsOn:
+  #   - AppBackendApiGateway
+  #   - FunctionCsvFromS3
 
   ApiGatewayInvokeListObjectsPermission:
     Type: AWS::Lambda::Permission
@@ -1895,7 +1915,6 @@ Resources:
       DefinitionSubstitutions:
         function-new-project-entry: !GetAtt FunctionNewProjectEntry.Arn
         function-prepare-hourly-data: !GetAtt FunctionPrepareHourlyData.Arn
-        function-ingest-model-results: !GetAtt FunctionIngestModelResults.Arn
         l4e-demo-app-version: 1.1.0
         role-step-function-dataset-preparation: !GetAtt StepFunctionRole.Arn
       RoleArn: !GetAtt StepFunctionRole.Arn
@@ -1909,7 +1928,6 @@ Resources:
       - StepFunctionRole
       - FunctionNewProjectEntry
       - FunctionPrepareHourlyData
-      - FunctionIngestModelResults
       - DatasetPreparationStateMachineLogGroup
 
   TimestreamExportStateMachine:
@@ -2011,7 +2029,7 @@ Resources:
     Properties:
       StateMachineName: !Join
         - "-"
-        - - "l4e-demo-app-model-deploy-model"
+        - - "l4e-demo-app-deploy-model"
           - !Select
             - 0
             - !Split
@@ -2053,6 +2071,50 @@ Resources:
       - FunctionPrepareReplayData
       - FunctionGenerateInferenceInput
       - DeployModelStateMachineLogGroup
+
+  CsvFromS3StateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Join
+        - "-"
+        - - "l4e-demo-app-csv-from-s3"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      DefinitionS3Location:
+        Bucket: !Join 
+          - '-'
+          - - !FindInMap 
+              - SourceCode
+              - StateMachines
+              - S3Bucket
+            - !Ref 'AWS::Region'
+        Key: !Join 
+          - /
+          - - !FindInMap 
+              - SourceCode
+              - StateMachines
+              - KeyPrefix
+            - 'csv-from-s3-v1.json'
+      DefinitionSubstitutions:
+        function-csv-from-s3: !GetAtt FunctionCsvFromS3.Arn
+      RoleArn: !GetAtt StepFunctionRole.Arn
+      LoggingConfiguration:
+        Destinations: 
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt CsvFromS3StateMachineLogGroup.Arn
+        IncludeExecutionData: True
+        Level: ALL
+    DependsOn:
+      - StepFunctionRole
+      - FunctionCsvFromS3
+      - CsvFromS3StateMachineLogGroup
 
   DatasetPreparationStateMachineLogGroup:
     Type: AWS::Logs::LogGroup
@@ -2111,6 +2173,23 @@ Resources:
       LogGroupName: !Join
         - "-"
         - - "/aws/vendedlogs/states/DeployModelLogGroup"
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+      RetentionInDays: 14
+
+  CsvFromS3StateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join
+        - "-"
+        - - "/aws/vendedlogs/states/CsvFromS3LogGroup"
           - !Select
             - 0
             - !Split

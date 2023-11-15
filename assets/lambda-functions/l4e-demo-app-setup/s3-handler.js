@@ -16,6 +16,7 @@ const {
     SFN_MODEL_RESULTS_EXTRACTION_ARN,
     SFN_DATASET_PREPARATION,
     SFN_TIMESTREAM_EXPORT,
+    SFN_CSV_FROM_S3,
     STACK_ID,
     ALLOW_USER_SIGN_UP,
     API_GATEWAY_ID
@@ -91,6 +92,7 @@ var deployModelArn = "${SFN_MODEL_DEPLOYMENT_ARN}";
 var modelResultsExtractionArn = "${SFN_MODEL_RESULTS_EXTRACTION_ARN}";
 var datasetPreparationArn = "${SFN_DATASET_PREPARATION}";
 var timestreamUploadArn = "${SFN_TIMESTREAM_EXPORT}";
+var csvFromS3Arn = "${SFN_CSV_FROM_S3}";
 var allowUserSignUp = "${ALLOW_USER_SIGN_UP}";
 var apiGatewayId = "${API_GATEWAY_ID}";`
             }).promise();

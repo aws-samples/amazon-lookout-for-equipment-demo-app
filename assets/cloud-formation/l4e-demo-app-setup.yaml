@@ -1500,6 +1500,13 @@ Resources:
               - KeyPrefix
             - '/'
             - l4e-demo-app-list-buckets-v1.zip
+      Environment:
+        Variables:
+          ORIGIN:
+            Fn::If:
+            - WithCloudFront
+            - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+            - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
       Handler: lambda_function.lambda_handler
       Role: !GetAtt FunctionListBucketsRole.Arn
       Runtime: python3.10
@@ -1540,6 +1547,13 @@ Resources:
               - KeyPrefix
             - '/'
             - l4e-demo-app-list-objects-v1.zip
+      Environment:
+        Variables:
+          ORIGIN:
+            Fn::If:
+            - WithCloudFront
+            - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+            - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
       Handler: lambda_function.lambda_handler
       Role: !GetAtt FunctionListObjectsRole.Arn
       Runtime: python3.10
@@ -1665,6 +1679,7 @@ Resources:
         TimeoutInMillis: 29000
         PassthroughBehavior: WHEN_NO_MATCH
         Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:states:action/StartExecution
+        Credentials: !GetAtt APIGatewayRole.Arn
         IntegrationResponses:
           - StatusCode: "200"
             ResponseParameters:
@@ -1672,8 +1687,8 @@ Resources:
               method.response.header.Access-Control-Allow-Origin:
                 Fn::If:
                 - WithCloudFront
-                - !Sub https://${CloudFrontDistribution.DomainName}
-                - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
+                - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+                - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
             ResponseTemplates:
               application/json: ""
     DependsOn:
@@ -1701,7 +1716,12 @@ Resources:
             ResponseParameters: 
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
               method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
-              method.response.header.Access-Control-Allow-Origin: "'*'"
+              # method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Origin:
+                Fn::If:
+                - WithCloudFront
+                - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+                - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
         PassthroughBehavior: "WHEN_NO_MATCH"
         RequestTemplates: 
           "application/json": "{\"statusCode\": 200}"
@@ -1735,8 +1755,8 @@ Resources:
               method.response.header.Access-Control-Allow-Origin:
                 Fn::If:
                 - WithCloudFront
-                - !Sub https://${CloudFrontDistribution.DomainName}
-                - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
+                - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+                - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
             ResponseTemplates:
               application/json: ""
     DependsOn:
@@ -1768,8 +1788,8 @@ Resources:
               method.response.header.Access-Control-Allow-Origin:
                 Fn::If:
                 - WithCloudFront
-                - !Sub https://${CloudFrontDistribution.DomainName}
-                - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
+                - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+                - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
 
         PassthroughBehavior: "WHEN_NO_MATCH"
         RequestTemplates: 
@@ -1801,8 +1821,8 @@ Resources:
                 method.response.header.Access-Control-Allow-Origin:
                   Fn::If:
                   - WithCloudFront
-                  - !Sub https://${CloudFrontDistribution.DomainName}
-                  - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
+                  - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+                  - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
               ResponseTemplates: {}
           PassthroughBehavior: "WHEN_NO_MATCH"
           TimeoutInMillis: 29000
@@ -1837,24 +1857,13 @@ Resources:
               method.response.header.Access-Control-Allow-Origin:
                 Fn::If:
                 - WithCloudFront
-                - !Sub https://${CloudFrontDistribution.DomainName}
-                - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
+                - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+                - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
         PassthroughBehavior: "WHEN_NO_MATCH"
         RequestTemplates: 
           "application/json": "{\"statusCode\": 200}"
         TimeoutInMillis: 29000
         Type: "MOCK"
-
-  # ApiGatewayInvokeCsvFromS3Permission:
-  #   Type: AWS::Lambda::Permission
-  #   Properties: 
-  #     Action: lambda:InvokeFunction
-  #     FunctionName: !GetAtt FunctionCsvFromS3.Arn
-  #     Principal: apigateway.amazonaws.com
-  #     SourceArn: !Sub "arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${AppBackendApiGateway}/*/*/*"
-  #   DependsOn:
-  #   - AppBackendApiGateway
-  #   - FunctionCsvFromS3
 
   ApiGatewayInvokeListObjectsPermission:
     Type: AWS::Lambda::Permission
@@ -1911,7 +1920,7 @@ Resources:
               - SourceCode
               - StateMachines
               - KeyPrefix
-            - 'datasets-preparation-v2.json'
+            - 'datasets-preparation-v3.json'
       DefinitionSubstitutions:
         function-new-project-entry: !GetAtt FunctionNewProjectEntry.Arn
         function-prepare-hourly-data: !GetAtt FunctionPrepareHourlyData.Arn
@@ -2772,7 +2781,6 @@ Resources:
     Properties:
       ManagedPolicyArns:
         - !Ref LambdaExecutionPolicy
-        # - arn:aws:iam::aws:policy/AmazonCognitoReadOnly
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -2824,6 +2832,61 @@ Resources:
                     - !Ref 'AWS::AccountId'
                     - ':userpool/'
                     - !Ref CognitoUserPool
+
+  APIGatewayRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Description: Allows API Gateway to push logs to CloudWatch Logs and start a Step Function execution
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+      Policies:
+        - PolicyName: !Join
+          - "-"
+          - - ApiGatewayStepFunctionsPermissions
+            - !Select
+              - 0
+              - !Split
+                - "-"
+                - !Select
+                  - 2
+                  - !Split
+                    - "/"
+                    - !Ref "AWS::StackId"
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+            - Action:
+              - states:StartExecution
+              Effect: Allow
+              Resource: !Join 
+                - ''
+                - - 'arn:'
+                  - !Ref 'AWS::Partition'
+                  - ':states:'
+                  - !Ref 'AWS::Region'
+                  - ':'
+                  - !Ref 'AWS::AccountId'
+                  - ':stateMachine:l4e-demo-app*'
+            - Action:
+              - states:DescribeExecution
+              - states:GetExecutionHistory
+              Effect: Allow
+              Resource: !Join 
+                - ''
+                - - 'arn:'
+                  - !Ref 'AWS::Partition'
+                  - ':states:'
+                  - !Ref 'AWS::Region'
+                  - ':'
+                  - !Ref 'AWS::AccountId'
+                  - ':execution:l4e-demo-app*'
 
   FunctionNewProjectEntryRole:
     Type: AWS::IAM::Role
@@ -3164,13 +3227,16 @@ Resources:
               - s3:PutObject
               - s3:PutObjectAcl
               - s3:ListBucket
-              - s3:ListAllMyBuckets
               - s3:DeleteObject
               - s3:GetBucketAcl
             Effect: Allow
             Resource:
               - !GetAtt ApplicationBucket.Arn
               - !Sub ${ApplicationBucket.Arn}/*
+          - Action:
+              - s3:ListAllMyBuckets
+            Effect: Allow
+            Resource: '*'
 
   # This gives read and write access to the application DynamoDB tables:
   DynamoDBAccessPolicy:

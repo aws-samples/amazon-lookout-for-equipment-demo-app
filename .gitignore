@@ -14,7 +14,7 @@ dist-ssr
 l4e-demo-app*.zip
 *.bkp
 *.dtmp
-deploy.py
+deploy*.py
 MultipleComponents.md
 
 # Editor directories and files

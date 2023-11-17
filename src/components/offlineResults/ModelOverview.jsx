@@ -1,5 +1,6 @@
 // Imports:
 import { useContext, useState } from 'react'
+import { useCollection } from '@cloudscape-design/collection-hooks'
 
 // App components:
 import DeleteModelModal from './DeleteModelModal'
@@ -14,6 +15,7 @@ import Container            from "@cloudscape-design/components/container"
 import ExpandableSection    from "@cloudscape-design/components/expandable-section"
 import Header               from "@cloudscape-design/components/header"
 import Link                 from "@cloudscape-design/components/link"
+import Pagination           from "@cloudscape-design/components/pagination"
 import Popover              from "@cloudscape-design/components/popover"
 import SpaceBetween         from "@cloudscape-design/components/space-between"
 import Spinner              from '@cloudscape-design/components/spinner'
@@ -66,9 +68,8 @@ function ModelOverview() {
                            modelDetails['offCondition']['conditionValue']
         }
 
-        let items = undefined
+        let labelItems = []
         if (modelDetails['labels']) {
-            items = []
             modelDetails['labels'].forEach((label) => {
                 const duration = new Date(label['end']) - new Date(label['start'])
                 const durationDays = parseInt(duration / 86400 / 1000)
@@ -76,13 +77,15 @@ function ModelOverview() {
                 const durationTime = new Date(duration).toISOString().substring(11, 19)
     
                 // Creates the new label entry:
-                items.push({
+                labelItems.push({
                     startDate: new Date(label['start']).toISOString().substring(0, 19).replace('T', ' '),
                     endDate: new Date(label['end']).toISOString().substring(0, 19).replace('T', ' '),
                     duration: (durationDays > 0) ? `${durationDays} day${daysUnit} ${durationTime}` : durationTime,
                 })
             })
         }
+        // Add pagination to the labels table:
+        const { items, paginationProps } = useCollection(labelItems, {pagination: { pageSize: 10 }})
 
         return (
             <SpaceBetween size="xl">
@@ -230,6 +233,7 @@ function ModelOverview() {
                                     { id: "duration", header: "Label duration", cell: e => <Box textAlign="right">{e.duration}</Box> }
                                 ]}
                                 items={items}
+                                pagination={<Pagination {...paginationProps} />}
                             />
                         </SpaceBetween></ExpandableSection>}
                     </SpaceBetween>

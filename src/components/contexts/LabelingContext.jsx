@@ -14,7 +14,7 @@ import { getLegendWidth, checkLabelGroupNameAvailability } from '../../utils/uti
 
 const LabelingContext = createContext()
 
-export const LabelingContextProvider = ({ children, readOnly }) => {
+export const LabelingContextProvider = ({ children, readOnly, trainingRange }) => {
     // -------------------------
     // Getting component context
     // -------------------------
@@ -31,6 +31,8 @@ export const LabelingContextProvider = ({ children, readOnly }) => {
     const eChartRef      = useRef(null)
     const labelsTableRef = useRef(undefined)
     const storedRanges   = useRef([])
+    const trainingStart  = useRef(new Date(trainingRange.startDate))
+    const trainingEnd    = useRef(new Date(trainingRange.endDate))
 
     const [ deleteButtonDisabled, setDeleteButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
     const [ updateButtonDisabled, setUpdateButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
@@ -146,9 +148,12 @@ export const LabelingContextProvider = ({ children, readOnly }) => {
             true,                                   // enableBrush
             false,                                  // customDatazoomColor
             readOnly,                               // readOnly
-            5,                                      // showTopN,
+            5,                                      // showTopN
             false,                                  // frozenMarkers
-            labels.current                          // existingMarkers
+            labels.current,                         // existingMarkers
+            trainingStart.current,
+            trainingEnd.current,
+            'Training range'
         )
     }
 
@@ -171,6 +176,8 @@ export const LabelingContextProvider = ({ children, readOnly }) => {
             labelCreationProgress,
             progressBarVisible,
             invalidNameErrorMessage,
+            trainingStart,
+            trainingEnd,
 
             setDeleteButtonDisabled,
             setShowDeleteLabelGroupModal,

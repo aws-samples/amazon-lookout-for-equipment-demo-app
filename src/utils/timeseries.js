@@ -106,36 +106,31 @@ export function buildChartOptions(
     readOnly,
     showTopN,
     frozenMarkers,
-    existingMarkers
+    existingMarkers,
+    markAreaStart,
+    markAreaEnd,
+    markAreaLabel
 ) {
     const series = []
 
-    // if (existingMarkers && false) {
-    //     let data = []
-
-    //     existingMarkers.forEach((marker) => {
-    //         data.push([{xAxis: marker.start}, {xAxis: marker.end}])
-    //     })
-
-    //     series.push({
-    //         name: 'Labels',
-    //         symbol: 'none',
-    //         data: [],
-    //         type: 'line',
-    //         xAxisIndex: 0,
-    //         markArea: {
-    //             itemStyle: {  
-    //                 // color: 'rgba(151, 181, 82, 0.3)',
-    //                 color: 'rgba(0, 0, 128, 0.5)',
-    //                 borderColor: 'rgba(151, 181, 82, 1.0)',
-    //                 borderWidth: 0.0
-    //                 // borderWidth: 1.0
-    //             },
-    //             data: data,
-    //             lineStyle: { width: 0 },
-    //         },
-    //     })
-    // }
+    if (markAreaStart && markAreaEnd) {
+        series.push({
+            symbol: 'none',
+            data: [],
+            type: 'line',
+            xAxisIndex: 0,
+            markArea: {
+                itemStyle: {  
+                    color: 'rgb(151, 181, 82, 0.15)',
+                    borderColor: 'rgb(151, 181, 82, 0.8)',
+                    borderWidth: 1.0,
+                    borderType: 'dashed'
+                },
+                data: [[{name: markAreaLabel, xAxis: markAreaStart}, {xAxis: markAreaEnd}]],
+                lineStyle: { width: 0 },
+            },
+        })
+    }
 
     tagsList.forEach((tag) => {
         series.push({

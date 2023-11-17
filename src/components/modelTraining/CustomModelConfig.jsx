@@ -96,7 +96,7 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
                           conditions of your process or asset. In addition, these labels will be
                           used to select the best model configuration for your dataset.`,
             content: 
-                <LabelingContextProvider readOnly={true}>
+                <LabelingContextProvider readOnly={true} trainingRange={trainingRange.current}>
                     <LabelsManagement readOnly={true} />
                 </LabelingContextProvider>
             ,

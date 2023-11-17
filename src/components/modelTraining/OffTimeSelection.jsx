@@ -176,8 +176,11 @@ function OffTimeSelection() {
 
     let signalsList = [{label: 'No off time detection', value: undefined}]
     if (selectedItems.length > 0) {
-        selectedItems.forEach((signal) => {
-            signalsList.push({ label: signal['name'], value: signal['name'] })
+        let signals = []
+        selectedItems.forEach((signal) => { signals.push(signal['name']) })
+        signals.sort()
+        signals.forEach((signal) => {
+            signalsList.push({ label: signal, value: signal })
         })
     }
 
@@ -268,6 +271,7 @@ function OffTimeSelection() {
                             setOffConditionValue(0.0)
                         }}
                         options={signalsList}
+                        filteringType="auto"
                     />
 
                     <Select

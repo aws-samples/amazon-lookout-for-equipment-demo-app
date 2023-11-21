@@ -29,6 +29,12 @@ MultipleComponents.md
 *.sw?
 .VSCode*
 
+# Cypress
+cypress/screenshots
+cypress/videos
+cypress/downloads
+cypress.env.json
+
 src/utils/ECharts.jsx
 Feedback.jsx
 amplify/team-provider-info.json

@@ -125,6 +125,7 @@ function CreateProject() {
                                                 if (!checkError) { setErrorMessage("") }
                                             }}
                                             autoFocus={true}
+                                            name="create-project-name"
                                             value={projectName}
                                             invalid={projectNameError !== ""}
                                             placeholder="Enter a project name"
@@ -147,6 +148,7 @@ function CreateProject() {
                                                 setAssetDescription(detail.value)
                                             }}
                                             value={assetDescription}
+                                            name="create-project-asset-description"
                                             invalid={assetError !== ""}
                                             placeholder="Enter a description for the process or asset you want to monitor"
                                         />

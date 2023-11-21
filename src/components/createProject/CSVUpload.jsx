@@ -171,6 +171,7 @@ const CSVUpload = forwardRef(function CSVUpload(props, ref) {
                     showFileLastModified={true}
                     showFileSize={true}
                     tokenLimit={1}
+                    controlId="create-project-file-upload"
                     constraintText="Upload a single CSV file containing the sensors data for an individual piece of 
                                     equipment or process. Your file must have a tabular format with a timestamp in the
                                     first column and the other columns holding your sensor data. Use the info link

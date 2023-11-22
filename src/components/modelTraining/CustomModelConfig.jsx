@@ -70,6 +70,7 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
                 showToolbox={false} 
                 componentHeight={350}
                 enableBrush={false}
+                showLabels={true}
             />
         },
         {
@@ -96,7 +97,7 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
                           conditions of your process or asset. In addition, these labels will be
                           used to select the best model configuration for your dataset.`,
             content: 
-                <LabelingContextProvider readOnly={true}>
+                <LabelingContextProvider readOnly={true} trainingRange={trainingRange.current}>
                     <LabelsManagement readOnly={true} />
                 </LabelingContextProvider>
             ,

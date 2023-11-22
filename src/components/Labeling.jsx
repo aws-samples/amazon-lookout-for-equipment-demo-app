@@ -12,7 +12,6 @@ import { ModelParametersProvider } from './contexts/ModelParametersContext'
 import HelpPanelContext from './contexts/HelpPanelContext'
 
 // CloudScape Components:
-import Container     from "@cloudscape-design/components/container"
 import ContentLayout from "@cloudscape-design/components/content-layout"
 import Header        from "@cloudscape-design/components/header"
 

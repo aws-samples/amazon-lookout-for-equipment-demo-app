@@ -17,7 +17,8 @@ l4e-demo-app*.zip
 deploy*.py
 MultipleComponents.md
 
-# Cypress:
+# Cypress
+cypress/*
 cypress.env.json
 
 # Editor directories and files

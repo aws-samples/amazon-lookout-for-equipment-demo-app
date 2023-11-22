@@ -45,6 +45,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
         labelCreationProgress,
         progressBarVisible,
         invalidNameErrorMessage,
+        trainingStart,
+        trainingEnd,
 
         setDeleteButtonDisabled,
         setShowDeleteLabelGroupModal,

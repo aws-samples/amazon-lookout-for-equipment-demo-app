@@ -14,7 +14,7 @@ import { getLegendWidth, checkLabelGroupNameAvailability } from '../../utils/uti
 
 const LabelingContext = createContext()
 
-export const LabelingContextProvider = ({ children, readOnly }) => {
+export const LabelingContextProvider = ({ children, readOnly, trainingRange }) => {
     // -------------------------
     // Getting component context
     // -------------------------
@@ -31,6 +31,8 @@ export const LabelingContextProvider = ({ children, readOnly }) => {
     const eChartRef      = useRef(null)
     const labelsTableRef = useRef(undefined)
     const storedRanges   = useRef([])
+    const trainingStart  = useRef(trainingRange ? new Date(trainingRange.startDate) : undefined)
+    const trainingEnd    = useRef(trainingRange ? new Date(trainingRange.endDate) : undefined)
 
     const [ deleteButtonDisabled, setDeleteButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
     const [ updateButtonDisabled, setUpdateButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
@@ -101,7 +103,7 @@ export const LabelingContextProvider = ({ children, readOnly }) => {
             selectedLabelGroupName.current = currentLabelGroupName
         }
 
-        labelsTableRef.current.updateTable(labels.current)
+        labelsTableRef.current.updateTable(labels)
         redrawBrushes(eChartRef, labels)
     }
 
@@ -146,9 +148,13 @@ export const LabelingContextProvider = ({ children, readOnly }) => {
             true,                                   // enableBrush
             false,                                  // customDatazoomColor
             readOnly,                               // readOnly
-            5,                                      // showTopN,
+            5,                                      // showTopN
             false,                                  // frozenMarkers
-            labels.current                          // existingMarkers
+            false,                                  // showLabels
+            labels.current,                         // existingMarkers
+            trainingStart.current,                  // markerArea start
+            trainingEnd.current,                    // markerArea end
+            'Training range'                        // markerArea label
         )
     }
 
@@ -171,6 +177,8 @@ export const LabelingContextProvider = ({ children, readOnly }) => {
             labelCreationProgress,
             progressBarVisible,
             invalidNameErrorMessage,
+            trainingStart,
+            trainingEnd,
 
             setDeleteButtonDisabled,
             setShowDeleteLabelGroupModal,

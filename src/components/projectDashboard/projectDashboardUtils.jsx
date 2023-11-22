@@ -238,10 +238,19 @@ export async function getProjectData(gateway, projectName, uid) {
         })
     }
 
+    const response = await gateway.lookoutEquipment.listLabelGroups(projectName + '-')
+    const listLabelGroups = []
+    if (response['LabelGroupSummaries'].length > 0) {
+        response['LabelGroupSummaries'].forEach((labelGroup) => {
+            listLabelGroups.push(labelGroup['LabelGroupName'])
+        })
+    }
+
     return {
         listModels, 
         listSchedulers,
-        listExternalModels
+        listExternalModels,
+        listLabelGroups
     }
 }
 

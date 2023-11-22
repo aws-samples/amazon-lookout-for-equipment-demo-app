@@ -24,6 +24,7 @@ function DeleteProjectModal({ visible, onDiscard }) {
     const [ listModels, setListModels ] = useState([])
     const [ listExternalModels, setListExternalModels ] = useState([])
     const [ listSchedulers, setListSchedulers ] = useState([])
+    const [ listLabelGroups, setListLabelGroups ] = useState([])
     const [ deleteInProgress, setDeleteInProgress ] = useState(false)
     const [ deleteMessage, setDeleteMessage ] = useState(undefined)
     const { gateway, uid } = useContext(ApiGatewayContext)
@@ -33,10 +34,11 @@ function DeleteProjectModal({ visible, onDiscard }) {
     // Loads project configuration:
     useEffect(() => {
         getProjectData(gateway, uid + '-' + projectName, uid)
-        .then(({ listModels, listSchedulers, listExternalModels }) => { 
+        .then(({ listModels, listSchedulers, listExternalModels, listLabelGroups }) => { 
             setListModels(listModels)
             setListSchedulers(listSchedulers) 
-            setListExternalModels(listExternalModels) 
+            setListExternalModels(listExternalModels)
+            setListLabelGroups(listLabelGroups)
         })
     }, [gateway, projectName])
 
@@ -69,7 +71,7 @@ function DeleteProjectModal({ visible, onDiscard }) {
             for (const model of listModels) {
                 setDeleteMessage(`Deleting model: ${model}...`)
 
-                await gateway.lookoutEquipment.deleteModel(model)
+                await gateway.lookoutEquipment.deleteModel(`${uid}-${projectName}-${model}`)
                 if (listModels.length > 1) {
                     await new Promise(r => setTimeout(r, 1000))
                 }
@@ -77,7 +79,15 @@ function DeleteProjectModal({ visible, onDiscard }) {
         }
 
         // Delete all the labels groups linked to this project:
-        // TO DO
+        for (const labelGroup of listLabelGroups) {
+            setDeleteMessage(`Deleting label group: ${labelGroup.slice(projectName.length + 1 + uid.length + 1)}...`)
+            await gateway.lookoutEquipment
+                  .deleteLabelGroup(labelGroup)
+                  .catch((error) => console.log(error.response))
+            if (listLabelGroups.length > 1) {
+                await new Promise(r => setTimeout(r, 500))
+            }
+        }
 
         // Delete the DynamoDB Tables:
         setDeleteMessage(`Deleting DynamoDB tables...`)
@@ -178,6 +188,17 @@ function DeleteProjectModal({ visible, onDiscard }) {
                     
                     {(listModels.length > 0 || listSchedulers.length > 0) && "The following related assets will also be deleted:"}
                 </Box>
+
+                {listLabelGroups && listLabelGroups.length > 0 &&
+                    <FormField label="Label groups" description="Label groups defined in this project">
+                        <Textarea
+                            onChange={({ detail }) => setValue(detail.value)}
+                            value={listLabelGroups.length == 0 ? "No label group created" : listLabelGroups.map(item => item.slice(uid.length + 1 + projectName.length + 1)).join('\n')}
+                            readOnly={true}
+                            rows={listLabelGroups.length == 0 ? 1 : listLabelGroups.length > 5 ? 5 : listLabelGroups.length}
+                        />                    
+                    </FormField>
+                }
 
                 {listModels && listModels.length > 0 &&
                     <FormField label="Models" description="Models trained within this project. Note that you have to wait for all models trainings 

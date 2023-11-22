@@ -31,7 +31,7 @@ function DeleteModelModal({ visible, onDiscard, setDeleteInProgress }) {
     const navigate = useNavigate()
 
     useEffect(() => {
-        getSchedulerInfo(gateway, modelName)
+        getSchedulerInfo(gateway, `${uid}-${projectName}-${modelName}`)
         .then((x) => setScheduler(x))
     }, [gateway, modelName])
 
@@ -48,13 +48,13 @@ function DeleteModelModal({ visible, onDiscard, setDeleteInProgress }) {
             // If the scheduler is running, we need to stop it first:
             if (scheduler['Status'] === 'RUNNING') {
                 setDeleteMessage('Stopping and deleting scheduler...')
-                await stopAndDeleteScheduler(gateway, modelName)
+                await stopAndDeleteScheduler(gateway, `${uid}-${projectName}-${modelName}`)
             }
 
             // Otherwise, we just delete it:
             else {
                 setDeleteMessage('Deleting scheduler...')
-                await deleteScheduler(gateway, modelName)
+                await deleteScheduler(gateway, `${uid}-${projectName}-${modelName}`)
             }
         }
 
@@ -102,7 +102,7 @@ function DeleteModelModal({ visible, onDiscard, setDeleteInProgress }) {
                                                               It will be stopped and deleted before the corresponding model is deleted">
 
                         <Input
-                            value={scheduler['InferenceSchedulerName'] + ' (' + scheduler['Status'] + ')'} 
+                            value={scheduler['InferenceSchedulerName'].slice(uid.length+1 + projectName.length+1) + ' (' + scheduler['Status'] + ')'} 
                             disabled={true}
                         />
                     </FormField>

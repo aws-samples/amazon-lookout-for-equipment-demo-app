@@ -62,6 +62,11 @@
                 "Type": "Task",
                 "Parameters": {
                   "InputFormat": "CSV",
+                  "InputFormatOptions": {
+                    "Csv": {
+                      "Delimiter": ","
+                    }
+                  },
                   "S3BucketSource": {
                     "S3Bucket.$": "$.bucket",
                     "S3KeyPrefix.$": "$.importKey"

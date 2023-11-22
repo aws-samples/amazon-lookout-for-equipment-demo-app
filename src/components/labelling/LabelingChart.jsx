@@ -13,7 +13,7 @@ import LabelingContext        from '../contexts/LabelingContext'
 
 function LabelingChart({ chartLabel, chartDescription, componentHeight, redrawBrushes, onBrushEndEvent, onClear, interactive }) {
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
-    const { option, eChartRef, labelsTableRef, storedRanges } = useContext(LabelingContext)
+    const { option, eChartRef, labelsTableRef, storedRanges, trainingStart, trainingEnd } = useContext(LabelingContext)
     const { labels } = useContext(ModelParametersContext)
 
     return (

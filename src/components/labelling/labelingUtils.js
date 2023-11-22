@@ -146,7 +146,7 @@ export async function getLabelGroups(gateway, uid, projectName, emptyGroupName) 
     if (response['LabelGroupSummaries'].length > 0) {
         response['LabelGroupSummaries'].forEach((labelGroup) => {
             let label = labelGroup['LabelGroupName']
-            label = label.split('-').slice(2).join('-')
+            label = label.slice(projectName.length + 1 + uid.length + 1)
             labelGroupOptions.push({'label': label, 'value': labelGroup['LabelGroupName']})
         })    
     }

@@ -30,7 +30,7 @@ import ApiGatewayContext from '../contexts/ApiGatewayContext'
 import ModelParametersContext from '../contexts/ModelParametersContext'
 
 // Utils
-import { getSignalsStatistics, buildChartOptions } from './signalSelectionUtils'
+import { getSignalsStatistics, buildSignalSelectionChartOptions } from './signalSelectionUtils'
 import { useCollection } from '@cloudscape-design/collection-hooks'
 
 // -------------------------------------------------------
@@ -184,6 +184,8 @@ function SignalSelectionCards({
             ]}
             items={items}
             selectionType="multi"
+            stickyHeader={true}
+            entireCardClickable={true}
             trackBy="name"
             filter={ <SpaceBetween direction="horizontal" size="xl">
                 <TextFilter
@@ -203,7 +205,15 @@ function SignalSelectionCards({
     )
 }
 
-function SignalsListModal( { visible, onDiscard, setSelectedItems, signalsList, tempSelectedItems, setTempSelectedItems, tagsList }) {
+function SignalsListModal({ 
+    visible, 
+    onDiscard, 
+    setSelectedItems, 
+    signalsList, 
+    tempSelectedItems, 
+    setTempSelectedItems, 
+    tagsList 
+}) {
     let signals = []
     tempSelectedItems.forEach((item) => {
         signals.push(item.name)
@@ -272,7 +282,7 @@ function SignalsListModal( { visible, onDiscard, setSelectedItems, signalsList, 
 // =================================
 function ModelingSignalSelection() {
     const { projectName } = useParams()
-    const { data, tagsList, x, signals } = useContext(TimeSeriesContext)
+    const { data, tagsList, x, signals, timeseriesData } = useContext(TimeSeriesContext)
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { 
         trainingRange, 
@@ -290,7 +300,7 @@ function ModelingSignalSelection() {
     const [ highGradeChecked, setHighGradeChecked ]     = useState(true)
     const [ mediumGradeChecked, setMediumGradeChecked ] = useState(true)
     const [ lowGradeChecked, setLowGradeChecked ]       = useState(true)
-    const [ showSignalsList, setShowSignalsList ]       = useState(false)    
+    const [ showSignalsList, setShowSignalsList ]       = useState(false)
 
     // Extract the details of the signals to be displayed:
     useEffect(() => {
@@ -335,7 +345,7 @@ function ModelingSignalSelection() {
     }
     else if (signalDetails) {
         const { signalInfos, signalAttributes, signalGrade } = getSignalsStatistics(signalDetails)
-        const signalOptions = buildChartOptions(tagsList, x, signals, trainingRange, evaluationRange)
+        const signalOptions = buildSignalSelectionChartOptions(tagsList, trainingRange, timeseriesData)
 
         function toggleGrade(checked, targetGrade) {
             let newSelection = []

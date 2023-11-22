@@ -184,6 +184,7 @@ function SignalSelectionCards({
             ]}
             items={items}
             selectionType="multi"
+            stickyHeader={true}
             trackBy="name"
             filter={ <SpaceBetween direction="horizontal" size="xl">
                 <TextFilter

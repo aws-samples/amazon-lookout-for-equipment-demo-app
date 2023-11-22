@@ -31,8 +31,8 @@ export const LabelingContextProvider = ({ children, readOnly, trainingRange }) =
     const eChartRef      = useRef(null)
     const labelsTableRef = useRef(undefined)
     const storedRanges   = useRef([])
-    const trainingStart  = useRef(new Date(trainingRange.startDate))
-    const trainingEnd    = useRef(new Date(trainingRange.endDate))
+    const trainingStart  = useRef(trainingRange ? new Date(trainingRange.startDate) : undefined)
+    const trainingEnd    = useRef(trainingRange ? new Date(trainingRange.endDate) : undefined)
 
     const [ deleteButtonDisabled, setDeleteButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
     const [ updateButtonDisabled, setUpdateButtonDisabled]            = useState(!selectedLabelGroupName.current ? true : false)
@@ -151,9 +151,9 @@ export const LabelingContextProvider = ({ children, readOnly, trainingRange }) =
             5,                                      // showTopN
             false,                                  // frozenMarkers
             labels.current,                         // existingMarkers
-            trainingStart.current,
-            trainingEnd.current,
-            'Training range'
+            trainingStart.current,                  // markerArea start
+            trainingEnd.current,                    // markerArea end
+            'Training range'                        // markerArea label
         )
     }
 

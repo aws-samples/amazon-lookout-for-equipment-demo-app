@@ -103,7 +103,7 @@ export const LabelingContextProvider = ({ children, readOnly, trainingRange }) =
             selectedLabelGroupName.current = currentLabelGroupName
         }
 
-        labelsTableRef.current.updateTable(labels.current)
+        labelsTableRef.current.updateTable(labels)
         redrawBrushes(eChartRef, labels)
     }
 

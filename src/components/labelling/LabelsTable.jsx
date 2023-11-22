@@ -59,8 +59,8 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
 
     // Loops through all the item to build the table content:
     let tableItems = []
-    if (currentLabels && currentLabels.length > 0) {
-        currentLabels.forEach((label, index) => {
+    if (currentLabels && currentLabels.current.length > 0) {
+        currentLabels.current.forEach((label, index) => {
             const duration = new Date(label.end) - new Date(label.start)
             const durationDays = parseInt(duration / 1000 / 86400)
             const daysUnit = durationDays > 1 ? 's' : ''
@@ -79,6 +79,8 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 equipment: "Equipment"
             })
         })
+
+        redrawBrushes(eChartRef, labels)
     }
 
     let noLabelText = ""
@@ -109,7 +111,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
 
         labels.current = newLabels
         redrawBrushes(eChartRef, labels)
-        labelsTableRef.current.updateTable(labels.current)
+        labelsTableRef.current.updateTable(labels)
         setSelectedLabels([])
         if (newLabels.length == 0) {
             setUpdateButtonDisabled(true)
@@ -199,7 +201,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                     })
 
                     redrawBrushes(eChartRef, labels)
-                    labelsTableRef.current.updateTable(labels.current)
+                    labelsTableRef.current.updateTable(labels)
                     setShowUploadLabels(false)
                 }}
                 setLabelData={setUploadedLabelData}

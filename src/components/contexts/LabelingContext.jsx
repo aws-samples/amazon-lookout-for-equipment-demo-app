@@ -150,6 +150,7 @@ export const LabelingContextProvider = ({ children, readOnly, trainingRange }) =
             readOnly,                               // readOnly
             5,                                      // showTopN
             false,                                  // frozenMarkers
+            false,                                  // showLabels
             labels.current,                         // existingMarkers
             trainingStart.current,                  // markerArea start
             trainingEnd.current,                    // markerArea end

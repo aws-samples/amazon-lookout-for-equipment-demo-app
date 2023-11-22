@@ -106,10 +106,11 @@ export function buildChartOptions(
     readOnly,
     showTopN,
     frozenMarkers,
+    showLabels,
     existingMarkers,
     markAreaStart,
     markAreaEnd,
-    markAreaLabel
+    markAreaLabel,
 ) {
     const series = []
 
@@ -252,7 +253,7 @@ export function buildChartOptions(
             option['toolbox']['show'] = true
         }
     }
-    else if (enableBrush && readOnly) {
+    else if (showLabels || (enableBrush && readOnly)) {
         option['brush'] = {
             toolbox: ['keep'],
             xAxisIndex: 'all',

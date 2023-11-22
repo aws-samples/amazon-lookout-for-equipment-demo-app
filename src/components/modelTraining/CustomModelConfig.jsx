@@ -70,6 +70,7 @@ function CustomModelConfig({ trainingConfig, setTrainingConfig }) {
                 showToolbox={false} 
                 componentHeight={350}
                 enableBrush={false}
+                showLabels={true}
             />
         },
         {

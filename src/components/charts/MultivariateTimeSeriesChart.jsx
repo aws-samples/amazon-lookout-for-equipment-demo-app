@@ -44,7 +44,7 @@ function getUTCDate(date, options) {
 // ---------------------
 // Component entry point
 // ---------------------
-function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight, enableBrush }) {
+function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight, enableBrush, showLabels }) {
     const { data, tagsList, x, signals, timeseriesData } = useContext(TimeSeriesContext)
     const { trainingRange, evaluationRange, numTrainingDays, numEvaluationDays, labels, totalLabelDuration } = useContext(ModelParametersContext)
     
@@ -127,16 +127,17 @@ function MultivariateTimeSeriesChart({ showLegend, showToolbox, componentHeight,
         const option = buildChartOptions(
             tagsList, 
             timeseriesData,
-            initialZoomStart.current, 
-            initialZoomEnd.current, 
-            showLegend, 
-            showToolbox, 
-            legendWidth,
-            enableBrush,
-            true,                   // customDatazoomColor,
-            false,                  // readOnly
-            5,                      // Show top 5 signals after loading
-            forceChartUpdate
+            initialZoomStart.current,   // initialZoomStart
+            initialZoomEnd.current,     // initialZoomEnd
+            showLegend,                 // showLegend
+            showToolbox,                // showToolbox
+            legendWidth,                // Width in pixels of the legend
+            enableBrush,                // enableBrush
+            true,                       // customDatazoomColor,
+            false,                      // readOnly
+            5,                          // Show top 5 signals after loading
+            false,                      // frozenMarkers
+            showLabels                  // showLabels
         )
 
         // --------------------------------------------------------

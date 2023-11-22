@@ -56,12 +56,12 @@ function DeleteProjectModal({ visible, onDiscard }) {
             for (const scheduler of listSchedulers) {
                 // If the scheduler is running, we need to stop it first:
                 if (scheduler['status'] === 'RUNNING') {
-                    await stopAndDeleteScheduler(gateway, scheduler['model'])
+                    await stopAndDeleteScheduler(gateway, `${uid}-${projectName}-${scheduler.model}`)
                 }
 
                 // Otherwise, we just delete it:
                 else {
-                    await deleteScheduler(gateway, scheduler['model'])
+                    await deleteScheduler(gateway, `${uid}-${projectName}-${scheduler.model}`)
                 }
             }
         }

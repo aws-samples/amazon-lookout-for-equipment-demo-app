@@ -62,7 +62,7 @@ export function getSignalsStatistics(signalDetails) {
     }
 }
 
-export function buildChartOptions(tagsList, x, signals, trainingRange, evaluationRange) {
+export function buildSignalSelectionChartOptions(tagsList, trainingRange, timeseriesData) {
     let signalOptions = {}
     tagsList.forEach((tag) => {
         const currentSerie = [{
@@ -70,7 +70,7 @@ export function buildChartOptions(tagsList, x, signals, trainingRange, evaluatio
             color: 'rgb(141, 152, 179)',
             symbol: 'none',
             sampling: 'lttb',
-            data: signals[tag],
+            data: timeseriesData[tag],
             type: 'line',
             markArea: {
                 itemStyle: { 
@@ -81,13 +81,8 @@ export function buildChartOptions(tagsList, x, signals, trainingRange, evaluatio
                 },
                 data: [
                     [
-                        {
-                            name: 'Training',
-                            xAxis: new Date(trainingRange.current['startDate']).toISOString().substring(0, 19).replace('T', '\n')
-                        },
-                        {
-                            xAxis: new Date(trainingRange.current['endDate']).toISOString().substring(0, 19).replace('T', '\n')
-                        }
+                        { name: 'Training', xAxis: trainingRange.current['startDate'] },
+                        { xAxis: trainingRange.current['endDate'] }
                     ],
                 ]
             }
@@ -96,12 +91,7 @@ export function buildChartOptions(tagsList, x, signals, trainingRange, evaluatio
         // echart options:
         const currentOption = {
             title: { show: false },
-            xAxis: { 
-                type: 'category', 
-                data: x, 
-                min: new Date(trainingRange.current['startDate']).toISOString().substring(0, 19).replace('T', '\n'),
-                max: new Date(evaluationRange.current['endDate']).toISOString().substring(0, 19).replace('T', '\n'),
-            },
+            xAxis: { type: 'time', minorTick: { show: true } },
             yAxis: { type: 'value' },
             grid: { top: 20, left: 40, right: 10, bottom: 35, backgroundColor: '#FFFFFF', show: true },
             series: currentSerie,

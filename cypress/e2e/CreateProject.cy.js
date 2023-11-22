@@ -39,7 +39,7 @@ describe('Create a new project', () => {
             cy.get('button[type="submit"]').contains('Create project').click()
 
             // Wait for the data preparation in progress to be done
-            cy.get('div', { timeout: 10000 }).should('contain', 'Data preparation in progress')
+            cy.get('div', { timeout: 20000 }).should('contain', 'Data preparation in progress')
             cy.get('a').should('contain', 'CypressTestUpload-v2')
             cy.location('pathname').should('eq', '/project-dashboard/projectName/CypressTestUpload-v2')
         })

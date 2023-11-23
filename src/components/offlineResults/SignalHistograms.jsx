@@ -9,6 +9,7 @@ import EmptyState from '../shared/EmptyState'
 // Cloudscape components:
 import Button       from "@cloudscape-design/components/button"
 import Cards        from "@cloudscape-design/components/cards"
+import Container    from "@cloudscape-design/components/container"
 import Grid         from "@cloudscape-design/components/grid"
 import Header       from "@cloudscape-design/components/header"
 import Link         from "@cloudscape-design/components/link"
@@ -19,7 +20,6 @@ import TextFilter   from "@cloudscape-design/components/text-filter"
 // Utils
 import { useCollection } from '@cloudscape-design/collection-hooks'
 import { getMatchesCountText, normalizedHistogram, sortDictionnary } from '../../utils/utils'
-import { buildTimeseries2 } from '../../utils/timeseries.js'
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'
@@ -36,6 +36,17 @@ function SignalHistograms() {
         histogramData
     } = useContext(OfflineResultsContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
+
+    // If no sensor contribution contribution data is found, this means 
+    // that no anomalous event was found while evaluating the model. 
+    // Hence, nothing to show here:
+    if (!sensorContributionTimeseries) {
+        return (
+            <Container header={<Header variant="h1">Signal behavior deep dive</Header>}>
+                No event detected by this model
+            </Container>
+        )
+    }
 
     const sortedTags = getSortedTags(sensorContributionTimeseries, tagsList)
     const signalOptions = buildSignalBehaviorOptions(

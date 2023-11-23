@@ -85,10 +85,13 @@ export const OfflineResultsProvider = ({ children }) => {
                     setAnomaliesTimeseries(anomaliesTimeseries)
 
                     // Build the sensor contribution time series for each tag:
-                    const sensorContributionTimeseries = buildSensorContributionTimeseries(
-                        details.sensorContribution.Items,
-                        tagsList
-                    )
+                    let sensorContributionTimeseries = undefined
+                    if (details.sensorContribution && details.sensorContribution.Items) {
+                        sensorContributionTimeseries = buildSensorContributionTimeseries(
+                            details.sensorContribution.Items,
+                            tagsList
+                        )
+                    }
                     setSensorContributionTimeseries(sensorContributionTimeseries)
 
                     // Build the histogram data:

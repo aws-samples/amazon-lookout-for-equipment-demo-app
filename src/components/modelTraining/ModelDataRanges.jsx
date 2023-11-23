@@ -36,8 +36,9 @@ const ModelDataRanges = forwardRef(function ModelDataRanges(props, ref) {
         totalLabelDurationString = ` including ${totalLabelDays} day${daysUnit} ${totalHours}h in labels` 
     }
 
-    const onTrainingDataRangeChange = () => {
-        updateRanges()
+    const onTrainingDataRangeChange = (e) => {
+        trainingRange.current = e.detail.value
+        updateRanges(e.detail.value)
         setValue(value => value + 1)
     }
 
@@ -64,6 +65,7 @@ const ModelDataRanges = forwardRef(function ModelDataRanges(props, ref) {
                         placeholder="Filter by a date and time range"
                         rangeSelectorMode="absolute-only"
                         isValidRange={(range) => validateRange(range, x)}
+                        timeInputFormat="hh:mm"
                     />
                 </SpaceBetween>
             </FormField>
@@ -79,14 +81,14 @@ const ModelDataRanges = forwardRef(function ModelDataRanges(props, ref) {
             >
                 <SpaceBetween size="xl" direction="horizontal">
                     <DateRangePicker
-                        onChange={({ detail }) => evaluationRange.current = detail.value}
                         value={evaluationRange.current}
                         i18nStrings={{
                             absoluteModeTitle: 'Absolute',
                             applyButtonLabel: 'Apply'
                         }}
                         placeholder="Evaluation range"
-                        disabled
+                        disabled={true}
+                        timeInputFormat="hh:mm"
                     />
                 </SpaceBetween>
             </FormField>

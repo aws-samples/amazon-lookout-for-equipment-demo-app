@@ -45,6 +45,8 @@ function LabelsManagement({ componentHeight, readOnly }) {
         labelCreationProgress,
         progressBarVisible,
         invalidNameErrorMessage,
+        trainingStart,
+        trainingEnd,
 
         setDeleteButtonDisabled,
         setShowDeleteLabelGroupModal,
@@ -358,7 +360,7 @@ function LabelsManagement({ componentHeight, readOnly }) {
                             setLabelGroupName={setLabelGroupName} />
                     </Container> }
 
-                    { readOnly && labels.current && labels.current.length > 0 && <Container>
+                    { readOnly && <Container>
                         <LabelingChart 
                             chartLabel="Signal overview"
                             chartDescription="Use the following plot to preview the selected labels on your actual signals"

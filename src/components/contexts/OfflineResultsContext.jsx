@@ -34,6 +34,7 @@ export const OfflineResultsProvider = ({ children }) => {
     const [ sensorContributionTimeseries, setSensorContributionTimeseries ] = useState(undefined)
     const [ histogramData, setHistogramData ] = useState(undefined)
     const [ deleteInProgress, setDeleteInProgress ] = useState(false)
+    const [ loading, setLoading ] = useState(true)
 
     // Refresh component state definition:
     const [ refreshTimer, setRefreshTimer] = useState(Date.now())
@@ -44,6 +45,7 @@ export const OfflineResultsProvider = ({ children }) => {
     // Loads the model details:
     // ------------------------
     useEffect(() => {
+        setLoading(true)
         getModelDetails(gateway, modelName, projectName, uid, deleteInProgress)
         .then((details) => { 
             if (details) {
@@ -96,6 +98,8 @@ export const OfflineResultsProvider = ({ children }) => {
                         anomalies: anomaliesHistogram
                     })
                 }
+
+                setLoading(false)
             }
         })
     }, [gateway, modelName, projectName, refreshTimer])
@@ -103,7 +107,7 @@ export const OfflineResultsProvider = ({ children }) => {
     // --------------------------------------
     // Renders the provider and its children:
     // --------------------------------------
-    if ((modelDetails && modelDetails['status'] === 'IN_PROGRESS')) {
+    if ((!loading && modelDetails && modelDetails['status'] === 'IN_PROGRESS')) {
         const now = new Date()
         const tzOffset = new Date(modelDetails['createdAt']).getTimezoneOffset() * 60 * 1000
 
@@ -127,11 +131,10 @@ export const OfflineResultsProvider = ({ children }) => {
             </Container>
         )
     }
-    else if (modelDetails && modelDetails['status'] !== 'IN_PROGRESS') {
+    else if (!loading && modelDetails && modelDetails['status'] !== 'IN_PROGRESS') {
         return (
             <OfflineResultsContext.Provider value={{
                 modelDetails,
-                // loading,
                 tagsList,
                 trainingTimeseries,
                 evaluationTimeseries,

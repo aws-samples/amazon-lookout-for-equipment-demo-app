@@ -912,8 +912,8 @@ export async function getSchedulerDetails(gateway, modelName, uid, projectName) 
         currentTime: new Date(currentTime).toISOString().replace('T', ' ').slice(0,16),
         nextExecutionTime: new Date(nextExecutionTime).toISOString().replace('T', ' ').slice(0,16),
         nextTimestamp: nextTimestamp,
-        inputLocation: `s3://${bucket}/inference-data/${uid}-${modelName}/input/`,
-        outputLocation: `s3://${bucket}/inference-data/${uid}-${modelName}/output/`,
+        inputLocation: `s3://${bucket}/inference-data/${uid}-${projectName}-${modelName}/input/`,
+        outputLocation: `s3://${bucket}/inference-data/${uid}-${projectName}-${modelName}/output/`,
         delimiter: delimiter,
         expectedContent: content
     }

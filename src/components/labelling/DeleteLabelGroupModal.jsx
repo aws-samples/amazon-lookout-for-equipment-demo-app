@@ -7,6 +7,7 @@ import Box          from "@cloudscape-design/components/box"
 import Button       from "@cloudscape-design/components/button"
 import Modal        from "@cloudscape-design/components/modal"
 import SpaceBetween from "@cloudscape-design/components/space-between"
+import Spinner      from "@cloudscape-design/components/spinner"
 import Textarea     from "@cloudscape-design/components/textarea"
 
 // Contexts:
@@ -20,12 +21,14 @@ function DeleteLabelGroupModal({ visible, onDiscard, onDelete, selectedLabelGrou
     const { gateway, uid } = useContext(ApiGatewayContext)
     const [ attachedModels, setAttachedModels ] = useState([])
     const [ deleteDisabled, setDeleteDisabled ] = useState(true)
+    const [ loading, setLoading ] = useState(true)
 
     useEffect(() => {
         listModelUsingLabelGroup(gateway, internalLabelGroupName, uid + '-' + projectName)
         .then((x) => {
             setAttachedModels(x)
             setDeleteDisabled(x.length > 0)
+            setLoading(false)
         })
     }, [gateway, internalLabelGroupName])
 
@@ -40,8 +43,9 @@ function DeleteLabelGroupModal({ visible, onDiscard, onDelete, selectedLabelGrou
                         <Button variant="link" onClick={onDiscard}>
                             Cancel
                         </Button>
-                        <Button variant="primary" onClick={onDelete} disabled={deleteDisabled}>
-                            Delete
+                        <Button variant="primary" onClick={onDelete} disabled={deleteDisabled || loading}>
+                            { loading && <Spinner /> }
+                            { !loading && <>Delete</> }
                         </Button>
                     </SpaceBetween>
                 </Box>

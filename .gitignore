@@ -17,6 +17,10 @@ l4e-demo-app*.zip
 deploy*.py
 MultipleComponents.md
 
+# Cypress
+cypress/*
+cypress.env.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

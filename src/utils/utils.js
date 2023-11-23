@@ -297,7 +297,8 @@ export async function getAllModels(gateway, projects, uid) {
     // Loops through each project to list the models attached to it:
     for (const model of Object.keys(allModels)) {
         const currentProject = allModels[model].DatasetName.slice('l4e-demo-app'.length + 10)
-        const currentUid = allModels[model].DatasetName.slice('l4e-demo-app'.length + 1, 'l4e-demo-app'.length + 9)
+        const currentUid = model.slice(0,8)
+
         if (projects.indexOf(currentProject) >= 0 && uid === currentUid) {
             listModels[currentProject].push({
                 name: allModels[model].ModelName,

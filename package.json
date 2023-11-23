@@ -14,11 +14,11 @@
   "dependencies": {
     "@aws-amplify/ui-react": "^4.6.4",
     "@cloudscape-design/collection-hooks": "^1.0.25",
-    "@cloudscape-design/components": "^3.0.406",
+    "@cloudscape-design/components": "^3.0.443",
     "@cloudscape-design/design-tokens": "^3.0.28",
     "@cloudscape-design/global-styles": "^1.0.13",
     "@octokit/core": "^5.0.1",
-    "aws-amplify": "^5.3.11",
+    "aws-amplify": "^5.3.12",
     "buffer": "^6.0.3",
     "echarts": "^5.4.3",
     "echarts-for-react": "^3.0.2",

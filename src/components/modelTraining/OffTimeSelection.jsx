@@ -18,22 +18,30 @@ import TimeSeriesContext from '../contexts/TimeSeriesContext'
 import ModelParametersContext from '../contexts/ModelParametersContext'
 import HelpPanelContext from '../contexts/HelpPanelContext'
 
-// Utils:
-import { buildTimeseries2 } from '../../utils/timeseries'
-
-function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, eChartRef, onConditionValueDragEnd, setOfftimeMin, setOfftimeMax) {
+function buildChartOptions(
+    tag, 
+    timeseries, 
+    conditionOption, 
+    conditionValue, 
+    eChartRef, 
+    onConditionValueDragEnd, 
+    setOfftimeMin, 
+    setOfftimeMax,
+    timeseriesData
+) {
     if (!tag) { return undefined }
 
     let y = []
-    timeseries.forEach((item, index) => {
+    timeseries.forEach((item) => {
         y.push(parseFloat(item[tag]['S']))
     })
 
-    let tsData = buildTimeseries2(timeseries, tag, 'S')
-
     const yMin = Math.min(...y)
     const yMax = Math.max(...y)
-    let conditionY = Array.apply(0.0, Array(y.length)).map(() => yMin)
+
+    // let conditionY = Array.apply(0.0, Array(y.length)).map(() => yMin)
+    // let conditionY = Array.apply(0.0, Array(timeseriesData[tag].length)).map((element, index) => [element[0], yMin])
+    let conditionY = timeseriesData[tag].map((element, index) => [element[0], yMin])
     let currentConditionValue = conditionValue
     if (currentConditionValue < yMin) { currentConditionValue = yMin }
     if (currentConditionValue > yMax) { currentConditionValue = yMax }
@@ -54,10 +62,11 @@ function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, 
         offsetEnd = 0
     }
 
-    indexes.map((element) => { conditionY[element] = yMax * 1.1 })
+    indexes.map((element) => { conditionY[element] = [timeseriesData[tag][element][0], yMax * 1.1] })
 
     let chartOptions = {
-        xAxis: { type: 'category', data: x },
+        // xAxis: { type: 'category', data: x },
+        xAxis: { type: 'time' },
         yAxis: { 
             type: 'value', 
             min: 'dataMin',
@@ -73,7 +82,7 @@ function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, 
                 name: tag,
                 symbol: 'none',
                 sampling: 'lttb',
-                data: y,
+                data: timeseriesData[tag],
                 type: 'line',
                 color: 'rgb(141, 152, 179)',
                 emphasis: { disabled: true }
@@ -88,14 +97,8 @@ function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, 
                     opacity: 0.2,
                     origin: 'start',
                     color: new graphic.LinearGradient(0, 0, 0, 1, [
-                        {
-                            offset: offsetStart,
-                            color: 'rgb(192, 80, 80)'
-                        },
-                        {
-                            offset: offsetEnd,
-                            color: 'rgb(192, 80, 80)'
-                        }
+                        { offset: offsetStart, color: 'rgb(192, 80, 80)' },
+                        { offset: offsetEnd, color: 'rgb(192, 80, 80)' }
                     ])
                 },
             }
@@ -119,10 +122,10 @@ function buildChartOptions(tag, x, timeseries, conditionOption, conditionValue, 
         const chart = eChartRef.current.getEchartsInstance()
 
         chartOptions['graphic'] = getDraggableLineConfig(
-            chart,                      // eChartInstance
-            x[0],                       // x1
-            x[x.length - 1],            // x2
-            currentConditionValue,      // y,
+            chart,                                                  // eChartInstance
+            timeseriesData[tag][0][0],                              // x1
+            timeseriesData[tag][timeseriesData[tag].length - 1][0], // x2
+            currentConditionValue,                                  // y,
             onConditionValueDragEnd
         )
     }
@@ -157,7 +160,7 @@ function getDraggableLineConfig(chart, x1, x2, y, onDragEvent) {
 // Component main entry point
 // --------------------------
 function OffTimeSelection() {
-    const { data, x } = useContext(TimeSeriesContext)
+    const { data, x, timeseriesData } = useContext(TimeSeriesContext)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { 
         selectedItems,
@@ -176,8 +179,11 @@ function OffTimeSelection() {
 
     let signalsList = [{label: 'No off time detection', value: undefined}]
     if (selectedItems.length > 0) {
-        selectedItems.forEach((signal) => {
-            signalsList.push({ label: signal['name'], value: signal['name'] })
+        let signals = []
+        selectedItems.forEach((signal) => { signals.push(signal['name']) })
+        signals.sort()
+        signals.forEach((signal) => {
+            signalsList.push({ label: signal, value: signal })
         })
     }
 
@@ -235,14 +241,14 @@ function OffTimeSelection() {
     if (selectedSignal && selectedSignal['value']) {
         chartOptions = buildChartOptions(
             selectedSignal['value'], 
-            x, 
             data.timeseries.Items,
             selectedOption,
             offConditionValue,
             eChartRef,
             onConditionValueDragEnd,
             setOfftimeMin,
-            setOfftimeMax
+            setOfftimeMax,
+            timeseriesData
         )
     }
 
@@ -268,6 +274,7 @@ function OffTimeSelection() {
                             setOffConditionValue(0.0)
                         }}
                         options={signalsList}
+                        filteringType="auto"
                     />
 
                     <Select

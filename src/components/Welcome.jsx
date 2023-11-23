@@ -1,3 +1,6 @@
+// Imports
+import { useNavigate } from 'react-router-dom'
+
 // Cloudscape components:
 import Box               from "@cloudscape-design/components/box"
 import Button            from "@cloudscape-design/components/button"
@@ -9,6 +12,8 @@ import Link              from "@cloudscape-design/components/link"
 import SpaceBetween      from "@cloudscape-design/components/space-between"
 
 function Welcome() {
+    const navigate = useNavigate()
+
     return (
         <ContentLayout header={<Header variant="h1">Welcome!</Header>}>
             <Container header={<Header variant="h2">Application overview</Header>}>
@@ -73,9 +78,15 @@ function Welcome() {
                     </Box>
 
                     <Box float="right">
-                        <Link to='/create-project'>
-                            <Button variant="primary">Load data and build your first model</Button>
-                        </Link>
+                        <Button 
+                            variant="primary" 
+                            onClick={ (e) => {
+                                e.preventDefault()
+                                navigate('/create-project')
+                            }}
+                        >
+                            Load data and build your first model
+                        </Button>
                     </Box>
 
                     <ExpandableSection headerText="Click here to learn more...">

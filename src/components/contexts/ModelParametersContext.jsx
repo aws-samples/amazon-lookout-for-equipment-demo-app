@@ -18,6 +18,7 @@ export const ModelParametersProvider = ({children}) => {
     const [ selectedSamplingRate, setSelectedSamplingRate] = useState({ label: "5 minutes", value: "PT5M" })
     const [ offtimeMin, setOfftimeMin ] = useState(undefined)
     const [ offtimeMax, setOfftimeMax ] = useState(undefined)
+    const [ tempSelectedItems, setTempSelectedItems ]   = useState([])
 
     const trainingRange = useRef(undefined)
     const evaluationRange = useRef(undefined)
@@ -31,6 +32,7 @@ export const ModelParametersProvider = ({children}) => {
     const selectedLabelGroupValue = useRef(undefined)
     const listModels = useRef([])
     const defaultModelConfig = useRef({})
+    const signalsList = useRef("")
 
     useEffect(() => {
         getModelList(gateway, uid + '-' + projectName)
@@ -60,6 +62,8 @@ export const ModelParametersProvider = ({children}) => {
             defaultModelConfig,
             offtimeMin,
             offtimeMax,
+            signalsList,
+            tempSelectedItems,
 
             setSelectedItems,
             setCurrentPageIndex,
@@ -69,7 +73,8 @@ export const ModelParametersProvider = ({children}) => {
             setOffConditionValue,
             setSelectedSamplingRate,
             setOfftimeMin,
-            setOfftimeMax
+            setOfftimeMax,
+            setTempSelectedItems
         }}>
             {children}
         </ModelParametersContext.Provider>

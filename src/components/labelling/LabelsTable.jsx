@@ -61,8 +61,8 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
 
     // Loops through all the item to build the table content:
     let tableItems = []
-    if (currentLabels && currentLabels.length > 0) {
-        currentLabels.forEach((label, index) => {
+    if (currentLabels && currentLabels.current.length > 0) {
+        currentLabels.current.forEach((label, index) => {
             const duration = new Date(label.end) - new Date(label.start)
             const durationDays = parseInt(duration / 1000 / 86400)
             const daysUnit = durationDays > 1 ? 's' : ''
@@ -81,6 +81,8 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 equipment: "Equipment"
             })
         })
+
+        redrawBrushes(eChartRef, labels)
     }
 
     let noLabelText = ""
@@ -111,7 +113,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
 
         labels.current = newLabels
         redrawBrushes(eChartRef, labels)
-        labelsTableRef.current.updateTable(labels.current)
+        labelsTableRef.current.updateTable(labels)
         setSelectedLabels([])
         if (newLabels.length == 0) {
             setUpdateButtonDisabled(true)
@@ -152,6 +154,16 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     // Add filtering and pagination to the table:
     const { items, paginationProps } = useCollection(tableItems, {pagination: { pageSize: 10 }})
 
+    let counterString = ""
+    if (tableItems.length > 0) {
+        if (selectedLabels.length > 0) {
+            counterString = `(${selectedLabels.length}/${tableItems.length}})`
+        }
+        else {
+            counterString = `(${tableItems.length})`
+        }
+    }
+
     // Render the component:
     return (
         <>
@@ -174,7 +186,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                     })
 
                     redrawBrushes(eChartRef, labels)
-                    labelsTableRef.current.updateTable(labels.current)
+                    labelsTableRef.current.updateTable(labels)
                     setShowUploadLabels(false)
                 }}
                 setLabelData={setUploadedLabelData}
@@ -200,6 +212,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                                 })}>Info</Link>
                             }
                             {...tableActions}
+                            counter={counterString}
                         >
                             Labels list
                         </Header>

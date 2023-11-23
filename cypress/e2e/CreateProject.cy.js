@@ -10,6 +10,8 @@ describe('Create a new project', () => {
 
     context('Creating a project should be successful when', () => {
         it('Submitting by uploading a valid CSV file', () => {
+            const projectName = 'Cypress-v1'
+
             cy.visit('http://127.0.0.1:5173/')
     
             // Navigate to Create Project page:
@@ -20,10 +22,10 @@ describe('Create a new project', () => {
                 expect(projectName).to.have.value('Demo-Project')
             })
             cy.get('input[name="create-project-name"]').clear()
-            cy.get('input[name="create-project-name"]').type('CypressTestUpload-v2')
+            cy.get('input[name="create-project-name"]').type(projectName)
 
             // Fills in a project description:
-            cy.get('input[name="create-project-asset-description"]').type('Cypress test asset description')
+            cy.get('input[name="create-project-asset-description"]').type('Cypress')
 
             // Selects a file to upload as a dataset:
             cy.get('input[id="create-project-file-upload"]').as('fileInput')
@@ -40,8 +42,9 @@ describe('Create a new project', () => {
 
             // Wait for the data preparation in progress to be done
             cy.get('div', { timeout: 20000 }).should('contain', 'Data preparation in progress')
-            cy.get('a').should('contain', 'CypressTestUpload-v2')
-            cy.location('pathname').should('eq', '/project-dashboard/projectName/CypressTestUpload-v2')
+            cy.get('li[class^="awsui_list-item"]').should('contain', projectName)
+            cy.get('h1[class^="awsui_heading"]').should('contain', `${projectName} overview`)
+            cy.location('pathname').should('eq', `/project-dashboard/projectName/${projectName}`)
         })
     })
 })

@@ -41,7 +41,7 @@ function getMatchesCountText(count) {
 // --------------------------
 // Component main entry point
 // --------------------------
-function SignalTable({ cols, allItems, selectedItems, changeSelectedItems }) {
+function SignalTable({ cols, allItems, selectedItems, setSelectedItems }) {
     const [ preferences, setPreferences ] = useState({
         pageSize: 10,
         contentDensity: 'compact',
@@ -89,7 +89,7 @@ function SignalTable({ cols, allItems, selectedItems, changeSelectedItems }) {
             sortingDisabled={false}
             variant="embedded"
             selectionType="single"
-            onSelectionChange={({ detail }) => { changeSelectedItems(detail.selectedItems) }}
+            onSelectionChange={({ detail }) => { setSelectedItems(detail.selectedItems) }}
             selectedItems={selectedItems}
             trackBy="SensorName"
             stickyColumns={{ first: 0 }}

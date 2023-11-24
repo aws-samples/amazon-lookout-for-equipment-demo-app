@@ -1,5 +1,5 @@
 // Imports:
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 
 // App components:
@@ -18,7 +18,6 @@ import HelpPanelContext from './contexts/HelpPanelContext'
 // =========================================================
 function SensorOverview() {
     const { projectName } = useParams()
-    const [ selectedItems, setSelectedItems ] = useState([])
     const { helpPanelOpen, setHelpPanelOpen } = useContext(HelpPanelContext)
 
     useEffect(() => {
@@ -29,10 +28,6 @@ function SensorOverview() {
         })
     }, [])
 
-    const changeSelectedItems = (newSelection) => {
-        setSelectedItems(newSelection)
-    }
-
     // ---------------------
     // Renders the component
     // ---------------------
@@ -41,8 +36,7 @@ function SensorOverview() {
             <SpaceBetween size="xl">
                 <SignalGradingTable 
                     projectName={projectName}
-                    selectedItems={selectedItems}
-                    changeSelectedItems={changeSelectedItems}
+                    setHelpPanelOpen={setHelpPanelOpen}
                 />
             </SpaceBetween>
         </ContentLayout>

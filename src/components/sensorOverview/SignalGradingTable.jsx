@@ -18,7 +18,6 @@ import Spinner      from '@cloudscape-design/components/spinner'
 
 // Contexts:
 import ApiGatewayContext from '../contexts/ApiGatewayContext'
-import HelpPanelContext from '../contexts/HelpPanelContext'
 
 // Utils:
 import { buildTableItems } from './sensorOverviewUtils'
@@ -26,14 +25,15 @@ import { buildTableItems } from './sensorOverviewUtils'
 // --------------------------
 // Main component entry point
 // --------------------------
-function SignalGradingTable({ projectName, selectedItems, changeSelectedItems }) {
+function SignalGradingTable({ projectName, setHelpPanelOpen }) {
     const [ signalDetails, setSignalDetails ] = useState(undefined)
     const [ isLoading, setIsLoading ] = useState(true)
     const [ items, setItems ] = useState(undefined)
     const [ cols, setCols ] = useState(undefined)
     const [ showUserGuide, setShowUserGuide ] = useState(true)
     const { gateway, uid, showHelp } = useContext(ApiGatewayContext)
-    const { setHelpPanelOpen } = useContext(HelpPanelContext)
+    const [ selectedItems, setSelectedItems ] = useState([])
+    const [ currentProjectName, setCurrentProjectName ] = useState(projectName)
 
     useEffect(() => {
         setIsLoading(true)
@@ -45,6 +45,11 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
             setIsLoading(false)
         })
     }, [gateway, projectName])
+
+    if (projectName !== currentProjectName) {
+        setCurrentProjectName(projectName)
+        setSelectedItems([])
+    }
 
     // The data query is done and the signal details are 
     // available from the Lookout for Equipment service:
@@ -81,7 +86,7 @@ function SignalGradingTable({ projectName, selectedItems, changeSelectedItems })
                                     <Icon name="settings" />&nbsp;
                                     of the table below:
                                 </Box>
-                                <SignalTable cols={cols} allItems={items} selectedItems={selectedItems} changeSelectedItems={changeSelectedItems} />
+                                <SignalTable cols={cols} allItems={items} selectedItems={selectedItems} setSelectedItems={setSelectedItems} />
                             </Box>
 
                             <Container>

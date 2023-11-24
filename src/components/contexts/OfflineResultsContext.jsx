@@ -105,7 +105,7 @@ export const OfflineResultsProvider = ({ children }) => {
                 setLoading(false)
             }
         })
-    }, [gateway, modelName, projectName, refreshTimer])
+    }, [modelName, projectName, refreshTimer])
 
     // --------------------------------------
     // Renders the provider and its children:

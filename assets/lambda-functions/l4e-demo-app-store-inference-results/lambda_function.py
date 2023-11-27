@@ -18,6 +18,7 @@ ddb_client = boto3.client('dynamodb')
 def lambda_handler(event, context):
     print(event)
     print('-----------------------------------------')
+    
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
     modelName = key.split('/')[1]
@@ -61,10 +62,22 @@ def lambda_handler(event, context):
             print('No diagnostics data to process')
 
     # Processing input file:
-    timestamp = key.split('/')[-2][:-1].replace('-', '').replace(':', '').replace('T', '')
-    inferenceInputKey = '/'.join(key.split('/')[0:2]) + f'/input/{projectName[9:]}-{timestamp}.csv'
+    response = l4e_client.describe_inference_scheduler(InferenceSchedulerName=modelName + '-scheduler')
+    timestampFormat = response['DataInputConfiguration']['InferenceInputNameConfiguration']['TimestampFormat']
+    componentTimestampDelimiter = response['DataInputConfiguration']['InferenceInputNameConfiguration']['ComponentTimestampDelimiter']
+    
+    if timestampFormat == 'yyyyMMddHHmmss':
+        timestamp = key.split('/')[-2][:-1].replace('-', '').replace(':', '').replace('T', '')
+    elif timestampFormat == 'yyyy-MM-dd-HH-mm-ss':
+        timestamp = key.split('/')[-2][:-1].replace(':', '-').replace('T', '-')
+    elif timestampFormat == 'epoch':
+        timestamp = key.split('/')[-2][:-1].replace('T', ' ')
+        timestamp = (pd.to_datetime(timestamp) - pd.Timestamp('1970-01-01')) // pd.Timedelta('1s')
+        
+    inferenceInputKey = '/'.join(key.split('/')[0:2]) + f'/input/{projectName[9:]}{componentTimestampDelimiter}{timestamp}.csv'
+    print(inferenceInputKey)
     storeInput(bucket, inferenceInputKey, projectName)
-
+    
     return {
         'statusCode': 200,
         'bucket': bucket,

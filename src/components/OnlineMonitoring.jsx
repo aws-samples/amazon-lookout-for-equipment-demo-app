@@ -85,7 +85,23 @@ function OnlineMonitoring() {
         })}>Info</Link>
     )
 
-    let tabsDefinition = undefined
+    let tabsDefinition = [
+        {
+            label: "Condition overview",
+            id: "conditionOverview",
+            content: <Container header={<Header 
+                variant="h2" 
+                description="The following widget shows the time your asset or process spent in 
+                            an anomalous state. Note that this only take into account the time 
+                            when the inference scheduler is running."
+            >
+                Condition overview
+            </Header>}>
+                <ConditionOverview range={range} modelName={modelName} projectName={projectName} height={300} />
+            </Container>
+        }
+    ]
+
     if (liveResults) {
         tabsDefinition = [
             {
@@ -160,26 +176,26 @@ function OnlineMonitoring() {
                     results back into an output location on Amazon S3.
                 </Container>
 
-                { tabsDefinition && <>
-                    <Container header={
-                        <Header 
-                            variant="h2" 
-                            description="Change the period below to update the widgets accordingly"
-                        >
-                            Visualization range
-                        </Header>
-                    }>
-                        <Tiles
-                            onChange={({ detail }) => setRange(detail.value)}
-                            value={range}
-                            items={[
-                                { value: "1", label: "Last 24 hours" },
-                                { value: "7", label: "Last 7 days" },
-                                { value: "30", label: "Last 30 days" }
-                            ]}
-                        />
-                    </Container>
+                <Container header={
+                    <Header 
+                        variant="h2" 
+                        description="Change the period below to update the widgets accordingly"
+                    >
+                        Visualization range
+                    </Header>
+                }>
+                    <Tiles
+                        onChange={({ detail }) => setRange(detail.value)}
+                        value={range}
+                        items={[
+                            { value: "1", label: "Last 24 hours" },
+                            { value: "7", label: "Last 7 days" },
+                            { value: "30", label: "Last 30 days" }
+                        ]}
+                    />
+                </Container>
 
+                { tabsDefinition && <>
                     <OnlineMonitoringProvider range={range}>
                         <Tabs
                             tabs={tabsDefinition}

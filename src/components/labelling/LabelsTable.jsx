@@ -31,13 +31,13 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
     const [ uploadedLabelData, setUploadedLabelData ] = useState(undefined)
     const { setHelpPanelOpen } = useContext(HelpPanelContext)
     const { setUpdateButtonDisabled } = useContext(LabelingContext)
+    const [ counter, setCounter ] = useState(0)
 
     const noLabelDefined = props.noLabelDefined
     const labels         = props.labels
     const storedRanges   = props.storedRanges
     const redrawBrushes  = props.redrawBrushes
     const eChartRef      = props.eChartRef
-    const labelsTableRef = props.labelsTableRef
     const readOnly       = props.readOnly
 
     // This function will allow the parent component (MultivariateTimeSeriesChart)
@@ -53,9 +53,11 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                 else {
                     setUpdateButtonDisabled(true)
                 }
+
+                setCounter(counter + 1)
             }
         };
-    }, [])
+    }, [counter])
 
     // Loops through all the item to build the table content:
     let tableItems = []
@@ -111,7 +113,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
 
         labels.current = newLabels
         redrawBrushes(eChartRef, labels)
-        labelsTableRef.current.updateTable(labels)
+        ref.current.updateTable(labels)
         setSelectedLabels([])
         if (newLabels.length == 0) {
             setUpdateButtonDisabled(true)
@@ -201,7 +203,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
                     })
 
                     redrawBrushes(eChartRef, labels)
-                    labelsTableRef.current.updateTable(labels)
+                    ref.current.updateTable(labels)
                     setShowUploadLabels(false)
                 }}
                 setLabelData={setUploadedLabelData}

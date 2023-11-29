@@ -116,7 +116,7 @@ export function onBrushEndEvent(e, labels, labelsTableRef, storedRanges, eChartR
     })
 
     labels.current = currentRanges
-    labelsTableRef.current.updateTable(labels.current)
+    labelsTableRef.current.updateTable(labels)
 
     // If a refresh is necessary, we trigger it:
     if (refreshAreas && eChartRef) {

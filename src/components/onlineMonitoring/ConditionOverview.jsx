@@ -47,8 +47,10 @@ function ConditionOverview({ range, modelName, projectName, height }) {
     else {
         return (
             <Alert type="warning">
-                No live data collected yet. This model may have not been running for long enough.
-                Refresh this screen in a few minute to visualize your asset health.
+                No live data available. If this model was recently deployed, it may have not been running for long enough.
+                Refresh this screen in a few minute to visualize your asset health. This model may also have not received
+                any new data to analyze in the past {range} day{range > 1 ? 's' : ''}. In this case, check that your live
+                data pipeline is still running correctly.
             </Alert>
         )
     }

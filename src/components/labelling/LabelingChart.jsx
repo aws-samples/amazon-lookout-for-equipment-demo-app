@@ -41,7 +41,7 @@ function LabelingChart({ chartLabel, chartDescription, componentHeight, redrawBr
                             onClear(e, eChartRef, labels, storedRanges)
                             if (e['command'] && e['command'] === 'clear') {
                                 if (labelsTableRef && labelsTableRef.current) {
-                                    labelsTableRef.current.updateTable([])
+                                    labelsTableRef.current.updateTable(labels)
                                 }
                             }
                         }, [labels])

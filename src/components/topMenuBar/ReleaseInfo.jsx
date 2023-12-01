@@ -14,8 +14,6 @@ import TextContent   from "@cloudscape-design/components/text-content"
 // Components used to configure the application
 // --------------------------------------------
 function ReleaseInfo({ visible, onDiscard, publicationDate, releaseInfo, latestVersion }) {
-    const markdown = '# Hi, *Pluto*!'
-
     // Renders the modal window for the settings components:
     return (
         <Modal 

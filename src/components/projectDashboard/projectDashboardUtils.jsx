@@ -1,5 +1,6 @@
 import { getModelsSummary} from '../modelDeployment/deploymentUtils'
 import { getAllProjects, getAllExecutionId } from '../../utils/utils'
+import Box from "@cloudscape-design/components/box"
 
 // ------------------------------------------------------------
 // Get details about the project to build the dashboard summary
@@ -303,4 +304,63 @@ export function getClosestSamplingRate(samplingRate) {
     }
 
     return calculatedSR
+}
+
+// -------------------------------------------
+// Builds the columns definition for the table
+// -------------------------------------------
+export function buildColumnsDefinition(tagsList) {
+    let columns = [
+        {id: 'timestamp', header: 'timestamp', cell: e => e.timestamp},
+    ]
+
+    tagsList.forEach((item) => {
+        columns.push({
+            id: item,
+            cell: e => (<Box float="right">{e[item] !== '...' ? parseFloat(e[item]).toFixed(2) : '...'}</Box>),
+            header: item
+        })
+    })
+
+    return columns
+}
+
+// ------------------------
+// Builds the table content
+// ------------------------
+export function buildTableItems(modelDetails) {
+    let tableItems = []
+
+    // Reformat the actual content for the table starting with the header:
+    modelDetails.contentHead.Items.forEach((item) => {
+        let current_item = {}
+
+        current_item['timestamp'] = <b>{item['timestamp'].S}</b>
+        modelDetails.attributeList.forEach((column) => {
+            current_item[column] = item[column]['S']
+        })
+
+        tableItems.push(current_item)
+    })
+
+    // Adding an ellipsis between header and tail:
+    let current_item = {}
+    modelDetails.attributeList.forEach((column) => {
+        current_item[column] = '...'
+    })
+    tableItems.push(current_item)
+
+    // Adding the dataset tail:
+    modelDetails.contentTail.Items.toReversed().forEach((item) => {
+        let current_item = {}
+
+        current_item['timestamp'] = <b>{item['timestamp'].S}</b>
+        modelDetails.attributeList.forEach((column) => {
+            current_item[column] = item[column]['S']
+        })
+
+        tableItems.push(current_item)
+    })
+
+    return tableItems
 }

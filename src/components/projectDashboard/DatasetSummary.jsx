@@ -17,7 +17,6 @@ import SpaceBetween      from "@cloudscape-design/components/space-between"
 // App components:
 import DatasetOverview from './DatasetOverview'
 import DeleteProjectModal from './DeleteProjectModal'
-// import ParallelReadTest from './ParallelReadTest'
 
 // Contexts:
 import HelpPanelContext from '../contexts/HelpPanelContext'

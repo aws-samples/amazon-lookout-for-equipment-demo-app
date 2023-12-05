@@ -18,8 +18,8 @@ import ApiGatewayContext from '../contexts/ApiGatewayContext.jsx'
 import HelpPanelContext from '../contexts/HelpPanelContext'
 
 // Utils:
-import { getHumanReadableSize, checkProjectNameAvailability, waitForPipelineStart } from '../../utils/utils.js'
-import { checkAssetDescriptionValidity } from './createProjectUtils.js'
+import { getHumanReadableSize, waitForPipelineStart } from '../../utils/utils.js'
+import { checkProjectNameValidity, checkAssetDescriptionValidity } from './createProjectUtils.js'
 
 // --------------------------
 // Component main entry point
@@ -114,23 +114,17 @@ const CSVUpload = forwardRef(function CSVUpload(props, ref) {
     // ------------------------------------------------------------
     useImperativeHandle(ref, () => ({
         async processCsvUpload () {
-            let currentError = ""
-    
             // Error checking:
-            if (projectName.length <= 2) {
-                currentError = 'Project name must be at least 3 characters long'
-            }
-            else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(projectName)) {
-                currentError = 'Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
-            }
-            else if (dataset.length < 1) {
-                currentError = 'You must select a file to upload'
-            }
-            else if (!await checkProjectNameAvailability(projectName, gateway, uid)) {
-                currentError = 'Project name not available'
+            let currentError = ""
+            let { error, errorMessage } = await checkProjectNameValidity(projectName, undefined, gateway, uid)
+            if (error) {
+                currentError = errorMessage
             }
             else if (checkAssetDescriptionValidity(assetDescription, setAssetError)) {
                 currentError = 'Asset / process description is invalid'
+            }
+            else if (dataset.length < 1) {
+                currentError = 'You must select a file to upload'
             }
     
             if (currentError === "") {

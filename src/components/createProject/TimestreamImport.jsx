@@ -18,158 +18,17 @@ import Textarea     from "@cloudscape-design/components/textarea"
 import ApiGatewayContext from '../contexts/ApiGatewayContext.jsx'
 
 // Utils:
-import { getUTCDate, waitForPipelineStart, checkProjectNameAvailability } from '../../utils/utils.js'
-import { checkAssetDescriptionValidity } from './createProjectUtils.js'
-
-// -----------------------------------------------------------------
-// Extracts all the Timestream databases available from this account
-// -----------------------------------------------------------------
-async function getAllDatabases(gateway) {
-    const response = await gateway.timestream
-                                  .listDatabases()
-                                  .catch((error) => console.log(error))
-
-    let databasesList = [{'label': 'Select a database', value: undefined}]
-    if (response['Databases'].length > 0) {
-        response['Databases'].forEach((database) => {
-            databasesList.push({
-                'label': database['DatabaseName'],
-                'value': database['DatabaseName']
-            })
-        })
-    }
-
-    return databasesList
-}
-
-// ------------------------------------------------------------------
-// Extracts all the Timestream tables linked to the selected database
-// ------------------------------------------------------------------
-async function getAllTables(gateway, databaseName) {
-    const response = await gateway.timestream
-                                  .listTables(databaseName)
-                                  .catch((error) => console.log(error))
-
-    let tablesList = [{'label': 'Select a table', value: undefined}]
-    if (response['Tables'].length > 0) {
-        response['Tables'].forEach((table) => {
-            tablesList.push({
-                'label': table['TableName'] + ` (${table['TableStatus']})`,
-                'value': table['TableName']
-            })
-        })
-    }
-
-    return tablesList
-}
-
-// -----------------------
-// Gets all the table info
-// -----------------------
-async function getTableInfos(gateway, databaseName, tableName) {
-    let query = `DESCRIBE "${databaseName}"."${tableName}"`
-    let response = await gateway.timestream
-                                  .query(query)
-                                  .catch((error) => console.log(error))
-
-    let sensorsList = []
-    let dimensionsList = []
-    let timestampCol = ""
-
-    if (response.Rows.length > 0) {
-        response.Rows.forEach((row) => {
-            if (row.Data[2].ScalarValue === 'DIMENSION') {
-                dimensionsList.push(row.Data[0].ScalarValue)
-            }
-            if (row.Data[2].ScalarValue === 'TIMESTAMP') {
-                timestampCol = row.Data[0].ScalarValue
-            }
-        })
-    }
-    query = `SHOW MEASURES FROM "${databaseName}"."${tableName}"`
-    response = await gateway.timestream
-                            .query(query)
-                            .catch((error) => console.log(error))
-
-    if (response.Rows.length > 0) {
-        response.Rows.forEach((row) => {
-            sensorsList.push(row.Data[0].ScalarValue)
-        })
-    }
-    
-    return { 
-        sensorsList: sensorsList,
-        dimensionsList: dimensionsList,
-        timestampCol: timestampCol
-    }
-}
-
-// --------------------------------------------------------
-// Gets all the IDs corresponding to the selected dimension
-// --------------------------------------------------------
-async function getAllDimensionItems(gateway, databaseName, tableName, dimension) {
-    const query = `SELECT DISTINCT "${dimension}" FROM "${databaseName}"."${tableName}"`
-    const response = await gateway.timestream
-                                  .query(query)
-                                  .catch((error) => console.log(error))
-
-    let assetsList = []
-    if (response.Rows && response.Rows.length > 0) {
-        response.Rows.forEach((row) => {
-            assetsList.push({label: row.Data[0].ScalarValue, value: row.Data[0].ScalarValue})
-        })
-    }
-
-    return assetsList
-}
-
-// --------------------------------------------------------
-// Get the extent of the sensor data for the selected asset
-// --------------------------------------------------------
-async function getTimeRange(gateway, databaseName, tableName, dimensionName, asset, timestampCol) {
-    const query = `SELECT MIN(${timestampCol}) AS startDate, MAX(${timestampCol}) AS endDate 
-                   FROM "${databaseName}"."${tableName}" 
-                   WHERE "${dimensionName}"='${asset}'`
-    const response = await gateway.timestream
-                                  .query(query)
-                                  .catch((error) => console.log(error))
-
-    let startDate = undefined
-    let endDate = undefined
-    if (response.Rows && response.Rows.length > 0) {
-        startDate = getUTCDate(response.Rows[0].Data[0].ScalarValue)
-        endDate = getUTCDate(response.Rows[0].Data[1].ScalarValue)
-    }
-
-    return { startDate, endDate }
-}
-
-// -----------------------------------------------------------
-// Calculate the sampling rate by counting the number of
-// datapoints recorded for this asset and using the time range
-// -----------------------------------------------------------
-async function getSamplingRate(gateway, databaseName, tableName, dimensionName, asset, startTime, endTime) {
-    let signalSamplingRate = {}
-    const query = `SELECT "measure_name", COUNT(*) 
-                   FROM "${databaseName}"."${tableName}"
-                   WHERE "${dimensionName}"='${asset}'
-                   GROUP BY "measure_name"`
-    const response = await gateway.timestream
-                                  .query(query)
-                                  .catch((error) => console.log(error))
-
-    if (response.Rows && response.Rows.length > 0) {
-        response.Rows.forEach((row) => {
-            if (row.Data[1].ScalarValue > 0) {
-                signalSamplingRate[row.Data[0].ScalarValue] = Math.round((endTime - startTime) / row.Data[1].ScalarValue / 1000)
-            }
-            else {
-                signalSamplingRate[row.Data[0].ScalarValue] = 'n/a'
-            }
-        })
-    }
-    return signalSamplingRate
-}
+import { waitForPipelineStart } from '../../utils/utils.js'
+import { 
+    checkProjectNameValidity, 
+    checkAssetDescriptionValidity,
+    getAllDatabases,
+    getAllTables,
+    getTableInfos,
+    getAllDimensionItems,
+    getTimeRange,
+    getSamplingRate
+} from './createProjectUtils.js'
 
 // --------------------------
 // Component main entry point
@@ -180,9 +39,8 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
     const assetDescription    = props.assetDescription
     const setUploadInProgress = props.setUploadInProgress
     const setErrorMessage     = props.setErrorMessage
+    const errorMessage        = props.errorMessage
     const setAssetError       = props.setAssetError
-
-    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
 
     const [ identityId, setIdentityId ]                 = useState("")
     const [ databasesList, setDatabasesList ]           = useState(undefined)
@@ -198,13 +56,17 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
     const [ timestamp, setTimestamp ]                   = useState(undefined)
     const [ exportStartDate, setExportStartDate ]       = useState(undefined)
     const [ exportEndDate, setExportEndDate ]           = useState(undefined)
+    const [ minStartDate, setMinStartDate ]             = useState(undefined)
+    const [ maxEndDate, setMaxEndDate ]                 = useState(undefined)
     const [ signalSamplingRate, setSignalSamplingRate ] = useState(undefined)
     const [ unloadSamplingRate, setUnloadSamplingRate ] = useState(undefined)
     const [ assetLoading, setAssetLoading ]             = useState("")
     const [ showFlashbar, setShowFlashbar ]             = useState(false)
 
+    const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
 
+    // Collect user credentials
     useEffect(() => {
         Auth.currentUserCredentials()
         .then((credentials) => setIdentityId(credentials.identityId))
@@ -215,24 +77,30 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
         async processTimestreamImport() {
             let currentError = ""
             let timestreamConnectionDefined = database && table && dimension && 
-                                              sensors && asset && unloadSamplingRate && 
-                                              exportStartDate && exportEndDate
+                                              sensors && asset && unloadSamplingRate
     
             // Error checking:
-            if (projectName.length <= 2) {
-                currentError = 'Project name must be at least 3 characters long'
+            let { error, errorMessage } = await checkProjectNameValidity(projectName, undefined, gateway, uid)
+            if (error) {
+                currentError = errorMessage
             }
-            else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(projectName)) {
-                currentError = 'Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
+            else if (checkAssetDescriptionValidity(assetDescription, setAssetError)) {
+                currentError = 'Asset / process description is invalid'
             }
             else if (!timestreamConnectionDefined) {
                 currentError = 'Timestream connection is not fully configured'
             }
-            else if (!await checkProjectNameAvailability(projectName, gateway, uid)) {
-                currentError = 'Project name not available'
+            else if (sensors.length == 0) {
+                currentError = 'You must selected at least one measurement'
             }
-            else if (checkAssetDescriptionValidity(assetDescription, setAssetError)) {
-                currentError = 'Asset / process description is invalid'
+            else if (!(exportStartDate && exportEndDate)) {
+                currentError = 'You must select a time range to export'
+            }
+            else if (exportStartDate < minStartDate || exportStartDate > maxEndDate) {
+                currentError = `Your export start date must be between ${minStartDate} and ${maxEndDate}`
+            }
+            else if (exportEndDate < minStartDate || exportEndDate > maxEndDate) {
+                currentError = `Your export end date must be between ${minStartDate} and ${maxEndDate}`
             }
 
             if (currentError === "") {
@@ -325,7 +193,7 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
                 {/* ------------------
                     Database selection
                     ------------------ */}
-                <FormField 
+                { databasesList.length > 0 && <FormField 
                     label="Select a Timestream database"
                     description={(<>
                                     To use this importing method, you will need to have your equipment or process data stored in 
@@ -343,12 +211,16 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
                         options={databasesList}
                         placeholder="Select a database"
                     />
-                </FormField>
+                </FormField> }
+
+                { databasesList.length == 0 && <Alert type="warning">
+                    No Timestream database found.
+                </Alert> }
 
                 {/* ----------------------------------------------------------------------
                     Once the database is selected, we let the user selects the right table
                     ---------------------------------------------------------------------- */}
-                { tablesList && <FormField label="Select a Timestream table">
+                { tablesList && tablesList.length > 0 && <FormField label="Select a Timestream table">
                     <Select 
                         selectedOption={table}
                         onChange={async ({ detail }) => { 
@@ -373,6 +245,10 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
                         placeholder="Select a table"
                     />
                 </FormField> }
+
+                { tablesList && tablesList.length == 0 && <Alert type="warning">
+                    No Timestream table found in this database.
+                </Alert> }
 
                 {/* -----------------------------------------------------------------
                     When the table is selected, the user needs to point the dimension
@@ -410,7 +286,9 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
 
                             const { startDate, endDate } = await getTimeRange(gateway, database.value, table.value, dimension.value, detail.selectedOption.value, timestamp)
                             setExportStartDate(startDate.toISOString().slice(0, 10))
+                            setMinStartDate(startDate.toISOString().slice(0, 10))
                             setExportEndDate(endDate.toISOString().slice(0, 10))
+                            setMaxEndDate(endDate.toISOString().slice(0, 10))
 
                             const samplingRates = await getSamplingRate(gateway, database.value, table.value, dimension.value, detail.selectedOption.value, startDate.getTime(), endDate.getTime())
                             setSignalSamplingRate(samplingRates)
@@ -424,11 +302,11 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
                 </FormField> }
 
                 { dimension && tagsOptions && asset && <>
-                    { exportStartDate && <SpaceBetween size="xl">
+                    { exportStartDate !== undefined && <SpaceBetween size="xl">
                         <FormField 
                             label="Time range" 
-                            description={(<>The available data for this asset (<b>{asset.value}</b>) ranges from <b>{exportStartDate}</b>&nbsp;
-                                          to <b>{exportEndDate}</b>. Select the range you would like to export:</>)}
+                            description={(<>The available data for this asset (<b>{asset.value}</b>) ranges from <b>{minStartDate}</b>&nbsp;
+                                          to <b>{maxEndDate}</b>. Select the range you would like to export:</>)}
                         >
                             <SpaceBetween size="l" direction="horizontal">
                                 <FormField label="From:">
@@ -436,6 +314,7 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
                                         onChange={({ detail }) => setExportStartDate(detail.value)}
                                         value={exportStartDate}
                                         placeholder="YYYY-MM-DD"
+                                        invalid={errorMessage && (!exportStartDate || exportStartDate < minStartDate || exportStartDate > maxEndDate)}
                                     />
                                 </FormField>
                                 <FormField label="To:">
@@ -443,6 +322,7 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
                                         onChange={({ detail }) => setExportEndDate(detail.value)}
                                         value={exportEndDate}
                                         placeholder="YYYY-MM-DD"
+                                        invalid={errorMessage && (!exportEndDate || exportEndDate < minStartDate || exportEndDate > maxEndDate)}
                                     />
                                 </FormField>
                             </SpaceBetween>
@@ -463,6 +343,7 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
                                     virtualScroll={true}
                                     hideTokens={true}
                                     filteringType="auto"
+                                    invalid={errorMessage && sensors.length == 0}
                                 />
                             </FormField>
 
@@ -499,7 +380,7 @@ const TimestreamImport = forwardRef(function TimestreamImport(props, ref) {
                         </SpaceBetween> }
                     </SpaceBetween> }
 
-                    { !exportStartDate && <Spinner /> }
+                    { exportStartDate === undefined && <Spinner /> }
                 </> }
 
                 { showFlashbar && <Flashbar items={[{

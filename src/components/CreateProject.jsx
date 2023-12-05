@@ -120,9 +120,9 @@ function CreateProject() {
                                         </Box>
                                         <Input
                                             onChange={({detail}) => {
-                                                const checkError = checkProjectNameValidity(detail.value, setProjectNameError, gateway, uid)
+                                                const { error } = checkProjectNameValidity(detail.value, setProjectNameError, gateway, uid)
                                                 setProjectName(detail.value)
-                                                if (!checkError) { setErrorMessage("") }
+                                                if (!error) { setErrorMessage("") }
                                             }}
                                             autoFocus={true}
                                             name="create-project-name"
@@ -219,6 +219,7 @@ function CreateProject() {
                                     setUploadInProgress={setUploadInProgress}
                                     setAssetError={setAssetError}
                                     setErrorMessage={setErrorMessage}
+                                    errorMessage={errorMessage}
                                     assetDescription={assetDescription}
                                     projectName={projectName}
                                 /> }

@@ -17,9 +17,12 @@ import ApiGatewayContext from '../contexts/ApiGatewayContext.jsx'
 
 // Utils:
 import { getListBuckets, getListObjects, copyCsvFromS3 } from "../../utils/api.js"
-import { waitForPipelineStart, checkProjectNameAvailability } from '../../utils/utils.js'
-import { checkAssetDescriptionValidity } from './createProjectUtils.js'
+import { waitForPipelineStart } from '../../utils/utils.js'
+import { checkProjectNameValidity, checkAssetDescriptionValidity } from './createProjectUtils.js'
 
+// --------------------------
+// Component main entry point
+// --------------------------
 const CSVFromS3 = forwardRef(function CSVFromS3(props, ref) {
     // Component state definition:
     const projectName         = props.projectName
@@ -39,6 +42,7 @@ const CSVFromS3 = forwardRef(function CSVFromS3(props, ref) {
     const { gateway, uid, navbarCounter, setNavbarCounter } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
 
+    // Collect user credentials
     useEffect(() => {
         Auth.currentUserCredentials()
         .then((credentials) => setIdentityId(credentials.identityId))
@@ -53,33 +57,35 @@ const CSVFromS3 = forwardRef(function CSVFromS3(props, ref) {
     // ------------------------------------------------------------
     useImperativeHandle(ref, () => ({
         async processCsvFromS3() {
-            let currentError = ""
-
             // Error checking:
-            if (projectName.length <= 2) {
-                currentError = 'Project name must be at least 3 characters long'
-            }
-            else if (! /^([a-zA-Z0-9_\-]{1,170})$/.test(projectName)) {
-                currentError = 'Project name can have up to 170 characters. Valid characters are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)'
-            }
-            else if (s3Resource.uri === "") {
-                currentError = 'No S3 resource selected'
-            }
-            else if (!await checkProjectNameAvailability(projectName, gateway, uid)) {
-                currentError = 'Project name not available'
+            let currentError = ""
+            let { error, errorMessage } = await checkProjectNameValidity(projectName, undefined, gateway, uid)
+            if (error) {
+                currentError = errorMessage
             }
             else if (checkAssetDescriptionValidity(assetDescription, setAssetError)) {
                 currentError = 'Asset / process description is invalid'
             }
+            else if (s3Resource.uri === "") {
+                currentError = 'No S3 resource selected'
+            }
+            else if (! /^(s3:\/\/([^/]+)\/(.*?([^\/]+)\/?))$/.test(s3Resource.uri)) {
+                currentError = 'Invalid S3 path'
+            }
             else if (permissionCreationMethod == 'iam-arn' && !IAMRoleArn) {
                 currentError = 'No IAM role ARN given'
             }
+            else if (permissionCreationMethod == 'iam-arn' && ! /^(arn:aws:iam::(\d{12}):role\/([A-z0-9\-\+\.=@,_]+?))$/.test(IAMRoleArn)) {
+                currentError = 'Invalid IAM Arn'
+            }
 
+            // No error detected, we can proceed with the project creation:
             if (currentError === "") {
                 setErrorMessage("")
                 setUploadInProgress(true)
                 setShowFlashbar(true)
 
+                // Copy from S3 parameters:
                 const sourceBucket = s3Resource.uri.split('/')[2]
                 let sourcePrefix = s3Resource.uri.split('/')
                 sourcePrefix = sourcePrefix.slice(3, sourcePrefix.length).join('/')
@@ -108,12 +114,18 @@ const CSVFromS3 = forwardRef(function CSVFromS3(props, ref) {
                 // Redirects to the dashboard for the new project:
                 navigate(`/project-dashboard/projectName/${projectName}`)
             }
+
+            // An error is detected, we display the 
+            // corresponding message back to the user:
             else {
                 setErrorMessage(currentError)
             }
         }
     }))
 
+    // ---------
+    // Rendering
+    // ---------
     return (
         <SpaceBetween size="xl">
             <S3ResourceSelector

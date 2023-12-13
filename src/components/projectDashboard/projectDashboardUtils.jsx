@@ -81,8 +81,13 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                 } = await getProjectInfos(gateway, uid, projectName)
                     .catch(() => { fetchError = true })
 
-                let response = await gateway.stepFunctions.describeExecution(ingestionPipelineId)
-                if (response.status === 'FAILED') {
+                let response = undefined
+
+                response = await gateway.stepFunctions
+                                        .describeExecution(ingestionPipelineId)
+                                        .catch((error) => console.log(error.response))
+
+                if (response && response.status === 'FAILED') {
                     fetchError = true
                     errorMessage = response['cause'] + '. Delete this project and try again once this problem is addressed.'
                 }
@@ -95,30 +100,30 @@ export const getProjectDetails = async (gateway, uid, projectName) => {
                                                 .describeDataset(`l4e-demo-app-${uid}-${projectName}`)
                                                 .catch(() => { fetchError = true })
                     datasetStatus = response['Status']
-                }
 
-                // If the dataset is active, it means an ingestion was successful:
-                response = await gateway.lookoutEquipment
-                                        .listDataIngestionJobs(`l4e-demo-app-${uid}-${projectName}`)
-                                        .catch((error) => { 
-                                            fetchError = true 
-                                            if (error.response.data.__type === 'com.amazonaws.thorbrain#ServiceQuotaExceededException') {
-                                                errorMessage = `Limit exceeded for "max number pending data ingestion". Please contact
-                                                                your administrator to request a limit increase for this account.`
-                                            }
-                                            else {
-                                                errorMessage = error.response.data.Message
-                                            }
-                                        })
+                    // If the dataset is active, it means an ingestion was successful:
+                    if (datasetStatus != 'ACTIVE') {
+                        response = await gateway.lookoutEquipment
+                                                .listDataIngestionJobs(`l4e-demo-app-${uid}-${projectName}`)
+                                                .catch((error) => { 
+                                                    fetchError = true 
+                                                    if (error.response.data.__type === 'com.amazonaws.thorbrain#ServiceQuotaExceededException') {
+                                                        errorMessage = `Limit exceeded for "max number pending data ingestion". Please contact
+                                                                        your administrator to request a limit increase for this account.`
+                                                    }
+                                                    else {
+                                                        errorMessage = error.response.data.Message
+                                                    }
+                                                })
 
-                if (!fetchError) {
-                    if (response['DataIngestionJobSummaries'].length > 0) {
-                        ingestionStatus = response['DataIngestionJobSummaries'][0]['Status']
+                        if (!fetchError) {
+                            if (response['DataIngestionJobSummaries'].length > 0) {
+                                ingestionStatus = response['DataIngestionJobSummaries'][0]['Status']
+                            }
+                        }
                     }
                     else {
-                        fetchError = true
-                        errorMessage = `Limit exceeded for "max number pending data ingestion". Please contact
-                                        your administrator to request a limit increase for this account.`
+                        ingestionStatus = 'SUCCESS'
                     }
                 }
 

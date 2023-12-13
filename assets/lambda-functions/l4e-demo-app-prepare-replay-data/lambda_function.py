@@ -63,7 +63,7 @@ def lambda_handler(event, context):
         tagsList = getTagsList(response)
         
         df, timestampCol, bucket = getDataframe(projectName)
-        df = df.loc[replayStartTime:replayEndTime, tagsList].resample(samplingRate).mean().ffill()
+        df = df.loc[replayStartTime:replayEndTime, tagsList].resample(samplingRate).mean().ffill().fillna(value=0.0)
         targetBucket = s3.Bucket(bucket)
     
         start = datetime.datetime.now()

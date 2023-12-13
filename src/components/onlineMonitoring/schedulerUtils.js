@@ -812,6 +812,7 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
         {
             name: 'Training',
             type: 'bar',
+            barGap: '-100%',
             barWidth: 8,
             xAxisIndex: 0,
             yAxisIndex: 0,
@@ -821,6 +822,7 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
         {
             name: 'Live data',
             type: 'bar',
+            barGap: '-100%',
             barWidth: 8,
             xAxisIndex: 0,
             yAxisIndex: 0,
@@ -833,6 +835,7 @@ function getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
         series.push({
             name: 'Detected events',
             type: 'bar',
+            barGap: '-100%',
             barWidth: 8,
             xAxisIndex: 0,
             yAxisIndex: 0,

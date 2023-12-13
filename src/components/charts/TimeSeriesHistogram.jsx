@@ -45,6 +45,7 @@ function TimeSeriesHistograms({
         let series = [{
             name: selectedTitle ? selectedTitle : 'Values distribution',
             type: 'bar',
+            barGap: '-100%',
             barWidth: 8,
             data: bins.data,
         }]
@@ -55,6 +56,7 @@ function TimeSeriesHistograms({
             series.push({
                 name: unselectedTitle ? unselectedTitle : 'Selected values distribution',
                 type: 'bar',
+                barGap: '-100%',
                 barWidth: 8,
                 data: selectedBins ? selectedBins.data : [],
             })

@@ -63,7 +63,7 @@ const LabelsTable = forwardRef(function LabelsTable(props, ref) {
 
     // Loops through all the item to build the table content:
     let tableItems = []
-    if (currentLabels && currentLabels.current.length > 0) {
+    if (currentLabels && currentLabels.current && currentLabels.current.length > 0) {
         currentLabels.current.forEach((label, index) => {
             const duration = new Date(label.end) - new Date(label.start)
             const durationDays = parseInt(duration / 1000 / 86400)

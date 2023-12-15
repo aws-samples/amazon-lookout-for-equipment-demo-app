@@ -36,7 +36,7 @@ def lambda_handler(event, context):
         endTime,
         samplingRate
     )
-    
+
     # Daily rate:
     df = anomaliesDataframe.copy()
     currentDay = df.reset_index()['index'].dt.strftime('%Y-%m-%d')

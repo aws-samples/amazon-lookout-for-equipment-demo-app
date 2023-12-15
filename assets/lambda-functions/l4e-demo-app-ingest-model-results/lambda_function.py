@@ -47,12 +47,18 @@ def lambda_handler(event, context):
                 }
             } for r in currentRows]
             
-            # And write this batch:
-            ddb_client.batch_write_item(
+            # And write this batch until there are no more unprocessed items:
+            response = ddb_client.batch_write_item(
                 RequestItems={
                     table: putRequests
                 }
             )
+            while (len(response['UnprocessedItems']) > 0):
+                response = ddb_client.batch_write_item(
+                    RequestItems={
+                        table: response['UnprocessedItems'][table]
+                    }
+                )
             
         # In case of exception, we print some context and issue the error:
         except Exception as e:

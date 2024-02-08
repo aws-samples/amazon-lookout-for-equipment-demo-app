@@ -152,7 +152,7 @@ export function buildChartOptions(
 // ---------------------------------------------------------------------
 // Build a fake signal to help visualize the training / evaluation range
 // ---------------------------------------------------------------------
-function getTrainingMarkAreaSeries(axis, evaluationStart) {
+export function getTrainingMarkAreaSeries(axis, evaluationStart) {
     const markAreaSeries = {
         name: 'Training range',
         symbol: 'none',
@@ -163,7 +163,7 @@ function getTrainingMarkAreaSeries(axis, evaluationStart) {
         yAxisIndex: axis,
         markArea: {
             itemStyle: { 
-                color: 'rgb(151, 181, 82, 0.15)',
+                color: 'rgb(151, 181, 82, 0.10)',
                 borderColor: 'rgb(151, 181, 82, 0.8)',
                 borderWidth: 1.0,
                 borderType: 'dashed'
@@ -270,7 +270,7 @@ function getOfftimeMarkAreaSeries(axis, offTimeRanges) {
 // --------------------------------------------------
 // Build the eChart series for the detected anomalies
 // --------------------------------------------------
-function buildAnomaliesSeries(anomalies) {
+export function buildAnomaliesSeries(anomalies) {
     const results = buildTimeseries2(anomalies, 'anomaly', 'S')
 
     const series = {
@@ -425,7 +425,7 @@ function buildSignalSeries(timeseries, sortedTags) {
 // --------------------------------------
 // Build the eChart series for the labels
 // --------------------------------------
-function buildLabelSeries(modelDetails) {
+export function buildLabelSeries(modelDetails) {
     const possibleSamplingRate = {
         '1 second': 1, 
         '5 seconds': 5,

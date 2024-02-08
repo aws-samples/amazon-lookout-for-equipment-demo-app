@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom'
 import ModelOverview from './offlineResults/ModelOverview'
 import DetectedEvents from './offlineResults/DetectedEvents'
 import SignalHistograms from './offlineResults/SignalHistograms'
+import AccuracyOverview from './offlineResults/AccuracyOverview'
 
 // CloudScape Components:
 import ContentLayout    from "@cloudscape-design/components/content-layout"
@@ -62,6 +63,24 @@ function OfflineResults() {
         .then((x) => setModelStatus(x))
     }, [gateway, projectName, modelName])
 
+    const tabs = [
+        {
+            label: "Detected events",
+            id: "detectedEvents",
+            content: <DetectedEvents />
+        },
+        {
+            label: "Signal deep dive",
+            id: "signalDeepDive",
+            content: <SignalHistograms />
+        },
+        {
+            label: "Model accuracy overview",
+            id: "accuracyOverview",
+            content: <AccuracyOverview />
+        }
+    ]
+
     // Renders the component
     return (
         <ContentLayout header={ <Header variant="h1">Offline results for {modelName} model</Header> }>
@@ -69,20 +88,7 @@ function OfflineResults() {
                 <SpaceBetween size='xl'>
                     <ModelOverview />
 
-                    { modelStatus === 'SUCCESS' && <Tabs
-                        tabs={[
-                            {
-                                label: "Detected events",
-                                id: "detectedEvents",
-                                content: <DetectedEvents />
-                            },
-                            {
-                                label: "Signal deep dive",
-                                id: "signalDeepDive",
-                                content: <SignalHistograms />
-                            }
-                        ]} 
-                    /> }
+                    { modelStatus === 'SUCCESS' ? <Tabs tabs={tabs} /> : null }
                 </SpaceBetween>
             </OfflineResultsProvider>
         </ContentLayout>

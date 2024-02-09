@@ -1659,6 +1659,13 @@ Resources:
         PathPart: list-buckets
         ParentId: !GetAtt AppBackendApiGateway.RootResourceId
 
+  DeleteObjectResource:
+      Type: "AWS::ApiGateway::Resource"
+      Properties:
+        RestApiId: !Ref AppBackendApiGateway
+        PathPart: delete-objects
+        ParentId: !GetAtt AppBackendApiGateway.RootResourceId
+
   CsvFromS3PostMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -1854,6 +1861,117 @@ Resources:
               method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
               method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
               # method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Origin:
+                Fn::If:
+                - WithCloudFront
+                - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+                - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
+        PassthroughBehavior: "WHEN_NO_MATCH"
+        RequestTemplates: 
+          "application/json": "{\"statusCode\": 200}"
+        TimeoutInMillis: 29000
+        Type: "MOCK"
+
+  AppBackendApiGatewayAuthorizer:
+    Type: 'AWS::ApiGateway::Authorizer'
+    Properties:
+      Name: 'AppBackendApiGatewayAuthorizer'
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      RestApiId: !Ref AppBackendApiGateway
+      ProviderARNs:
+        - !Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPoolUser}'
+
+  ResourceObject:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+      ParentId: !GetAtt DeleteObjectResource.ResourceId
+      PathPart: '{object}'
+
+  ApiGatewayS3DeleteObjectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - apigateway.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: !Sub 'ApiGatewayS3DeletePolicy-${AWS::Region}'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 's3:DeleteObject'
+                Resource: 
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ApplicationBucket}/*'
+
+  DeleteObjectMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+      ResourceId: !GetAtt ResourceObject.ResourceId
+      HttpMethod: DELETE
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref AppBackendApiGatewayAuthorizer
+      RequestParameters:
+        method.request.path.object: true
+      ApiKeyRequired: false
+      MethodResponses: 
+        - StatusCode: "200"
+          ResponseModels: 
+            application/json: "Empty"
+          ResponseParameters: 
+            method.response.header.Access-Control-Allow-Origin: false
+      Integration: 
+          CacheNamespace: !Ref DeleteObjectResource
+          IntegrationHttpMethod: "DELETE"
+          IntegrationResponses: 
+            - StatusCode: "200"
+              ResponseParameters: 
+                method.response.header.Access-Control-Allow-Origin:
+                  Fn::If:
+                  - WithCloudFront
+                  - !Sub "'https://${CloudFrontDistribution.DomainName}'"
+                  - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
+              ResponseTemplates: {}
+          PassthroughBehavior: "WHEN_NO_MATCH"
+          RequestParameters:
+            integration.request.path.object: method.request.path.object
+          TimeoutInMillis: 29000
+          Type: "AWS"
+          Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:s3:path/${ApplicationBucket}/{object}"
+          Credentials: !GetAtt ApiGatewayS3DeleteObjectRole.Arn
+
+  DeleteObjectOptionsMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      RestApiId: !Ref AppBackendApiGateway
+      ResourceId: !GetAtt DeleteObjectResource.ResourceId
+      HttpMethod: "OPTIONS"
+      AuthorizationType: "NONE"
+      MethodResponses: 
+        - StatusCode: "200"
+          ResponseModels: 
+              application/json: "Empty"
+          ResponseParameters: 
+              method.response.header.Access-Control-Allow-Headers: false
+              method.response.header.Access-Control-Allow-Methods: false
+              method.response.header.Access-Control-Allow-Origin: false
+      Integration: 
+        CacheNamespace: !Ref DeleteObjectResource
+        IntegrationResponses: 
+          - StatusCode: "200"
+            ResponseParameters: 
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
               method.response.header.Access-Control-Allow-Origin:
                 Fn::If:
                 - WithCloudFront

@@ -1267,7 +1267,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-store-inference-results-v5.zip
+            - l4e-demo-app-store-inference-results-v4.zip
       Environment:
         Variables:
           STACK_ID: !Select

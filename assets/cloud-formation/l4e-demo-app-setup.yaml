@@ -1416,7 +1416,7 @@ Resources:
             - '/'
             - l4e-demo-app-parquet2csv-v2.zip
       Layers:
-        - arn:aws:lambda:eu-west-1:336392948345:layer:AWSSDKPandas-Python310:5
+        - !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:336392948345:layer:AWSSDKPandas-Python310:5
       Handler: lambda_function.lambda_handler
       Role: !GetAtt FunctionParquet2CSVRole.Arn
       Runtime: python3.10

@@ -1911,7 +1911,7 @@ Resources:
                 Action:
                   - 's3:DeleteObject'
                 Resource: 
-                  - !Sub 'arn:${AWS::Partition}:s3:::${ApplicationBucket}/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${ApplicationBucket}/raw-datasets/*'
 
   DeleteObjectMethod:
     Type: "AWS::ApiGateway::Method"
@@ -1947,7 +1947,7 @@ Resources:
             integration.request.path.object: method.request.path.object
           TimeoutInMillis: 29000
           Type: "AWS"
-          Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:s3:path/${ApplicationBucket}/{object}"
+          Uri: !Sub "arn:${AWS::Partition}:apigateway:${AWS::Region}:s3:path/${ApplicationBucket}/raw-datasets/{object}"
           Credentials: !GetAtt ApiGatewayS3DeleteObjectRole.Arn
 
   DeleteObjectOptionsMethod:

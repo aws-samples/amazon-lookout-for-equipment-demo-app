@@ -117,6 +117,7 @@ def lambda_handler(event, context):
             'replayStartTime': str(replayStartTime),
             'replayEndTime': str(replayEndTime),
             'dataUploadFrequency': dataUploadFrequency,
+            'dataLag': str(event['dataLag']),
             'uid': uid
         }
         
@@ -142,6 +143,7 @@ def lambda_handler(event, context):
             'outputPrefix': f'inference-data/{modelName}/output/',
             'generateReplayData': False,
             'dataUploadFrequency': dataUploadFrequency,
+            'dataLag': str(event['dataLag']),
             'uid': uid
         }
         

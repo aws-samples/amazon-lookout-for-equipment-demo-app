@@ -1062,7 +1062,7 @@ Resources:
               - Functions
               - KeyPrefix
             - '/'
-            - l4e-demo-app-prepare-replay-data-v5.zip
+            - l4e-demo-app-prepare-replay-data-v6.zip
       Environment:
         Variables:
           STACK_ID: !Select
@@ -2062,7 +2062,7 @@ Resources:
               - SourceCode
               - StateMachines
               - KeyPrefix
-            - 'deploy-model-v1.json'
+            - 'deploy-model-v2.json'
       DefinitionSubstitutions:
         function-prepare-replay-data: !GetAtt FunctionPrepareReplayData.Arn
         function-generate-inference-input: !GetAtt FunctionGenerateInferenceInput.Arn

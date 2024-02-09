@@ -1,6 +1,7 @@
 // Imports:
-import { forwardRef, useContext, useEffect, useImperativeHandle, useState } from 'react'
+import { forwardRef, useContext, useImperativeHandle, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { getModelSamplingRate } from './deploymentUtils.jsx'
 
 // Cloudscape components:
 import Alert            from "@cloudscape-design/components/alert"
@@ -9,6 +10,7 @@ import Button           from "@cloudscape-design/components/button"
 import Checkbox         from "@cloudscape-design/components/checkbox"
 import Container        from "@cloudscape-design/components/container"
 import FormField        from "@cloudscape-design/components/form-field"
+import Input            from "@cloudscape-design/components/input"
 import Modal            from "@cloudscape-design/components/modal"
 import Popover          from "@cloudscape-design/components/popover"
 import Select           from "@cloudscape-design/components/select"
@@ -22,56 +24,6 @@ import ModelDeploymentContext from "../contexts/ModelDeploymentContext"
 
 // App components:
 import StartDateSelection from './StartDateSelection'
-
-async function getModelSamplingRate(gateway, modelName) {
-    if (!modelName) { return undefined }
-    const response = await gateway.lookoutEquipment
-                            .describeModel(modelName)
-                            .catch((error) => { console.log(error.response) })
-
-    const possibleSamplingRate = {
-        'PT1S': 1, 
-        'PT5S': 5,
-        'PT10S': 10,
-        'PT15S': 15,
-        'PT30S': 30,
-        'PT1M': 60,
-        'PT5M': 300,
-        'PT10M': 600,
-        'PT15M': 900,
-        'PT30M': 1800,
-        'PT1H': 3600
-    }
-    let modelSamplingRate = possibleSamplingRate[response['DataPreProcessingConfiguration']['TargetSamplingRate']]
-
-    // modelSamplingRate = 1800
-
-    const possibleSchedulerSamplingRate = {
-        300: { label: "5 minutes", value: "PT5M" },
-        600: { label: "10 minutes", value: "PT10M" },
-        900: { label: "15 minutes", value: "PT15M" },
-        1800: { label: "30 minutes", value: "PT30M" },
-        3600: { label: "60 minutes", value: "PT1H" }
-    }
-
-    let schedulerSROptions = []
-    let selectedOption = undefined
-    const srKeys = Object.keys(possibleSchedulerSamplingRate)
-    srKeys.forEach((sr) => {
-        if (sr >= modelSamplingRate) {
-            schedulerSROptions.push(possibleSchedulerSamplingRate[sr])
-            if (!selectedOption) {
-                selectedOption = possibleSchedulerSamplingRate[sr]
-            }
-        }
-    })
-
-    return {
-        sr: modelSamplingRate,
-        srOptions: schedulerSROptions,
-        selectedOption: selectedOption
-    }
-}
 
 // ---------------------
 // Component entry point
@@ -90,6 +42,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
     const [ startDateSelectionLoading, setStartDateSelectionLoading ]   = useState(false)
     const [ samplingRateOptions, setSamplingRateOptions ]               = useState({})
     const [ selectedSamplingRate, setSelectedSamplingRate ]             = useState(undefined)
+    const [ dataLag, setDataLag ]                                       = useState(0)
 
     const { gateway, uid, navbarCounter, setNavbarCounter }             = useContext(ApiGatewayContext)
     const { stateMachinesList, setStateMachinesList }                   = useContext(ModelDeploymentContext)
@@ -133,6 +86,7 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
             replayDuration: replayDuration['value'],
             replayStart: replayStartDate,
             dataUploadFrequency: selectedSamplingRate.value,
+            dataLag: dataLag,
             uid: uid
         }
 
@@ -272,6 +226,22 @@ const DeploymentModal = forwardRef(function DeploymentModal(props, ref) {
                             onChange={({ detail }) => setSelectedSamplingRate(detail.selectedOption) }
                             options={samplingRateOptions}
                         />
+                    </FormField>
+
+                    <FormField 
+                        label="Data availability lag"
+                        description="If live data is unavailable, adjust the availability lag accordingly. The 
+                                     value below is set in hours. For instance, 24 means the scheduler will find
+                                     data 24 hours old in the target location. This value will be used in the 
+                                     online monitoring result to offset the date/time displayed."
+                    >
+                        <SpaceBetween direction="horizontal">
+                            <Input
+                                value={dataLag}
+                                onChange={({ detail }) => setDataLag(detail.value) }
+                                type="number"
+                            />
+                        </SpaceBetween>
                     </FormField>
 
                     <FormField label="Live data input location" description="S3 location where your input files need to be sent">

@@ -3,7 +3,6 @@ import { useContext } from 'react'
 import ReactEcharts from "echarts-for-react"
 import "../../styles/chartThemeMacarons.js"
 
-
 // Utils:
 import { buildLiveDetectedEventsOptions } from './schedulerUtils'
 
@@ -13,11 +12,10 @@ import SpaceBetween     from "@cloudscape-design/components/space-between"
 import Spinner          from "@cloudscape-design/components/spinner"
 
 // Contexts:
-import HelpPanelContext from '../contexts/HelpPanelContext'
 import OnlineMonitoringContext from '../contexts/OnlineMonitoringContext'
 
 function DetectedEvents({ infoLink }) {
-    const { liveResults, startTime, endTime } = useContext(OnlineMonitoringContext)
+    const { liveResults } = useContext(OnlineMonitoringContext)
 
     if (liveResults && liveResults['modelDetails']['status'] === 'SUCCESS') {
         const timeseries = liveResults['timeseries']
@@ -35,9 +33,8 @@ function DetectedEvents({ infoLink }) {
             anomalies,
             rawAnomalies,
             samplingRate,
-            startTime, 
-            endTime,
-            showTopN
+            showTopN,
+            liveResults.modelDetails.schedulerLag
         )
 
         return (

@@ -82,11 +82,25 @@ async function getModelDetails(gateway, uid, projectName, modelName) {
 
     const modelResponse = await gateway.lookoutEquipment
                                        .describeModel(`${uid}-${projectName}-${modelName}`)
-                                       .catch((error) => console.log(error.response)) 
+                                       .catch((error) => console.log(error.response))
+
+    const schedulerResponse = await gateway.lookoutEquipment
+                                    .listInferenceSchedulers(`${uid}-${projectName}-${modelName}`)
+                                    .catch((error) => console.log(error.response))
+    const schedulerArn = schedulerResponse['InferenceSchedulerSummaries'][0]['InferenceSchedulerArn']
+    const schedulerTags = await gateway.lookoutEquipment
+                               .listTagsForResource(schedulerArn)
+                               .catch((error) => console.log(error.response))
+
+    let dataLag = 0
+    schedulerTags.Tags.forEach((tag) => {
+        if (tag.Key === 'DataLag') { dataLag = parseInt(tag.Value) }
+    })
 
     let response = {
         status: modelResponse['Status'],
-        samplingRate: possibleSamplingRate[modelResponse['DataPreProcessingConfiguration']['TargetSamplingRate']]
+        samplingRate: possibleSamplingRate[modelResponse['DataPreProcessingConfiguration']['TargetSamplingRate']],
+        schedulerLag: dataLag
     }
 
     return response
@@ -264,39 +278,51 @@ export async function getAssetCondition(gateway, asset, startTime, endTime, proj
 // ----------------------------------------------------------------
 // Builds the option object to build the live detected event charts
 // ----------------------------------------------------------------
-export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContribution, anomalies, rawAnomalies, samplingRate, startTime, endTime, showTopN) {
+export function buildLiveDetectedEventsOptions(
+    tagsList, 
+    timeseries, 
+    sensorContribution, 
+    anomalies, 
+    rawAnomalies, 
+    samplingRate, 
+    showTopN,
+    timeLag,
+) {
     let series = []
     const legendWidth = getLegendWidth(tagsList)
     const eventTitle = "Detected events"
 
     // Computes min and max of xAxis:
-    const xMin = new Date(anomalies[0].timestamp.N * 1000)
-    const xMax = new Date(anomalies[anomalies.length - 1].timestamp.N * 1000)
+    let xMin = new Date(anomalies[0].timestamp.N * 1000)
+    let xMax = new Date(anomalies[anomalies.length - 1].timestamp.N * 1000)
+    if (timeLag) {
+        xMin -= timeLag * 3600 * 1000
+        xMax -= timeLag * 3600 * 1000
+    }
 
     // Prepare anomalies data:
-    const anomaliesSeries = buildAnomaliesSeries(anomalies)
+    const anomaliesSeries = buildAnomaliesSeries(anomalies, timeLag)
     series = [...anomaliesSeries]
 
     // Prepare raw anomalies data:
-    const rawAnomaliesSeries = buildRawAnomaliesSeries(anomalies, rawAnomalies)
+    const rawAnomaliesSeries = buildRawAnomaliesSeries(rawAnomalies, timeLag)
     series = [...series, ...rawAnomaliesSeries]
 
     // Prepare sensor contribution data:
     let sortedKeys = tagsList
     if (sensorContribution) {
         // let sensorContributionSeries = {}
-        let { sortedKeys, sensorContributionSeries } = buildSensorContributionSeries(
+        let { sensorContributionSeries } = buildSensorContributionSeries(
             tagsList, 
             samplingRate, 
-            anomalies[0].timestamp['N']*1000,
-            anomalies[anomalies.length - 1].timestamp['N']*1000, 
-            sensorContribution
+            sensorContribution,
+            timeLag
         )
         series = [...series, ...sensorContributionSeries]
     }
 
     // Configuring the series for the raw time series data:
-    const signalSeries = buildSignalSeries(timeseries, tagsList)
+    const signalSeries = buildSignalSeries(timeseries, tagsList, timeLag)
     series = [...series, ...signalSeries]
 
     // Finally build the full configuration for all the plots to be displayed:
@@ -370,8 +396,8 @@ export function buildLiveDetectedEventsOptions(tagsList, timeseries, sensorContr
 // --------------------------------------------------
 // Build the eChart series for the detected anomalies
 // --------------------------------------------------
-function buildAnomaliesSeries(anomalies) {
-    const results = buildTimeseries2(anomalies, 'anomaly', 'N')
+function buildAnomaliesSeries(anomalies, timeLag) {
+    const results = buildTimeseries2(anomalies, 'anomaly', 'N', 'timestamp', timeLag)
 
     let series = [
         {
@@ -400,8 +426,8 @@ function buildAnomaliesSeries(anomalies) {
 // --------------------------------------------------
 // Build the eChart series for the detected anomalies
 // --------------------------------------------------
-function buildRawAnomaliesSeries(anomalies, rawAnomalies) {
-    const anomalyScoreResults = buildTimeseries2(rawAnomalies, 'anomaly_score', 'N')
+function buildRawAnomaliesSeries(rawAnomalies, timeLag) {
+    const anomalyScoreResults = buildTimeseries2(rawAnomalies, 'anomaly_score', 'N', 'timestamp', timeLag)
 
     const gradientAlphaChannel = 0.5
     let series = [
@@ -457,12 +483,13 @@ function buildRawAnomaliesSeries(anomalies, rawAnomalies) {
 // -----------------------------------------------------
 // Builds the eChart series for the sensor contributions
 // -----------------------------------------------------
-function buildSensorContributionSeries(tagsList, samplingRate, startTime, endTime, sensorContribution) {
+function buildSensorContributionSeries(tagsList, samplingRate, sensorContribution, timeLag) {
     let totalContribution = {}
     let data = {}
 
     sensorContribution.forEach((item, index) => {
-        const x = new Date(item.timestamp.N * 1000)
+        let x = new Date(item.timestamp.N * 1000)
+        if (timeLag) {  x -= timeLag * 3600 * 1000 }
 
         if (index > 1) {
             const previousX = new Date(sensorContribution[index - 1].timestamp.N * 1000)
@@ -515,13 +542,14 @@ function buildSensorContributionSeries(tagsList, samplingRate, startTime, endTim
 // -------------------------------------------
 // Prepare the time series data of the signals
 // -------------------------------------------
-function buildSignalSeries(timeseries, sortedKeys) {    
+function buildSignalSeries(timeseries, sortedKeys, timeLag) {    
     let signalSeries = []
     let data = {}
 
     // Prepare the raw time series data:
     timeseries.Items.forEach((item) => {
-        const x = new Date(item.unix_timestamp.N * 1000)
+        let x = new Date(item.unix_timestamp.N * 1000)
+        if (timeLag) {  x -= timeLag * 3600 * 1000 }
 
         sortedKeys.forEach((tag) => {
             const y = parseFloat(item[tag].S)
@@ -558,7 +586,15 @@ function buildSignalSeries(timeseries, sortedKeys) {
 // ------------------------------------------------------------------
 // Builds the eChart options object to plot the signal behavior chart
 // ------------------------------------------------------------------
-export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferenceTimeseries, anomalies, sensorContribution, samplingRate) {
+export function buildSignalBehaviorOptions(
+    tagsList, 
+    trainingTimeseries, 
+    inferenceTimeseries, 
+    anomalies, 
+    sensorContribution, 
+    samplingRate,
+    timeLag
+) {
     let options = {}
     let yMin = undefined
     let yMax = undefined
@@ -567,7 +603,7 @@ export function buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferen
     // We want to build a chart options for each individual tag:
     tagsList.forEach((tag) => {
         const {trainingSeries, trainingYMin, trainingYMax} = getTagTrainingTimeseries(tag, trainingTimeseries.timeseries)
-        const {inferenceSeries, inferenceYMin, inferenceYMax} = getTagInferenceTimeseries(tag, inferenceTimeseries, xAnomalies, sensorContribution, samplingRate)
+        const {inferenceSeries, inferenceYMin, inferenceYMax} = getTagInferenceTimeseries(tag, inferenceTimeseries, xAnomalies, sensorContribution, samplingRate, timeLag)
         const histogramsSeries = getHistograms(tag, trainingTimeseries, inferenceTimeseries, xAnomalies)
 
         inferenceYMin < trainingYMin ? yMin = inferenceYMin : yMin = trainingYMin
@@ -666,7 +702,7 @@ function getAnomaliesXCoordinates(anomalies) {
 // ------------------------------------------------
 // Plot configuration for the inference time series
 // ------------------------------------------------
-function getTagInferenceTimeseries(tag, timeseries, xAnomalies, sensorContribution, samplingRate) {
+function getTagInferenceTimeseries(tag, timeseries, xAnomalies, sensorContribution, samplingRate, timeLag) {
     let data = []
     let dataAnomalies = []
     let dataContribution = []
@@ -675,7 +711,8 @@ function getTagInferenceTimeseries(tag, timeseries, xAnomalies, sensorContributi
 
     // Prepare the raw time series data:
     timeseries.Items.forEach((item) => {
-        const x = new Date(item.unix_timestamp.N * 1000)
+        let x = new Date(item.unix_timestamp.N * 1000)
+        if (timeLag) { x -= timeLag * 3600 * 1000}
         const y = parseFloat(item[tag].S)
         data.push([x, y])
 
@@ -691,7 +728,8 @@ function getTagInferenceTimeseries(tag, timeseries, xAnomalies, sensorContributi
 
     // Prepare the sensor contribution as a time series:
     sensorContribution.forEach((item, index) => {
-        const x = new Date(item.timestamp.N * 1000)
+        let x = new Date(item.timestamp.N * 1000)
+        if (timeLag) { x -= timeLag * 3600 * 1000}
         const y = parseFloat(item[tag].N)
 
         if (index > 1) {

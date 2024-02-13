@@ -20,7 +20,7 @@ export function buildTimeseries(items, field, fieldType, daily) {
     return {x, y, sum}
 }
 
-export function buildTimeseries2(items, field, fieldType, timestampField) {
+export function buildTimeseries2(items, field, fieldType, timestampField, timeLag) {
     let data = []
     let sum = 0
     let yMin = undefined
@@ -29,7 +29,8 @@ export function buildTimeseries2(items, field, fieldType, timestampField) {
     if (!timestampField) { timestampField = 'timestamp'}
 
     items.forEach((item) => {
-        const x = new Date(parseInt(item[timestampField]['N'])*1000)
+        let x = new Date(parseInt(item[timestampField]['N'])*1000)
+        if (timeLag) {  x -= timeLag * 3600 * 1000 }
         const y = parseFloat(item[field][fieldType])
         data.push([x, y])
 

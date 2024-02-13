@@ -7,7 +7,7 @@ import { colorPalette } from "../../styles/chartThemeMacarons.js"
 import Alert from "@cloudscape-design/components/alert"
 
 // Contexts:
-import ApiGatewayContext from '../contexts/ApiGatewayContext'
+import ApiGatewayContext from '../contexts/ApiGatewayContext.jsx'
 
 // Utils
 import { getAssetCondition } from './schedulerUtils'

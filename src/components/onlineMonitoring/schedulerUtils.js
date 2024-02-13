@@ -428,28 +428,38 @@ function buildAnomaliesSeries(anomalies, timeLag) {
 // --------------------------------------------------
 function buildRawAnomaliesSeries(rawAnomalies, timeLag) {
     const anomalyScoreResults = buildTimeseries2(rawAnomalies, 'anomaly_score', 'N', 'timestamp', timeLag)
-
+    const yMax = anomalyScoreResults['yMax']
     const gradientAlphaChannel = 0.5
+
+    let offsets = []
+    offsets.push({ offset: 1.00, color: `rgba(103, 163, 83, 0.1)` })                                                        // Green (#67a353)
+    if (yMax > 0.50) { offsets.push({ offset: 1 - 0.50 / yMax, color: `rgba(103, 163, 83, ${gradientAlphaChannel})` }) }    // Green (#67a353)
+    if (yMax > 0.55) { offsets.push({ offset: 1 - 0.55 / yMax, color: `rgba(224, 121, 65, 0.2)` }) }                        // Orange (#e07941)
+    if (yMax > 0.80) { offsets.push({ offset: 1 - 0.80 / yMax, color: `rgba(224, 121, 65, ${gradientAlphaChannel})` }) }    // Orange (#e07941)
+    if (yMax > 0.90) { offsets.push({ offset: 1 - 0.90 / yMax, color: `rgba(163,  41, 82, ${gradientAlphaChannel})` }) }    // Red (#a32952)
+    if (yMax > 0.98) { offsets.push({ offset: 0.0, color: `rgba(163,  41, 82, ${gradientAlphaChannel})` }) }                // Red (#a32952)
+    
     let series = [
         {
             symbol: 'none',
             data: anomalyScoreResults['data'],
             type: 'line',
             lineStyle: {
-                color: {
-                    type: 'linear',
-                    x: 0, y: 0, x2: 0, y2: 1,
-                    colorStops: [
-                        { offset: 1.00, color: `rgba(103, 163, 83)` }, // Green (#67a353)
-                        { offset: 0.65, color: `rgba(103, 163, 83)` }, // Green (#67a353)
-                        { offset: 0.50, color: `rgba(224, 121, 65)` }, // Orange (#e07941)
-                        { offset: 0.00, color: `rgba(163,  41, 82)` }  // Red (#a32952)
-                    ]
-                },
-                opacity: 1.0,
-                shadowColor: 'rgba(0, 0, 0, 0.2)',
-                shadowBlur: 5,
-                width: 2.0
+                color: '#000000',
+                // color: {
+                //     type: 'linear',
+                //     x: 0, y: 0, x2: 0, y2: 1,
+                //     colorStops: [
+                //         { offset: 1.00, color: `rgba(103, 163, 83)` }, // Green (#67a353)
+                //         { offset: 0.65, color: `rgba(103, 163, 83)` }, // Green (#67a353)
+                //         { offset: 0.50, color: `rgba(224, 121, 65)` }, // Orange (#e07941)
+                //         { offset: 0.00, color: `rgba(163,  41, 82)` }  // Red (#a32952)
+                //     ]
+                // },
+                // opacity: 1.0,
+                // shadowColor: 'rgba(0, 0, 0, 0.2)',
+                // shadowBlur: 5,
+                width: 0.5
             },
             xAxisIndex: 1,
             yAxisIndex: 1,
@@ -463,14 +473,7 @@ function buildRawAnomaliesSeries(rawAnomalies, timeLag) {
                 color: {
                     type: 'linear',
                     x: 0, y: 0, x2: 0, y2: 1,
-                    colorStops: [
-                        { offset: 1.00, color: `rgba(103, 163, 83, 0.1)` },                     // Green (#67a353)
-                        { offset: 0.50, color: `rgba(103, 163, 83, ${gradientAlphaChannel})` }, // Green (#67a353)
-                        { offset: 0.45, color: `rgba(224, 121, 65, 0.2)` },                     // Orange (#e07941)
-                        { offset: 0.20, color: `rgba(224, 121, 65, ${gradientAlphaChannel})` }, // Orange (#e07941)
-                        { offset: 0.10, color: `rgba(163,  41, 82, ${gradientAlphaChannel})` }, // Red (#a32952)
-                        { offset: 0.00, color: `rgba(163,  41, 82, ${gradientAlphaChannel})` }  // Red (#a32952)
-                    ]
+                    colorStops: offsets
                 }
             }
         }

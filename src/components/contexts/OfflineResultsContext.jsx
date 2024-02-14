@@ -171,7 +171,7 @@ function buildTrainingTimeseries(timeseries, tagsList, start, end) {
     const endTime = parseInt(new Date(end).getTime() / 1000)
 
     const newTimeseries = timeseries.filter((item) => {
-        parseInt(item.unix_timestamp.N) >= startTime && parseInt(item.unix_timestamp.N) <= endTime
+        if (parseInt(item.unix_timestamp.N) >= startTime && parseInt(item.unix_timestamp.N) <= endTime) { return true }
     })
 
     // Prepare the raw time series data:
@@ -209,7 +209,7 @@ function buildEvaluationTimeSeries(timeseries, tagsList, start, end, events) {
     const endTime = parseInt(new Date(end).getTime() / 1000)
 
     const newTimeseries = timeseries.filter((item) => {
-        parseInt(item.unix_timestamp.N) >= startTime && parseInt(item.unix_timestamp.N) <= endTime
+        if (parseInt(item.unix_timestamp.N) >= startTime && parseInt(item.unix_timestamp.N) <= endTime) { return true }
     })
 
     // Prepare the raw time series data:

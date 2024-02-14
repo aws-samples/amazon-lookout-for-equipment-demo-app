@@ -19,6 +19,7 @@ import ApiGatewayContext from "../contexts/ApiGatewayContext"
 // Utils:
 import { getProjectData } from './projectDashboardUtils'
 import { stopAndDeleteScheduler, deleteScheduler } from '../../utils/utils'
+import { deleteBucketObject } from "../../utils/api.js"
 
 function DeleteProjectModal({ visible, onDiscard }) {
     const [ listModels, setListModels ] = useState([])
@@ -117,6 +118,7 @@ function DeleteProjectModal({ visible, onDiscard }) {
 
         // ### TO DO Delete also the raw-datasets used for ingestion ###
         // s3://.../raw-datasets/{projectName}/{projectName}/${projectName}/sensors.csv
+        await deleteBucketObject(`${projectName}/${projectName}/sensors.csv`)
 
         // Wait for a second, close the modal window and navigate
         // away as this project does not exist anymore:

@@ -1630,6 +1630,8 @@ Resources:
     - ListObjectsOptionsMethod
     - ListBucketsPostMethod
     - ListBucketsOptionsMethod
+    - DeleteObjectMethod
+    - DeleteObjectOptionsMethod
 
   CreateProjectResource:
     Type: AWS::ApiGateway::Resource
@@ -1663,8 +1665,15 @@ Resources:
       Type: "AWS::ApiGateway::Resource"
       Properties:
         RestApiId: !Ref AppBackendApiGateway
-        PathPart: delete-objects
+        PathPart: delete-object
         ParentId: !GetAtt AppBackendApiGateway.RootResourceId
+
+  DeleteObjectProxyResource:
+      Type: "AWS::ApiGateway::Resource"
+      Properties:
+        RestApiId: !Ref AppBackendApiGateway
+        PathPart: '{object}'
+        ParentId: !Ref DeleteObjectResource
 
   CsvFromS3PostMethod:
     Type: AWS::ApiGateway::Method
@@ -1882,13 +1891,6 @@ Resources:
       ProviderARNs:
         - !Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${CognitoUserPoolUser}'
 
-  ResourceObject:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      RestApiId: !Ref AppBackendApiGateway
-      ParentId: !GetAtt DeleteObjectResource.ResourceId
-      PathPart: '{object}'
-
   ApiGatewayS3DeleteObjectRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1917,32 +1919,38 @@ Resources:
     Type: "AWS::ApiGateway::Method"
     Properties:
       RestApiId: !Ref AppBackendApiGateway
-      ResourceId: !GetAtt ResourceObject.ResourceId
+      ResourceId: !GetAtt DeleteObjectProxyResource.ResourceId
       HttpMethod: DELETE
-      AuthorizationType: COGNITO_USER_POOLS
-      AuthorizerId: !Ref AppBackendApiGatewayAuthorizer
-      RequestParameters:
-        method.request.path.object: true
+      AuthorizationType: NONE
       ApiKeyRequired: false
+      RequestParameters: 
+        method.request.path.object: true
       MethodResponses: 
-        - StatusCode: "200"
+        - StatusCode: 200
           ResponseModels: 
-            application/json: "Empty"
+            application/json: Empty
           ResponseParameters: 
-            method.response.header.Access-Control-Allow-Origin: false
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+        - StatusCode: 500
       Integration: 
-          CacheNamespace: !Ref DeleteObjectResource
           IntegrationHttpMethod: "DELETE"
           IntegrationResponses: 
-            - StatusCode: "200"
+            - StatusCode: 200
+              SelectionPattern: 2\d{2}
+              ResponseTemplates: 
+                application/json: ""
               ResponseParameters: 
                 method.response.header.Access-Control-Allow-Origin:
                   Fn::If:
                   - WithCloudFront
                   - !Sub "'https://${CloudFrontDistribution.DomainName}'"
-                  - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
-              ResponseTemplates: {}
-          PassthroughBehavior: "WHEN_NO_MATCH"
+                  - !Sub "'*'"
+            - StatusCode: 400
+              SelectionPattern: 4\d{2}
+            - StatusCode: 500
+              SelectionPattern: 5\d{2}
+          PassthroughBehavior: WHEN_NO_MATCH
           RequestParameters:
             integration.request.path.object: method.request.path.object
           TimeoutInMillis: 29000
@@ -1954,32 +1962,38 @@ Resources:
     Type: "AWS::ApiGateway::Method"
     Properties:
       RestApiId: !Ref AppBackendApiGateway
-      ResourceId: !GetAtt DeleteObjectResource.ResourceId
+      ResourceId: !GetAtt DeleteObjectProxyResource.ResourceId
       HttpMethod: "OPTIONS"
-      AuthorizationType: "NONE"
+      AuthorizationType: NONE
+      ApiKeyRequired: false
+      RequestParameters: 
+          "method.request.path.object": true
       MethodResponses: 
         - StatusCode: "200"
           ResponseModels: 
-              application/json: "Empty"
+              "application/json": "Empty"
           ResponseParameters: 
-              method.response.header.Access-Control-Allow-Headers: false
-              method.response.header.Access-Control-Allow-Methods: false
-              method.response.header.Access-Control-Allow-Origin: false
+              "method.response.header.Access-Control-Allow-Headers": false
+              "method.response.header.Access-Control-Allow-Methods": false
+              "method.response.header.Access-Control-Allow-Origin": false
+          
       Integration: 
-        CacheNamespace: !Ref DeleteObjectResource
+        CacheNamespace: !Ref DeleteObjectProxyResource
         IntegrationResponses: 
           - StatusCode: "200"
             ResponseParameters: 
-              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
-              method.response.header.Access-Control-Allow-Methods: "'OPTIONS,POST'"
-              method.response.header.Access-Control-Allow-Origin:
+              "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              "method.response.header.Access-Control-Allow-Methods": "'DELETE,OPTIONS'"
+              "method.response.header.Access-Control-Allow-Origin": 
                 Fn::If:
                 - WithCloudFront
                 - !Sub "'https://${CloudFrontDistribution.DomainName}'"
-                - !Sub "'https://${FrontendBucket.RegionalDomainName}/index.html'"
+                - !Sub "'*'"
+            ResponseTemplates: {}
+            StatusCode: "200"
         PassthroughBehavior: "WHEN_NO_MATCH"
         RequestTemplates: 
-          "application/json": "{\"statusCode\": 200}"
+            "application/json": "{\"statusCode\": 200}"
         TimeoutInMillis: 29000
         Type: "MOCK"
 
@@ -3403,7 +3417,7 @@ Outputs:
       Fn::If:
       - WithCloudFront
       - !Sub https://${CloudFrontDistribution.DomainName}
-      - !Sub https://${FrontendBucket.RegionalDomainName}/index.html
+      - 'http://localhost:5174/'
     Description: URL for the Amazon Lookout for Equipment Demo app
   ApplicationBucket:
     Value: !Ref ApplicationBucket

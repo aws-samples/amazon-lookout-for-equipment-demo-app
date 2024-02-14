@@ -45,6 +45,7 @@ async function getModelStatus(gateway, uid, projectName, modelName) {
 // Component main entry point
 // --------------------------
 function OfflineResults() {
+    
     const { helpPanelOpen, setHelpPanelOpen } = useContext(HelpPanelContext)
     const { gateway, uid } = useContext(ApiGatewayContext)
     const { modelName, projectName } = useParams()

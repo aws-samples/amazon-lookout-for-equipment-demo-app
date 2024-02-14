@@ -138,6 +138,35 @@ async function getTimeseriesRange(gateway, targetTableName) {
     }
 }
 
+// Get the time extent of a given anomalies table:
+async function getAnomaliesTimeseriesRange(gateway, targetTableName, model) {
+    let contentHead = gateway.dynamoDb.query({ 
+                           TableName: targetTableName,
+                           KeyConditionExpression: "model = :model",
+                           ExpressionAttributeValues: { ":model": {"S": model} },
+                        //    ProjectionExpression: "timestamp",
+                           Limit: 1
+                       })
+                       .catch((error) => console.log(error.response))
+
+    let contentTail = gateway.dynamoDb.query({ 
+                        TableName: targetTableName,
+                        KeyConditionExpression: "model = :model",
+                        ExpressionAttributeValues: { ":model": {"S": model} },
+                        // ProjectionExpression: "timestamp",
+                        Limit: 1,
+                        ScanIndexForward: false
+                    })
+                    .catch((error) => console.log(error.response))
+
+    const results = await Promise.all([contentHead, contentTail])
+
+    return {
+        startTime: parseInt(results[0].Items[0].timestamp.N),
+        endTime: parseInt(results[1].Items[0].timestamp.N)
+    }
+}
+
 // -------------------------------------------
 // Extract all the sensor data for a given 
 // model but within a certain time window only
@@ -212,7 +241,6 @@ export async function getModelDetails(gateway, modelName, projectName, uid, dele
     const modelResponse = await gateway.lookoutEquipment
                                        .describeModel(`${uid}-${projectName}-${modelName}`)
                                        .catch((error) => console.log(error.response))
-
     let offCondition = processOffResponse(modelResponse)
     if (offCondition) { offCondition['component'] = projectName }
     let {labelGroupName, labels} = await processLabels(gateway, modelResponse)
@@ -397,7 +425,6 @@ export function getTagsListFromModel(modelResponse) {
 // Get model evaluation details
 // ----------------------------
 async function getModelEvaluationInfos(gateway, modelName, assetName, endTime, uid) {
-    // const currentModelName = assetName + '|' + modelName
     const anomalies = await getAnomalies(gateway, modelName, endTime, assetName, uid)
     const dailyAggregation = await getDailyAggregation(gateway, modelName, endTime, assetName, uid)
     const sensorContribution = await getSensorContribution(gateway, modelName, assetName, endTime, uid)
@@ -438,20 +465,47 @@ async function getEvents(gateway, modelName, projectName, uid) {
 // -----------------------------------------------------------
 // Get all the anomalies in the database for the current model
 // -----------------------------------------------------------
-async function getAnomalies(gateway, model, endTime, projectName, uid) {
-    const anomaliesQuery = { 
-        TableName: `l4edemoapp-${uid}-${projectName}-anomalies`,
-        KeyConditionExpression: "#model = :model AND #timestamp <= :endTime",
-        ExpressionAttributeNames: { "#model": "model", "#timestamp": "timestamp"},
-        ExpressionAttributeValues: { 
-            ":model": {"S": `${uid}-${projectName}-${model}`},
-            ":endTime": {"N": endTime.toString()}
+async function getAnomalies(gateway, model, endTime2, projectName, uid) {
+    const targetTableName = `l4edemoapp-${uid}-${projectName}-anomalies`
+    let { startTime, endTime } = await getAnomaliesTimeseriesRange(gateway, targetTableName, `${uid}-${projectName}-${model}`)
+    if (endTime2 < endTime) { endTime = endTime2 }
+    const numSegments = 10
+    const segmentDuration = (endTime - startTime) / numSegments
+    let anomaliesQueries = []
+    let anomalies = { Items: [] }
+
+    // Looping through all the segments we 
+    // are going to query in parallel:
+    for (var i = 0; i < numSegments; i++) {
+        // Start and end time of the current segment to collect data for:
+        const currentStart = startTime + i*segmentDuration
+        const currentEnd = currentStart + segmentDuration - 1 * (i < numSegments - 1)
+
+        // Preparing the query for this segment:
+        let currentQuery = { 
+            TableName: targetTableName,
+            KeyConditionExpression: "#model = :model AND #timestamp BETWEEN :startTime AND :endTime",
+            ExpressionAttributeNames: {"#model": "model", "#timestamp": "timestamp"},
+            ExpressionAttributeValues: { 
+                ":model": {"S": `${uid}-${projectName}-${model}`},
+                ":startTime": {"N": currentStart.toString()},
+                ":endTime": {"N": currentEnd.toString()}
+            }
         }
+
+        currentQuery = gateway.dynamoDb
+                              .queryAll(currentQuery)
+                              .catch((error) => { console.log(error.response)})
+
+        anomaliesQueries.push(currentQuery)
     }
 
-    let anomalies = await gateway
-        .dynamoDb.queryAll(anomaliesQuery)
-        .catch((error) => console.log(error.response))
+    // Run all the promises in parallel, assemble and sort the results:
+    const results = await Promise.all(anomaliesQueries)
+    results.forEach((chunk) => {
+        anomalies.Items = [...anomalies.Items, ...chunk.Items]
+    })
+    anomalies.Items.sort((a, b) => { return a.timestamp.N - b.timestamp.N })
 
     return anomalies
 }

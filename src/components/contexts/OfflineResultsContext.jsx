@@ -167,21 +167,26 @@ export const OfflineResultsProvider = ({ children }) => {
 function buildTrainingTimeseries(timeseries, tagsList, start, end) {
     let data = {}
     let dataHistograms = {}
+    const startTime = parseInt(new Date(start).getTime() / 1000)
+    const endTime = parseInt(new Date(end).getTime() / 1000)
+
+    const newTimeseries = timeseries.filter((item) => {
+        parseInt(item.unix_timestamp.N) >= startTime && parseInt(item.unix_timestamp.N) <= endTime
+    })
 
     // Prepare the raw time series data:
-    timeseries.forEach((item) => {
+    newTimeseries.forEach((item) => {
         const x = new Date(item.unix_timestamp.N * 1000)
-        if (x >= start && x <= end) {
-            tagsList.forEach((tag) => {
-                const y = parseFloat(item[tag].S)
-                if (!data[tag]) { 
-                    data[tag] = [] 
-                    dataHistograms[tag] = []
-                }
-                data[tag].push([x, y])
-                dataHistograms[tag].push(y)
-            })
-        }
+
+        tagsList.forEach((tag) => {
+            const y = parseFloat(item[tag].S)
+            if (!data[tag]) { 
+                data[tag] = [] 
+                dataHistograms[tag] = []
+            }
+            data[tag].push([x, y])
+            dataHistograms[tag].push(y)
+        })
     })
 
     return {
@@ -200,30 +205,34 @@ function buildEvaluationTimeSeries(timeseries, tagsList, start, end, events) {
     let anomaly = false
     let evaluationHistogram = {}
     let anomaliesHistogram = {}
+    const startTime = parseInt(new Date(start).getTime() / 1000)
+    const endTime = parseInt(new Date(end).getTime() / 1000)
+
+    const newTimeseries = timeseries.filter((item) => {
+        parseInt(item.unix_timestamp.N) >= startTime && parseInt(item.unix_timestamp.N) <= endTime
+    })
 
     // Prepare the raw time series data:
-    timeseries.forEach((item) => {
+    newTimeseries.forEach((item) => {
         const x = new Date(item.unix_timestamp.N * 1000)
         binarySearchBins(events, x) >= 0 ? anomaly = true : anomaly = false
 
-        if (x >= start && x <= end) {
-            tagsList.forEach((tag) => {
-                if (!data[tag]) { 
-                    data[tag] = []
-                    dataAnomalies[tag] = [] 
-                    evaluationHistogram[tag] = []
-                    anomaliesHistogram[tag] = []
-                }
+        tagsList.forEach((tag) => {
+            if (!data[tag]) { 
+                data[tag] = []
+                dataAnomalies[tag] = [] 
+                evaluationHistogram[tag] = []
+                anomaliesHistogram[tag] = []
+            }
 
-                const y = parseFloat(item[tag].S)
-                data[tag].push([x, y])
-                evaluationHistogram[tag].push(y)
-                if (anomaly) {
-                    dataAnomalies[tag].push([x, y])
-                    anomaliesHistogram[tag].push(y)
-                }
-            })
-        }
+            const y = parseFloat(item[tag].S)
+            data[tag].push([x, y])
+            evaluationHistogram[tag].push(y)
+            if (anomaly) {
+                dataAnomalies[tag].push([x, y])
+                anomaliesHistogram[tag].push(y)
+            }
+        })
     })
 
     return {

@@ -88,3 +88,18 @@ export async function copyCsvFromS3(
 
     return response.data
 }
+
+
+// ----------------------------------------------------
+// Delete object in a S3 bucket
+// if the key object contains / it will be transformed
+// with the proper encoding
+// ----------------------------------------------------
+export async function deleteBucketObject(key) {
+
+    let response = await axios.delete(
+       `https://${window.apiGatewayId}.execute-api.${window.region}.amazonaws.com/default/delete-object/${key.split('/').map(encodeURIComponent).join('%2F')}`
+    )
+
+    return response.data
+}

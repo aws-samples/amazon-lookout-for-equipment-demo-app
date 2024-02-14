@@ -34,8 +34,17 @@ function SignalHistogramCards({ liveResults, trainingTimeseries }) {
     const anomalies = liveResults['anomalies']
     const sensorContribution = liveResults['sensorContribution']
     const samplingRate = liveResults['modelDetails']['samplingRate']
+    const schedulerLag = liveResults.modelDetails.schedulerLag
 
-    const signalOptions = buildSignalBehaviorOptions(tagsList, trainingTimeseries, inferenceTimeseries, anomalies, sensorContribution, samplingRate)
+    const signalOptions = buildSignalBehaviorOptions(
+        tagsList, 
+        trainingTimeseries, 
+        inferenceTimeseries, 
+        anomalies, 
+        sensorContribution, 
+        samplingRate,
+        schedulerLag
+    )
 
     let cardItems = []
     tagsList.forEach((tag) => {

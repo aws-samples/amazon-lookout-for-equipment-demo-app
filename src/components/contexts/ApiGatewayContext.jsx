@@ -150,6 +150,9 @@ export const ApiGatewayProvider = ({user, children}) => {
             describeInferenceScheduler(schedulerName) {
                 return request("LookoutEquipment", "DescribeInferenceScheduler", {InferenceSchedulerName: schedulerName})
             },
+            listTagsForResource(resourceArn) {
+                return request("LookoutEquipment", "ListTagsForResource", {ResourceArn: resourceArn})
+            },
 
             // --------------------------------
             // Label and label group management

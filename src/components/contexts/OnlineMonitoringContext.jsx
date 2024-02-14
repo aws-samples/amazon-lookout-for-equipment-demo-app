@@ -27,8 +27,10 @@ export const OnlineMonitoringProvider = ({ children, range }) => {
     useEffect(() => {
         loadLiveData(gateway, uid, projectName, modelName, startTime, endTime)
         .then((x) => {
-            setLiveResults(x[0])
-            setTrainingTimeseries(x[1])
+            if (x) {
+                setLiveResults(x[0])
+                setTrainingTimeseries(x[1])
+            }
         })
     }, [gateway, modelName, projectName, range])
 
@@ -49,6 +51,8 @@ export const OnlineMonitoringProvider = ({ children, range }) => {
 // Loads live data and training time series
 // ----------------------------------------
 async function loadLiveData(gateway, uid, projectName, modelName, startTime, endTime) {
+    if (!uid) { return undefined }
+
     const liveResults = getLiveResults(gateway, uid, projectName, modelName, startTime, endTime)
     const timeseries = getTrainingTimeseries(gateway, uid + '-' + projectName, `${uid}-${projectName}-${modelName}`)
 

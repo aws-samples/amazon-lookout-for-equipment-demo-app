@@ -100,7 +100,7 @@ function ListModels({ projectName }) {
         modelDeploymentRef.current.showDeploymentModal(false)
     }
 
-    const showModelDeployment = (modelName) => { 
+    const showModelDeployment = (modelName) => {
         modelDeploymentRef.current.showDeploymentModal(true, modelName)
     }
 

@@ -73,6 +73,10 @@
             {
               "Key": "Replay",
               "Value": "false"
+            },
+            {
+                "Key": "DataLag",
+                "Value.$": "$.dataLag"
             }
           ]
         },
@@ -174,6 +178,10 @@
                     {
                       "Key": "Replay",
                       "Value": "true"
+                    },
+                    {
+                        "Key": "DataLag",
+                        "Value.$": "$.dataLag"
                     }
                   ]
                 },

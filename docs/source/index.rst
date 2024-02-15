@@ -9,6 +9,12 @@ to visualize your model results and deploy it, making it ready to receive your
 shop floor live data. This application also includes an operational dashboard 
 to visualize your live results.
 
+The following diagram illustrate the workflow you will follow to train and deploy
+your first model with this application (in the red frame below). The key steps 
+are highlighted in the green boxes while the blue ones are optional:
+
+.. image:: images/application-workflow-diagram.png
+
 .. note::
 
    This project is under active development.

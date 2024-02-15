@@ -25,9 +25,11 @@ page of the application:
 What's next?
 
 * To learn more about how to navigate this application, scroll down to the :ref:`Navigation section <login navigation>`.
+* To learn how to create new users, scroll down to the :ref:`User management section <login user_creation>`.
 * To create your first project, go the :ref:`Project creation section <project_creation>`.
 
 .. _login navigation:
+
 Navigating the application
 --------------------------
 
@@ -46,3 +48,22 @@ From left to right you will find:
   you the **current version** of the app and let you send us a **feedback** by email.
 * A cog icon which will give you access to application-wide **settings**.
 * A **sign out** button to log out or switch user.
+
+.. _login user_creation:
+
+User creation
+-------------
+
+There are two ways to manage users to access this application: in app or manual.
+
+
+If your administrator **allowed users to sign up directly in the app**, you will see 
+a **Create account** tab on the login page:
+
+.. image:: images/login-with-signup.png
+
+Fill in your user information and click on the **Create account** button to create
+your account and be automatically logged in.
+
+**If in app sign up is not enabled**, your administrator will have to create your 
+user in the backend. See :ref:`Creating users <admin user_creation>` to learn more.

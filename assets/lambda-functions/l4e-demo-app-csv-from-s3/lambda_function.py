@@ -70,7 +70,6 @@ def lambda_handler(event, context):
             
         else:
             assumedRole = event['existingRole']
-            'arn:aws:iam::905637044774:role/L4EDemoApp-CopyCSVFromS3'
     
         # Creating a session to assume this role
         response = sts_client.assume_role(

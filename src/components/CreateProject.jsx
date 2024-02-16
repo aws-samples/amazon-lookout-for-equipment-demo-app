@@ -10,6 +10,7 @@ import { getAvailableDefaultProjectName } from '../utils/utils.js'
 import CSVUpload from "./createProject/CSVUpload.jsx"
 import TimestreamImport from "./createProject/TimestreamImport.jsx"
 import CSVFromS3 from "./createProject/CSVFromS3.jsx"
+import GlueImport from "./createProject/GlueImport.jsx"
 
 // CloudScape components:
 import Alert            from "@cloudscape-design/components/alert"
@@ -49,6 +50,7 @@ function CreateProject() {
     const csvUploadRef = useRef(undefined)
     const timestreamImportRef = useRef(undefined)
     const csvFromS3Ref = useRef(undefined)
+    const glueImportRef = useRef(undefined)
 
     const { gateway, uid } = useContext(ApiGatewayContext)
     const navigate = useNavigate()
@@ -190,6 +192,12 @@ function CreateProject() {
                                             //     value: 'zip-s3'
                                             // },
                                             {
+                                                label: 'Glue Data Catalog Table',
+                                                description: 'Extract a subset of an AWS Glue Data Catalog table',
+                                                iconUrl: 'glue-icon-32.png',
+                                                value: 'glue'
+                                            },
+                                            {
                                                 label: 'Timestream Table',
                                                 description: 'Extract a subset of an Amazon Timestream table',
                                                 iconUrl: 'timestream-icon-32.png',
@@ -226,6 +234,16 @@ function CreateProject() {
 
                                 { selectedImportMethod.value === 'csv-s3' && <CSVFromS3 
                                     ref={csvFromS3Ref}
+                                    setUploadInProgress={setUploadInProgress}
+                                    setAssetError={setAssetError}
+                                    setErrorMessage={setErrorMessage}
+                                    errorMessage={errorMessage}
+                                    assetDescription={assetDescription}
+                                    projectName={projectName}
+                                /> }
+
+                                { selectedImportMethod.value === 'glue' && <GlueImport 
+                                    ref={glueImportRef}
                                     setUploadInProgress={setUploadInProgress}
                                     setAssetError={setAssetError}
                                     setErrorMessage={setErrorMessage}

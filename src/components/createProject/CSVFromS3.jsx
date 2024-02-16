@@ -20,6 +20,11 @@ import { getListBuckets, getListObjects, copyCsvFromS3 } from "../../utils/api.j
 import { waitForPipelineStart } from '../../utils/utils.js'
 import { checkProjectNameValidity, checkAssetDescriptionValidity } from './createProjectUtils.js'
 
+// ***************************************************************************************************************
+// https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html
+// https://stackoverflow.com/questions/76988536/aws-api-gateway-to-s3-integration-how-to-list-files-under-a-folder
+// ***************************************************************************************************************
+
 // --------------------------
 // Component main entry point
 // --------------------------

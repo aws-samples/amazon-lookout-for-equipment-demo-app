@@ -76,6 +76,46 @@ Once it is completed, you will see a green CREATE_COMPLETE message next to the n
 of the stack (on the left panel of the CloudFormation console), indicating that the 
 deployment is completed.
 
+Known issues with failed deployments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In some cases the CloudFormation deployment templates may failed even though you have
+all the necessary permissions to create the application ressources. The first resource
+creation failure message may be linked to a Lambda function creation which look like 
+the following:
+
+.. code-block:: text
+
+    MemorySize value failed to satisfy constraint: Member must have value less than or equal to 3008
+
+This is linked to an Amazon `Lambda quota`_ issue which happens with new AWS accounts.
+New accounts have reduced concurrency and memory quotas. AWS raises these quotas automatically
+based on your usage. However, to deploy the template for this app, some Lambda functions
+require a 10 GB memory. You will need to cut a support ticket to AWS requesting something
+along these lines:
+
+.. code-block:: text
+
+    Dear AWS Support,
+
+    We would like to deploy the open source web application for Amazon Lookout for Equipment.
+    You can review the published CloudFormation template in the following AWS Samples GitHub
+    repo:
+
+    https://github.com/aws-samples/amazon-lookout-for-equipment-demo-app
+
+    To successfully deploy this template in this new AWS account, we need our Lambda memory 
+    quota raised to 10 GB.
+
+    Best regards,
+
+    ...
+
+To create this ticket, log into your AWS account and search for the question mark icon
+on the top right of your navigation bar. Click on it and select **Support Center** in the
+drop down menu. Then click on the **Create case** button and select **Technical** as the
+related issue.
+
 Upgrade
 ^^^^^^^
 
@@ -183,3 +223,4 @@ or team from your organization.
 .. _us-east-1: https://us-east-1.console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=LookoutEquipmentApp&templateURL=https://lookout-equipment-content-us-east-1.s3.amazonaws.com/l4e-demo-app/v1.1.0/cloud-formation-templates/l4e-demo-app-setup.yaml
 .. _eu-west-1: https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=LookoutEquipmentApp&templateURL=https://lookout-equipment-content-eu-west-1.s3.eu-west-1.amazonaws.com/l4e-demo-app/v1.1.0/cloud-formation-templates/l4e-demo-app-setup.yaml
 .. _ap-northeast-2: https://ap-northeast-2.console.aws.amazon.com/cloudformation/home?region=ap-northeast-2#/stacks/new?stackName=LookoutEquipmentApp&templateURL=https://lookout-equipment-content-ap-northeast-2.s3.ap-northeast-2.amazonaws.com/l4e-demo-app/v1.1.0/cloud-formation-templates/l4e-demo-app-setup.yaml
+.. _Lambda quota: https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html

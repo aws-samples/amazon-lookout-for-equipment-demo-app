@@ -26,7 +26,7 @@ What's next?
 
 * To learn more about how to navigate this application, scroll down to the :ref:`Navigation section <login navigation>`.
 * To learn how to create new users, scroll down to the :ref:`User management section <login user_creation>`.
-* To create your first project, go the :ref:`Project creation section <project_creation>`.
+* To create your first project, go the :ref:`Project creation section <project creation>`.
 
 .. _login navigation:
 

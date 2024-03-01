@@ -2,6 +2,9 @@
 
 Creating a project
 ==================
+
+Organizing your model hierarchy
+-------------------------------
 Projects are the first level of your hierachy in a given user account. Depending
 on your use case, you may use a single project to host the data for a facility,
 a production line (or facility area), or a piece of equipment. A project can store
@@ -9,19 +12,42 @@ a time series dataset of up to 3,000 sensors. Within a project, you will be able
 to train and deploy multiple anomaly detection models, and each model will be able
 to use up to 300 sensors out of the data available within a given project.
 
+The following table gives some examples of different ways you can organize your 
+models. This is by no way exhaustive
+
++----------+-----------------+----------------------------+
+| Account  | Project         | Model                      |
++==========+=================+============================+
+| Facility | Production line | 1 piece of equipment       |
++----------+-----------------+----------------------------+
+| Facility | Facility area   | 1 production line          |
++----------+-----------------+----------------------------+
+| User     | Facility        | 1 piece of equipment       |
+|          |                 |                            |
+|          |                 | All equipment in an area   |
++----------+-----------------+----------------------------+
+
+Currently, each account is isolated. Users logging into the app from different
+accounts won't see each other's projects. If you want several users to be able
+to visualize shared projects, you can create a team-based account with credentials
+that will be shared between different team members. 
+
+Ingesting data to create a new project
+--------------------------------------
+
 To monitor your equipment or industrial process, you must provide Amazon Lookout 
 for Equipment with time series data with the sensors from your equipment or process.
 To create a project, click on **Create project** in the left hand menu. You will
 be presented with a form where you can enter the following information to create
 a new project:
 
-* **Project name:** use up to 170 characters to name your project. Valid characters 
+* ``Project name:`` use up to 170 characters to name your project. Valid characters 
   are a-z, A-Z, 0-9, _ (underscore), and - (hyphen)
-* **Asset or process description:** What type of asset will you monitor within this 
+* ``Asset or process description:`` What type of asset will you monitor within this 
   project? This can be a piece of equipment, a production line, a manufacturing 
   process, a shop floor area... This is used for future reference so anyone knows
   what this project can monitor
-* **Dataset importing method:** you can ingest your time series data in the application
+* ``Dataset importing method:`` you can ingest your time series data in the application
   through different methods: CSV file from your computer, CSV file located in an
   Amazon S3 bucket, or an extract from an Amazon Timestream table.
 
@@ -46,11 +72,11 @@ the ingestion, the following actions are performed by the application on your
 behalf:
 
 * A Lookout for Equipment project is created
-* Your CSV file is pushed to Amazon S3 and is ingested from there into
+* Your raw CSV file is pushed to Amazon S3 and is ingested from there into
   Lookout for Equipment
 * A hourly dataset is also created by downsampling your original data. This
   downsampled dataset will be used for visualization purpose throughout the
-  app.
+  application and won't be used for model training purpose.
 
 Loading a CSV file from a computer
 ----------------------------------
@@ -87,6 +113,24 @@ Click on **Create project** to launch the ingestion process.
 
 Importing a CSV file from Amazon S3
 -----------------------------------
+
+You may have some properly formatted CSV files already located in an Amazon S3
+location. In this case, you can point the application to their location and let
+the ingestion process starts from there. To achieve this, in the ``Dataset importing
+method``, select **CSV File on S3**. Then you can either fill in the full S3
+path or browse potential locations to pick the CSV file up. Note that when you
+use **Browse S3**, you will only be able to visualize the locations that the
+underlying AWS account (the one where the app has been deployed in) has access to.
+If you want to point to an S3 location owned by another AWS account, you will have
+to fill in the full path manually.
+
+To access the S3 location you selected, you need to give the app the appropriate
+read permission. You can either let the app create a role with the right permission
+or provide the ARN (*Amazon Resource Name*) of an existing role with the appropriate
+access. If you let the app create a role, the latter will just be used for copy
+the data to the bucket managed by the app. This role will then be deleted.
+
+.. image:: images/create-project-s3.png
 
 Extracting data from an Amazon Timestream table
 -----------------------------------------------

@@ -1679,7 +1679,7 @@ Resources:
         TimeoutInMillis: 29000
         PassthroughBehavior: WHEN_NO_MATCH
         Uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:states:action/StartExecution
-        Credentials: !GetAtt APIGatewayRole.Arn
+        Credentials: !GetAtt AppBackendApiGatewayRole.Arn
         IntegrationResponses:
           - StatusCode: "200"
             ResponseParameters:
@@ -1692,7 +1692,7 @@ Resources:
             ResponseTemplates:
               application/json: ""
     DependsOn:
-    - FunctionCsvFromS3
+    - AppBackendApiGatewayRole
 
   CsvFromS3OptionsMethod:
     Type: "AWS::ApiGateway::Method"
@@ -1887,10 +1887,9 @@ Resources:
     - AppBackendApiGateway
     - FunctionListBuckets
 
-  # -----------------------------
-  # STEP FUNCTIONS AND ASSOCIATED
-  # LOG GROUPS DEFINITIONS
-  # -----------------------------
+  # --------------------------
+  # STEP FUNCTIONS DEFINITIONS
+  # --------------------------
   DatasetPreparationStateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
@@ -2512,18 +2511,20 @@ Resources:
   StepFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Join
-        - "-"
-        - - StepFunctionsExecutionRole
-          - !Select
-            - 0
-            - !Split
-              - "-"
-              - !Select
-                - 2
-                - !Split
-                  - "/"
-                  - !Ref "AWS::StackId"
+      # RoleName: !Join
+      #   - "-"
+      #   - - StepFunctionsExecutionRole
+      #     - !Select
+      #       - 0
+      #       - !Split
+      #         - "-"
+      #         - !Select
+      #           - 2
+      #           - !Split
+      #             - "/"
+      #             - !Ref "AWS::StackId"
+      ManagedPolicyArns:
+        - !Ref StepFunctionExecutionPolicy
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -2599,27 +2600,6 @@ Resources:
                   - lookoutequipment:CreateDataset
                   - lookoutequipment:StartDataIngestionJob
                   - lookoutequipment:TagResource
-                Effect: Allow
-                Resource: '*'
-        - PolicyName: !Join
-          - "-"
-          - - StepFunctionsStartSFNPermissions
-            - !Select
-              - 0
-              - !Split
-                - "-"
-                - !Select
-                  - 2
-                  - !Split
-                    - "/"
-                    - !Ref "AWS::StackId"
-          PolicyDocument:
-            Version: 2012-10-17
-            Statement:
-              - Action:
-                  - states:StartExecution
-                  - states:DescribeExecution
-                  - states:StopExecution
                 Effect: Allow
                 Resource: '*'
         - PolicyName: !Join
@@ -3140,6 +3120,19 @@ Resources:
           Principal:
             Service: lambda.amazonaws.com
 
+  AppBackendApiGatewayRole:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+        - !Ref StepFunctionExecutionPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+            
   # ------------------------------------------------------
   # IAM FINE GRAINED POLICIES
   # These policies cover all the needs of the app and will
@@ -3275,6 +3268,40 @@ Resources:
             - timestream:DescribeEndpoints
             Effect: Allow
             Resource: '*'
+
+  # This gives ability to run Step Functions:
+  StepFunctionExecutionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties: 
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Action:
+            - states:StartExecution
+            Effect: Allow
+            Resource: !Join 
+              - ''
+              - - 'arn:'
+                - !Ref 'AWS::Partition'
+                - ':states:'
+                - !Ref 'AWS::Region'
+                - ':'
+                - !Ref 'AWS::AccountId'
+                - ':stateMachine:l4e-demo-app*'
+          - Action:
+            - states:DescribeExecution
+            - states:GetExecutionHistory
+            - states:StopExecution
+            Effect: Allow
+            Resource: !Join 
+              - ''
+              - - 'arn:'
+                - !Ref 'AWS::Partition'
+                - ':states:'
+                - !Ref 'AWS::Region'
+                - ':'
+                - !Ref 'AWS::AccountId'
+                - ':execution:l4e-demo-app*'
 
 # ================
 # OUTPUTS

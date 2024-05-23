@@ -24,6 +24,7 @@ Contents
 
 .. toctree::
 
+   use-case
    login
    project-creation
    reviewing-dataset

@@ -330,6 +330,72 @@ export const ApiGatewayProvider = ({user, children}) => {
     
                 return overall_response
             }
+        },
+
+        // ---------------------
+        // Glue and Athena calls
+        // ---------------------
+        glue: {
+            async getDatabases() {
+                return queryAllItems(
+                    'DatabaseList', 
+                    'Glue', 
+                    'GetDatabases'
+                )
+            },
+            async getTables(databaseName) {
+                return queryAllItems(
+                    'TableList',
+                    'Glue',
+                    'GetTables',
+                    { DatabaseName: databaseName }
+                )
+            },
+            async getTable(databaseName, tableName) {
+                return request(
+                    'Glue',
+                    'GetTable',
+                    { DatabaseName: databaseName, Name: tableName }
+                )
+            },
+            async query(query, s3Path) {
+                let response = await request(
+                    "Athena", 
+                    "StartQueryExecution", 
+                    {
+                        QueryString: query,
+                        ResultConfiguration: { OutputLocation: s3Path },
+                        ClientRequestToken: uuidv4()
+                    }
+                )
+
+                const queryId = response.QueryExecutionId
+                let maxExecution = 50
+                let state = 'QUEUED'
+                while (maxExecution > 0 && (state === 'RUNNING' || state === 'QUEUED')) {
+                    maxExecution -= 1
+                    response = await request(
+                        "Athena", 
+                        "GetQueryExecution", 
+                        { QueryExecutionId: queryId }
+                    )
+                    state = response.QueryExecution.Status.State
+                    await new Promise(r => setTimeout(r, 1000))
+                }
+
+                if (state === "SUCCEEDED") {
+                    let response = await request(
+                        "Athena", 
+                        "GetQueryResults", 
+                        { QueryExecutionId: queryId }
+                    )
+
+                    return response
+                }
+                else {
+                    return undefined
+                }
+            },
         }
     }
 

@@ -60,7 +60,7 @@ function CreateProject() {
     // ----------------------------------------------------------------
     const handleCreateProjectSubmit = async (e) => {
         e.preventDefault()
-        
+
         switch(selectedImportMethod.value) {
             case 'csv-upload':
                 await csvUploadRef.current.processCsvUpload()
@@ -70,6 +70,9 @@ function CreateProject() {
                 break
             case 'timestream':
                 await timestreamImportRef.current.processTimestreamImport()
+                break
+            case 'glue':
+                await glueImportRef.current.processTimestreamImport()
                 break
         }
     }

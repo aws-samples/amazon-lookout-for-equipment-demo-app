@@ -2341,6 +2341,50 @@ Resources:
             - timestream:Select
             Effect: Allow
             Resource: '*'
+      # The authenticated user needs the following permissions to interact with
+      # Glue when extracting data from the Glue Data Catalog to create a new project:
+      - PolicyName: !Join
+        - "_"
+        - - GluePermissions
+          - !Select
+            - 0
+            - !Split
+              - "-"
+              - !Select
+                - 2
+                - !Split
+                  - "/"
+                  - !Ref "AWS::StackId"
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Action:
+            - glue:GetDatabases
+            - glue:GetTables
+            - glue:GetTable
+            - glue:GetPartitions
+            - athena:StartQueryExecution
+				    - athena:GetQueryExecution
+				    - athena:GetQueryResults
+            Effect: Allow
+            Resource: '*'
+          - Action:
+            - s3:GetBucketLocation
+            - s3:GetObject
+            - s3:ListBucket
+            - s3:ListBucketMultipartUploads
+            - s3:ListMultipartUploadParts
+            - s3:AbortMultipartUpload
+            - s3:PutObject
+            Effect: Allow
+            Resource: 
+            - ApplicationBucket.Arn
+            - !Sub ${ApplicationBucket.Arn}/*
+          - Action:
+            - s3:GetObject
+            - s3:ListBucket
+            Effect: Allow
+            Resource: '*' 
       # The authenticated users must be able to run the backend Step Functions:
       - PolicyName: !Join
         - "_"

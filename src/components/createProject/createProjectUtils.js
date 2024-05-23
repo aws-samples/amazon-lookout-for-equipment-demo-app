@@ -56,7 +56,6 @@ export async function getAllDatabases(gateway) {
                                   .listDatabases()
                                   .catch((error) => console.log(error))
 
-    // let databasesList = [{'label': 'Select a database', value: undefined}]
     let databasesList = []
     if (response['Databases'].length > 0) {
         response['Databases'].forEach((database) => {
